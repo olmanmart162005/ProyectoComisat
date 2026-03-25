@@ -1,10 +1,10 @@
 import { Link, useNavigate } from "react-router-dom";
 
-
 import {
   GridIcon,
   HorizontaLDots,
   ListIcon,
+  PlugInIcon,
   TableIcon,
   PlugInIcon,
   UserCircleIcon,

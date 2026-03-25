@@ -32,7 +32,6 @@ export default function Productos() {
   const [editandoId, setEditandoId] = useState(null);
   const [enviando, setEnviando] = useState(false);
 
-
   const [nombre, setNombre] = useState("");
   const [descripcion, setDescripcion] = useState("");
   const [precioContado, setPrecioContado] = useState("");
@@ -42,18 +41,43 @@ export default function Productos() {
   const [categoriaNombre, setCategoriaNombre] = useState("");
   const [estado, setEstado] = useState("Activo");
 
- 
   const [archivoImagen, setArchivoImagen] = useState(null);
   const [previewImagen, setPreviewImagen] = useState(null);
-  const [imagenUrlActual, setImagenUrlActual] = useState(""); 
+  const [imagenUrlActual, setImagenUrlActual] = useState("");
+  const [categoriaFiltro, setCategoriaFiltro] = useState("");
+  const [stockFiltro, setStockFiltro] = useState("");
 
   const { isOpen, openModal, closeModal } = useModal();
 
-  //contandores 
+  //contandores
   const totalProductos = productos.length;
-  const productosActivos = productos.filter((p) => p.estado === "Activo").length;
-  const stockTotal = productos.reduce((acc, p) => acc + (Number(p.stock) || 0), 0);
+  const productosActivos = productos.filter(
+    (p) => p.estado === "Activo",
+  ).length;
+  const stockTotal = productos.reduce(
+    (acc, p) => acc + (Number(p.stock) || 0),
+    0,
+  );
 
+  // Filtrar productos
+  const productosFiltrados = useMemo(() => {
+    return productos.filter((p) => {
+      const cumpleCategoria =
+        !categoriaFiltro || p.categoriaId === categoriaFiltro;
+      const cumpleStock =
+        stockFiltro === ""
+          ? true
+          : stockFiltro === "bajo"
+            ? Number(p.stock) <= 5
+            : stockFiltro === "medio"
+              ? Number(p.stock) > 5 && Number(p.stock) <= 15
+              : stockFiltro === "alto"
+                ? Number(p.stock) > 15
+                : true;
+
+      return cumpleCategoria && cumpleStock;
+    });
+  }, [productos, categoriaFiltro, stockFiltro]);
 
   const fetchCategorias = async () => {
     try {
@@ -326,18 +350,30 @@ export default function Productos() {
 
   return (
     <div className="space-y-6">
-
       {/* ── Encabezado ── */}
       <div className="flex sm:justify-between flex-col sm:flex-row gap-4 items-start sm:items-center">
         <h2 className="text-2xl font-bold text-gray-800 dark:text-white/90">
           Productos
         </h2>
         <button
-          onClick={() => { resetFormulario(); openModal(); }}
+          onClick={() => {
+            resetFormulario();
+            openModal();
+          }}
           className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-5 py-2.5 rounded-lg shadow-sm transition flex items-center gap-2"
         >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+          <svg
+            className="w-5 h-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+            />
           </svg>
           Nuevo Producto
         </button>
@@ -348,19 +384,25 @@ export default function Productos() {
         <MetricCard
           title="Total Productos"
           value={totalProductos}
-          icon={<BoxIconLine className="text-gray-800 size-6 dark:text-white/90" />}
+          icon={
+            <BoxIconLine className="text-gray-800 size-6 dark:text-white/90" />
+          }
           iconWrapperClass="bg-gray-100 dark:bg-gray-800"
         />
         <MetricCard
           title="Productos Activos"
           value={productosActivos}
-          icon={<CheckCircleIcon className="text-green-600 size-6 dark:text-green-400" />}
+          icon={
+            <CheckCircleIcon className="text-green-600 size-6 dark:text-green-400" />
+          }
           iconWrapperClass="bg-green-50 dark:bg-green-500/10"
         />
         <MetricCard
           title="Stock Total"
           value={stockTotal}
-          icon={<CloseIcon className="text-blue-600 size-6 dark:text-blue-400" />}
+          icon={
+            <CloseIcon className="text-blue-600 size-6 dark:text-blue-400" />
+          }
           iconWrapperClass="bg-blue-50 dark:bg-blue-500/10"
         />
       </div>
@@ -377,9 +419,13 @@ export default function Productos() {
           >
             {/* Nombre */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-400">Nombre</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-400">
+                Nombre
+              </label>
               <input
-                type="text" required value={nombre}
+                type="text"
+                required
+                value={nombre}
                 onChange={(e) => setNombre(e.target.value)}
                 placeholder="Ej. Cafetera"
                 className="mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white"
@@ -388,16 +434,21 @@ export default function Productos() {
 
             {/* Categoría */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-400">Categoría</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-400">
+                Categoría
+              </label>
               <select
-                value={categoriaId} onChange={handleCategoriaChange}
+                value={categoriaId}
+                onChange={handleCategoriaChange}
                 className="mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm text-gray-900 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
               >
                 {categorias.length === 0 ? (
                   <option disabled>Cargando categorías...</option>
                 ) : (
                   categorias.map((cat) => (
-                    <option key={cat.id} value={cat.id}
+                    <option
+                      key={cat.id}
+                      value={cat.id}
                       className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
                     >
                       {cat.nombre}
@@ -409,9 +460,12 @@ export default function Productos() {
 
             {/* Descripción — ocupa 2 columnas */}
             <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-400">Descripción</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-400">
+                Descripción
+              </label>
               <textarea
-                value={descripcion} onChange={(e) => setDescripcion(e.target.value)}
+                value={descripcion}
+                onChange={(e) => setDescripcion(e.target.value)}
                 placeholder="Ej. Cafetera Oster de 8 tazas"
                 rows={2}
                 className="mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white resize-none"
@@ -420,10 +474,18 @@ export default function Productos() {
 
             {/* Precio Contado */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-400">Precio Contado (L.)</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-400">
+                Precio Contado (L.)
+              </label>
               <input
-                type="number" required min="0" value={precioContado}
-                onChange={(e) => { if (e.target.value === "" || Number(e.target.value) >= 0) setPrecioContado(e.target.value); }}
+                type="number"
+                required
+                min="0"
+                value={precioContado}
+                onChange={(e) => {
+                  if (e.target.value === "" || Number(e.target.value) >= 0)
+                    setPrecioContado(e.target.value);
+                }}
                 placeholder="3500"
                 className="mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white"
               />
@@ -431,10 +493,18 @@ export default function Productos() {
 
             {/* Precio Crédito */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-400">Precio Crédito (L.)</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-400">
+                Precio Crédito (L.)
+              </label>
               <input
-                type="number" required min="0" value={precioCredito}
-                onChange={(e) => { if (e.target.value === "" || Number(e.target.value) >= 0) setPrecioCredito(e.target.value); }}
+                type="number"
+                required
+                min="0"
+                value={precioCredito}
+                onChange={(e) => {
+                  if (e.target.value === "" || Number(e.target.value) >= 0)
+                    setPrecioCredito(e.target.value);
+                }}
                 placeholder="3600"
                 className="mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white"
               />
@@ -442,10 +512,18 @@ export default function Productos() {
 
             {/* Stock */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-400">Stock</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-400">
+                Stock
+              </label>
               <input
-                type="number" required min="0" value={stock}
-                onChange={(e) => { if (e.target.value === "" || Number(e.target.value) >= 0) setStock(e.target.value); }}
+                type="number"
+                required
+                min="0"
+                value={stock}
+                onChange={(e) => {
+                  if (e.target.value === "" || Number(e.target.value) >= 0)
+                    setStock(e.target.value);
+                }}
                 placeholder="10"
                 className="mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white"
               />
@@ -453,19 +531,34 @@ export default function Productos() {
 
             {/* Estado */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-400">Estado</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-400">
+                Estado
+              </label>
               <select
-                value={estado} onChange={(e) => setEstado(e.target.value)}
+                value={estado}
+                onChange={(e) => setEstado(e.target.value)}
                 className="mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm text-gray-900 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
               >
-                <option value="Activo" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white">Activo</option>
-                <option value="Inactivo" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white">Inactivo</option>
+                <option
+                  value="Activo"
+                  className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                >
+                  Activo
+                </option>
+                <option
+                  value="Inactivo"
+                  className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                >
+                  Inactivo
+                </option>
               </select>
             </div>
 
             {/* Imagen — ocupa 2 columnas */}
             <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-400">Imagen del Producto</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-400">
+                Imagen del Producto
+              </label>
               <div className="mt-1 flex items-center gap-4">
                 {/* Preview */}
                 {previewImagen ? (
@@ -476,8 +569,16 @@ export default function Productos() {
                   />
                 ) : (
                   <div className="w-16 h-16 rounded-lg bg-gray-100 dark:bg-white/5 border border-dashed border-gray-300 dark:border-white/10 flex items-center justify-center flex-shrink-0">
-                    <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
+                    <svg
+                      className="w-6 h-6 text-gray-400"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={1.5}
                         d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
                       />
                     </svg>
@@ -491,7 +592,9 @@ export default function Productos() {
                     className="block w-full text-sm text-gray-500 file:mr-3 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-600 hover:file:bg-blue-100 dark:text-gray-400 dark:file:bg-blue-500/10 dark:file:text-blue-400"
                   />
                   {editandoId && !archivoImagen && (
-                    <p className="text-xs text-gray-400 mt-1">Deja vacío para conservar la imagen actual.</p>
+                    <p className="text-xs text-gray-400 mt-1">
+                      Deja vacío para conservar la imagen actual.
+                    </p>
                   )}
                 </div>
               </div>
@@ -500,24 +603,74 @@ export default function Productos() {
             {/* Botón submit */}
             <div className="flex gap-3 md:col-span-2 mt-2">
               <button
-                type="submit" disabled={enviando}
-                className={`flex-1 p-2 rounded-md text-white font-bold transition ${enviando ? "bg-gray-400" : editandoId ? "bg-blue-600 hover:bg-blue-700" : "bg-green-600 hover:bg-green-700"
-                  }`}
+                type="submit"
+                disabled={enviando}
+                className={`flex-1 p-2 rounded-md text-white font-bold transition ${
+                  enviando
+                    ? "bg-gray-400"
+                    : editandoId
+                      ? "bg-blue-600 hover:bg-blue-700"
+                      : "bg-green-600 hover:bg-green-700"
+                }`}
               >
-                {enviando ? "Procesando..." : editandoId ? "Actualizar" : "Guardar"}
+                {enviando
+                  ? "Procesando..."
+                  : editandoId
+                    ? "Actualizar"
+                    : "Guardar"}
               </button>
             </div>
           </form>
         </div>
       </Modal>
 
-      {/* ── Tabla ── */}
-      <DataTable
-        columns={columns}
-        data={productos}
-        loading={loading}
-        searchPlaceholder="Buscar producto..."
-      />
+      {/* ── Tabla con Filtros ── */}
+      <div className="space-y-3">
+        <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
+          <select
+            value={categoriaFiltro}
+            onChange={(e) => setCategoriaFiltro(e.target.value)}
+            className="px-3 py-2 text-sm border border-gray-300 rounded-md text-gray-900 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
+          >
+            <option value="">Categorías</option>
+            {categorias.map((cat) => (
+              <option key={cat.id} value={cat.id}>
+                {cat.nombre}
+              </option>
+            ))}
+          </select>
+
+          <select
+            value={stockFiltro}
+            onChange={(e) => setStockFiltro(e.target.value)}
+            className="px-3 py-2 text-sm border border-gray-300 rounded-md text-gray-900 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
+          >
+            <option value="">Stock</option>
+            <option value="bajo">Bajo (≤ 5)</option>
+            <option value="medio">Medio (6 - 15)</option>
+            <option value="alto">Alto ({`> 15`})</option>
+          </select>
+
+          {(categoriaFiltro || stockFiltro) && (
+            <button
+              onClick={() => {
+                setCategoriaFiltro("");
+                setStockFiltro("");
+              }}
+              className="px-3 py-2 text-sm rounded-md border border-gray-300 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-white/[0.06] transition"
+            >
+              Limpiar
+            </button>
+          )}
+        </div>
+
+        <DataTable
+          columns={columns}
+          data={productosFiltrados}
+          loading={loading}
+          searchPlaceholder="Buscar producto..."
+        />
+      </div>
     </div>
   );
 }

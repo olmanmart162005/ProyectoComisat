@@ -24,6 +24,7 @@ import Empleados from "../pages/Empleados";
 import Productos from "../pages/Productos";
 import Usuarios from "../pages/Usuarios";
 import ConfiguracionGlobal from "../pages/ConfiguracionGlobal";
+import ConfiguracionGlobal from "../pages/ConfiguracionGlobal";
 
 export default function AppRouter() {
   const { user } = useAuth();

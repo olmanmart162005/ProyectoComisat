@@ -1,13 +1,14 @@
 import { useState } from "react";
 import { useAuth } from "../auth/AuthProvider";
 import { useNavigate } from "react-router-dom";
+import { sileo, Toaster } from "sileo";
 
 export default function Login() {
+  Toaster.position = "top-right";
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [enviando, setEnviando] = useState(false);
-  const [error, setError] = useState("");
 
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -15,17 +16,33 @@ export default function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setEnviando(true);
-    setError("");
 
     try {
       await login(email, password);
-      navigate("/"); // Nos vamos al Dashboard
+      navigate("/");
     } catch (err) {
-      console.error("Error capturado:", err.code);
-      if (err.code === "auth/invalid-credential") {
-        setError("Correo o contraseña incorrectos.");
-      } else {
-        setError("Ocurrió un error al intentar ingresar.");
+      console.error("Error capturado:", err.code ?? err.message);
+
+      // 1. Usuario inactivo — lanzado manualmente desde AuthProvider
+      if (err.message === "Cuenta inactiva") {
+        sileo.error({
+          title: "Acceso denegado",
+          description: "Tu cuenta se encuentra inactiva. Contacta al administrador.",
+        });
+      }
+      // 2. Credenciales incorrectas — error de Firebase
+      else if (err.code === "auth/invalid-credential") {
+        sileo.error({
+          title: "Credenciales incorrectas",
+          description: "Correo o contraseña incorrectos. Intenta de nuevo.",
+        });
+      }
+      // 3. Cualquier otro error
+      else {
+        sileo.error({
+          title: "Error al iniciar sesión",
+          description: "Ocurrió un error inesperado. Intenta más tarde.",
+        });
       }
     } finally {
       setEnviando(false);
@@ -35,19 +52,15 @@ export default function Login() {
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col items-center justify-center px-4">
 
-      {/* Título fuera de la card */}
       <div className="w-full max-w-sm mb-6">
         <h1 className="text-2xl font-bold text-gray-900">
           Portal Administrativo del Comisariato
         </h1>
-        
       </div>
 
-      {/* Card */}
       <div className="w-full max-w-sm bg-white rounded-2xl shadow-md px-8 py-10">
         <form onSubmit={handleSubmit} className="space-y-5">
 
-          {/* Email */}
           <div>
             <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wide mb-1.5">
               Email
@@ -62,7 +75,6 @@ export default function Login() {
             />
           </div>
 
-          {/* Password */}
           <div>
             <div className="flex items-center justify-between mb-1.5">
               <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wide">
@@ -89,14 +101,12 @@ export default function Login() {
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition"
               >
                 {showPassword ? (
-                  // ojo cerrado
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8}
                       d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88L6.59 6.59m7.532 7.532l3.29 3.29M3 3l18 18"
                     />
                   </svg>
                 ) : (
-                  // ojo abierto
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8}
                       d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
@@ -110,10 +120,6 @@ export default function Login() {
             </div>
           </div>
 
-          {/* Mensaje de error si falla el login */}
-          {error && <p className="text-red-500 text-sm font-medium text-center">{error}</p>}
-
-          {/* Botón */}
           <button
             type="submit"
             disabled={enviando}
@@ -125,7 +131,6 @@ export default function Login() {
         </form>
       </div>
 
-      {/* Footer */}
       <p className="mt-8 text-center text-xs text-gray-400 uppercase tracking-widest">
         © 2026 Sistema de Comisariato — Equipo C, UNICAH
       </p>

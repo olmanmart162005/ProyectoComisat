@@ -15,13 +15,14 @@ import { getStorage } from "firebase/storage";
     Puedes obtenerlos en la consola de Firebase
 */
 
+// Your web app's Firebase configuration
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  apiKey: "AIzaSyCmwypHciuDjPmRj7UIVCWb0JuoEZkPcgg",
+  authDomain: "comisariatoazucarera.firebaseapp.com",
+  projectId: "comisariatoazucarera",
+  storageBucket: "comisariatoazucarera.firebasestorage.app",
+  messagingSenderId: "527894657764",
+  appId: "1:527894657764:web:9873e9286a274e39c74af1"
 };
 
 

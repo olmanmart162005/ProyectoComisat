@@ -1,41 +1,145 @@
 import { Navigate, Route, Routes } from "react-router-dom";
-import ProtectedRoute from "../auth/ProtectedRoute";
 import { useAuth } from "../auth/AuthProvider";
+import { Toaster } from "sileo";
+
+import ProtectedRoute from "../auth/ProtectedRoute";
+import { ActiveRoute } from "../auth/ActiveRoute";
+import { RoleRoute } from "../auth/RoleRoute";
+
 import AppLayout from "../layout/AppLayout";
-import Dashboard from "../pages/Dashboard";
-import Empleados from "../pages/Empleados";
 import Login from "../pages/Login";
+import { RoleRedirect } from "../auth/RoleRedirect";
 import NoEncontrado from "../pages/NoEncontrado";
+import AccesoDenegado from "../pages/AccesoDenegado";
+
+// Dashboards por rol
+import Dashboard from "../pages/Dashboard";
+import DashboardGestor from "../pages/DashboardGestor";
+import DashboardOficial from "../pages/DashboardOficial";
+import DashboardRRHH from "../pages/DashboardRRHH";
+import DescargaApp from "../pages/DescargaApp";
+
+// Pantallas generales
+import Empleados from "../pages/Empleados";
 import Productos from "../pages/Productos";
 import Usuarios from "../pages/Usuarios";
+import ConfiguracionGlobal from "../pages/ConfiguracionGlobal";
 
 export default function AppRouter() {
   const { user } = useAuth();
 
   return (
-    <Routes>
-      <Route
-        path="/login"
-        element={user ? <Navigate to="/" replace /> : <Login />}
-      />
-      <Route path="/login" element={<Navigate to="/login" replace />} />
-      <Route path="/noencontrado" element={<NoEncontrado />} />
+    <>
+      <Toaster position="top-center" />
+      <Routes>
 
-      <Route
-        path="/"
-        element={
-          <ProtectedRoute>
-            <AppLayout />
-          </ProtectedRoute>
-        }
-      >
-        <Route index element={<Dashboard />} />
-        <Route path="usuarios" element={<Usuarios />} />
-        <Route path="empleados" element={<Empleados />} />
-        <Route path="productos" element={<Productos />} />
-      </Route>
+        {/* Pública */}
+        <Route
+          path="/login"
+          element={user ? <Navigate to="/" replace /> : <Login />}
+        />
 
-      <Route path="*" element={<Navigate to="/noencontrado" replace />} />
-    </Routes>
+        {/* Páginas de error — públicas */}
+        <Route path="/acceso-denegado" element={<AccesoDenegado />} />
+        <Route path="/noencontrado" element={<NoEncontrado />} />
+
+        {/* Panel principal: autenticado + activo */}
+        <Route
+          path="/"
+          element={
+            <ProtectedRoute>
+              <ActiveRoute>
+                <AppLayout />
+              </ActiveRoute>
+            </ProtectedRoute>
+          }
+        >
+          {/* ── Dashboards por rol ────────────────────────────── */}
+
+          <Route index element={<RoleRedirect />} />
+
+          <Route
+            path="dashboard"
+            element={
+              <RoleRoute roles={["Administrador"]}>
+                <Dashboard />
+              </RoleRoute>
+            }
+          />
+
+          <Route
+            path="configuracion"
+            element={
+              <RoleRoute roles={["Administrador"]}>
+                <ConfiguracionGlobal />
+              </RoleRoute>
+            }
+          />
+
+          <Route
+            path="dashboard-gestor"
+            element={
+              <RoleRoute roles={["Gestor de Inventario"]}>
+                <DashboardGestor />
+              </RoleRoute>
+            }
+          />
+          <Route
+            path="dashboard-oficial"
+            element={
+              <RoleRoute roles={["Oficial de Credito"]}>
+                <DashboardOficial />
+              </RoleRoute>
+            }
+          />
+          <Route
+            path="dashboard-rrhh"
+            element={
+              <RoleRoute roles={["Recursos Humanos"]}>
+                <DashboardRRHH />
+              </RoleRoute>
+            }
+          />
+          <Route
+            path="descarga-app"
+            element={
+              <RoleRoute roles={["Empleado"]}>
+                <DescargaApp />
+              </RoleRoute>
+            }
+          />
+
+          {/* ── Pantallas compartidas (ejemplo) ──────────────── */}
+          <Route
+            path="empleados"
+            element={
+              <RoleRoute roles={["Administrador", "Recursos Humanos"]}>
+                <Empleados />
+              </RoleRoute>
+            }
+          />
+          <Route
+            path="usuarios"
+            element={
+              <RoleRoute roles={["Administrador"]}>
+                <Usuarios />
+              </RoleRoute>
+            }
+          />
+          <Route
+            path="productos"
+            element={
+              <RoleRoute roles={["Administrador", "Gestor de Inventario"]}>
+                <Productos />
+              </RoleRoute>
+            }
+          />
+        </Route>
+
+        {/* 404 */}
+        <Route path="*" element={<Navigate to="/noencontrado" replace />} />
+
+      </Routes>
+    </>
   );
 }

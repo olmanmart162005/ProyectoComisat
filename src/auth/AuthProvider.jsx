@@ -13,67 +13,109 @@ import {
   doc,
   getDoc,
 } from "firebase/firestore";
+import { sileo, Toaster } from "sileo";
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [role, setRole] = useState(null);
+  const [estado, setEstado] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  const getRole = async (email) => {
+  // Unificamos en una sola función que devuelve todos los datos necesarios
+  const getUserData = async (email) => {
     try {
       const q = query(collection(db, "usuarios"), where("correo", "==", email));
       const querySnapshot = await getDocs(q);
+
       if (!querySnapshot.empty) {
         const userData = querySnapshot.docs[0].data();
 
+        // Resolvemos el rol (igual que antes: primero rolNombre, luego rolId)
+        let rolNombre = "Usuario";
         if (userData.rolNombre) {
-          return userData.rolNombre;
-        }
-
-        if (userData.rolId) {
+          rolNombre = userData.rolNombre;
+        } else if (userData.rolId) {
           const roleRef = doc(db, "roles", userData.rolId);
           const roleSnap = await getDoc(roleRef);
           if (roleSnap.exists()) {
-            const roleData = roleSnap.data();
-            return roleData.nombre || "Usuario";
+            rolNombre = roleSnap.data().nombre || "Usuario";
           }
         }
 
-        return "Usuario";
+        return {
+          rolNombre,
+          estado: userData.estado ?? "Inactivo",
+        };
       }
-      return "Usuario";
+
+      // Si no existe en Firestore, lo tratamos como inactivo
+      return { rolNombre: "Usuario", estado: "Inactivo" };
     } catch (error) {
-      console.error("Error obteniendo rol:", error);
-      return "Usuario";
+      console.error("Error obteniendo datos del usuario:", error);
+      return { rolNombre: "Usuario", estado: "Inactivo" };
     }
   };
 
   useEffect(() => {
+    Toaster.position = "top-right";
+
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setLoading(true);
-      if (currentUser) {
-        setUser(currentUser);
 
-        const userRole = await getRole(currentUser.email);
-        setRole(userRole);
+      if (currentUser) {
+        const data = await getUserData(currentUser.email);
+        const estadoActual = data.estado?.toLowerCase();
+
+        if (estadoActual === "activo") {
+          // Todo OK: cargamos datos y liberamos
+          setUser(currentUser);
+          setRole(data.rolNombre);
+          setEstado(data.estado);
+        } else {
+          // Inactivo o no encontrado: cerramos sesión
+          await signOut(auth);
+          setUser(null);
+          setRole(null);
+          setEstado(null);
+
+          if (estadoActual === "inactivo") {
+            sileo.error({
+              title: "Cuenta Inactiva",
+              description: "Tu cuenta está inactiva. Contacta al administrador.",
+            });
+          }
+        }
       } else {
         setUser(null);
         setRole(null);
+        setEstado(null);
       }
+
       setLoading(false);
     });
 
     return () => unsubscribe();
   }, []);
 
-  const login = (email, password) =>
-    signInWithEmailAndPassword(auth, email, password);
+  const login = async (email, password) => {
+    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+
+    // Verificamos estado ANTES de dejar pasar al usuario en la UI
+    const data = await getUserData(userCredential.user.email);
+    if (data.estado?.toLowerCase() === "inactivo") {
+      await signOut(auth);
+      throw new Error("Cuenta inactiva"); // Login.jsx lo captura
+    }
+
+    return userCredential;
+  };
+
   const logout = () => signOut(auth);
 
   return (
-    <AuthContext.Provider value={{ user, role, login, logout, loading }}>
+    <AuthContext.Provider value={{ user, role, estado, login, logout, loading }}>
       {!loading && children}
     </AuthContext.Provider>
   );

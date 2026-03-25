@@ -6,6 +6,7 @@ import {
   HorizontaLDots,
   ListIcon,
   TableIcon,
+  PlugInIcon,
   UserCircleIcon,
 } from "../icons";
 import { useSidebar } from "../context/SidebarContext";
@@ -33,6 +34,11 @@ const navItems = [
     icon: <TableIcon />,
     path: "/productos",
   },
+  {
+    name: "Configuración",
+    icon: <PlugInIcon />,
+    path: "/configuracion",
+  }
 ];
 
 const AppSidebar = () => {

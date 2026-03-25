@@ -17,8 +17,10 @@ import { Modal } from "../components/ui/modal";
 import { GroupIcon, CheckCircleIcon, CloseIcon, PencilIcon, TrashBinIcon } from "../icons";
 import MetricCard from "../components/common/MetricCard";
 import PhoneInput from "../components/form/group-input/PhoneInput";
+import { sileo, Toaster } from "sileo";
 
 export default function Empleados() {
+  Toaster.position = "top-right"; 
   const [empleados, setEmpleados] = useState([]);
   const [departamentos, setDepartamentos] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -60,7 +62,7 @@ export default function Empleados() {
       }
     } catch (error) {
       console.error("Error al cargar departamentos:", error);
-      alert("No se pudieron cargar los departamentos.");
+      sileo.error("No se pudieron cargar los departamentos.");
     }
   };
 
@@ -75,7 +77,7 @@ export default function Empleados() {
       setEmpleados(docs);
     } catch (error) {
       console.error("Error al cargar empleados:", error);
-      alert("No se pudieron cargar los empleados.");
+      sileo.error("No se pudieron cargar los empleados.");
     } finally {
       setLoading(false);
     }
@@ -112,11 +114,11 @@ export default function Empleados() {
       });
       resetFormulario();
       fetchEmpleados();
-      alert("Empleado creado con éxito");
+      sileo.success("Empleado creado con éxito");
       closeModal();
     } catch (error) {
       console.error("Error al guardar", error);
-      alert("Error al guardar");
+      sileo.error("Error al guardar");
     } finally {
       setEnviando(false);
     }
@@ -141,11 +143,11 @@ export default function Empleados() {
       });
       resetFormulario();
       fetchEmpleados();
-      alert("Empleado actualizado");
       closeModal();
+      sileo.success("Empleado actualizado")
     } catch (error) {
       console.error("Error al actualizar", error);
-      alert("Error al actualizar");
+      sileo.error("Error al actualizar");
     } finally {
       setEnviando(false);
     }
@@ -156,10 +158,10 @@ export default function Empleados() {
       try {
         await deleteDoc(doc(db, "empleados", id));
         fetchEmpleados();
-        alert("Empleado eliminado");
+        sileo.success("Empleado eliminado");
       } catch (error) {
         console.error("Error al eliminar", error);
-        alert("Error al eliminar");
+        sileo.error("Error al eliminar");
       }
     }
   };
@@ -204,7 +206,7 @@ export default function Empleados() {
       {
         accessorKey: "salario",
         header: "Salario",
-        cell: (info) => `L. ${Number(info.getValue()).toLocaleString("es-HN")}`,
+        cell: (info) => `L.${Number(info.getValue()).toLocaleString("es-HN")}`,
       },
       {
         accessorKey: "estado",

@@ -407,12 +407,11 @@ export default function Usuarios() {
       </Modal>
 
       {/* Tabla */}
-      <DataTable
-        columns={columns}
-        data={usuarios}
-        loading={loading}
-        searchPlaceholder="Buscar usuario..."
-      />
+      <DataTable columns={columns} data={usuarios} loading={loading}>
+        <DataTable.Toolbar searchPlaceholder="Buscar usuario..." />
+        <DataTable.Table />
+        <DataTable.Pagination />
+      </DataTable>
     </div>
   );
 }

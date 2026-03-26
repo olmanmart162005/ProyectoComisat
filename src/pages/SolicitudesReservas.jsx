@@ -6,49 +6,506 @@ import {
   getDocs,
   updateDoc,
   serverTimestamp,
+  Timestamp,
   query,
   orderBy,
+  where,
 } from "firebase/firestore";
+
+import { useAuth } from "../auth/AuthProvider";
 
 import DataTable from "../components/ui/table/DataTable";
 import Badge from "../components/ui/badge/Badge";
 import { useModal } from "../hooks/useModal";
 import { Modal } from "../components/ui/modal";
 import MetricCard from "../components/common/MetricCard";
-import { 
-  CheckCircleIcon, 
-  CloseIcon, 
-  BoxIconLine 
-} from "../icons";
+import { CheckCircleIcon, CloseIcon, BoxIconLine, EyeIcon } from "../icons";
 
+// ── Helpers ────────────────────────────────────────────────────────
+const lps = (n) => `L. ${Number(n ?? 0).toLocaleString("es-HN")}`;
+const estadoColor = {
+  Aprobado: "success",
+  Activo: "success",
+  Rechazado: "error",
+  Pendiente: "warning",
+};
+
+// ── Modal de Detalle ───────────────────────────────────────────────
+function CreditReviewModal({
+  isOpen,
+  onClose,
+  solicitud,
+  onDecision,
+  procesando,
+  resumenEmpleado,
+  historialPrevio,
+  loadingHistorial,
+}) {
+  if (!solicitud) return null;
+
+  const fin = solicitud.datosFinancierosHistoricos ?? {};
+  const limite =
+    (fin.salarioNetoAlMomento ?? 0) * (fin.porcentajeLimiteAplicado ?? 0);
+  const creditoUtilizado = resumenEmpleado?.cuotaMensualActiva ?? 0;
+  const disponible = Math.max(0, limite - creditoUtilizado);
+  const excedeLimite = (fin.cuotaMensual ?? 0) > disponible;
+  const limiteConsumido = creditoUtilizado >= limite;
+  const isPendiente = solicitud.estado === "Pendiente";
+  const mostrarAuditoria = ["Aprobado", "Rechazado"].includes(solicitud.estado);
+
+  const historialColumns = useMemo(
+    () => [
+      {
+        accessorKey: "fechaAutoriza",
+        header: "Fecha",
+        cell: (info) => {
+          const fecha = info.getValue();
+          return (
+            <span className="block font-medium text-gray-800 text-theme-sm dark:text-white/90">
+              {fecha?.toDate?.()?.toLocaleDateString("es-HN") ?? "---"}
+            </span>
+          );
+        },
+      },
+      {
+        accessorKey: "productoNombre",
+        header: "Producto",
+        cell: (info) => (
+          <span className="block font-medium text-gray-800 text-theme-sm dark:text-white/90">
+            {info.getValue() ?? "---"}
+          </span>
+        ),
+      },
+      {
+        accessorKey: "estado",
+        header: "Estado",
+        cell: (info) => {
+          const val = info.getValue();
+          return (
+            <Badge size="sm" color={estadoColor[val] ?? "warning"}>
+              {val ?? "---"}
+            </Badge>
+          );
+        },
+      },
+    ],
+    [],
+  );
+
+  return (
+    <Modal isOpen={isOpen} onClose={onClose} className="max-w-4xl">
+      <div className="flex h-full max-h-[90vh] overflow-hidden rounded-xl">
+        {/* ── Panel izquierdo — Historial placeholder ── */}
+        <aside className="hidden md:flex flex-col w-[380px] shrink-0 border-r border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-gray-900 rounded-l-xl overflow-hidden">
+          <div className="px-4 pt-5 pb-3 border-b border-gray-200 dark:border-white/10">
+            <p className="text-xs font-semibold uppercase tracking-widest text-gray-400 dark:text-gray-500">
+              Perfil del Empleado
+            </p>
+            <h3 className="text-sm font-bold text-gray-800 dark:text-white/90 mt-1">
+              Historial de Créditos
+            </h3>
+          </div>
+          <div className="flex-1 p-3 overflow-hidden">
+            <DataTable
+              columns={historialColumns}
+              data={historialPrevio}
+              loading={loadingHistorial}
+            >
+              <DataTable.Table emptyMessage="Sin historial previo" />
+              <div className="[&>div]:mt-2 [&>div]:gap-2 [&>div>div:first-child]:hidden [&>div>div:last-child>span]:hidden [&_button]:px-2 [&_button]:py-1 [&_button]:text-xs">
+                <DataTable.Pagination />
+              </div>
+            </DataTable>
+          </div>
+          <div className="px-4 py-3 border-t border-gray-200 dark:border-white/10 flex justify-between items-center">
+            <span className="text-xs text-gray-500 dark:text-gray-400 font-medium uppercase tracking-wide">
+              Préstamos Activos
+            </span>
+            <span className="text-sm font-bold text-gray-800 dark:text-white/90">
+              {resumenEmpleado?.cantidadActivos ?? 0}
+            </span>
+          </div>
+        </aside>
+
+        {/* ── Panel derecho ── */}
+        <div className="flex flex-col flex-1 overflow-hidden rounded-r-xl bg-white dark:bg-gray-800">
+          <div className="flex-1 overflow-y-auto p-6 space-y-5">
+            {/* Nombre */}
+            <h2 className="text-xl font-bold text-gray-800 dark:text-white/90">
+              {solicitud.empleadoNombres} {solicitud.empleadoApellidos}
+            </h2>
+
+            {mostrarAuditoria && (
+              <div className="rounded-lg border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-gray-900/50 px-4 py-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <p className="text-[11px] font-semibold uppercase tracking-widest text-gray-400 dark:text-gray-500">
+                      Usuario que autorizó
+                    </p>
+                    <p className="text-sm font-medium text-gray-800 dark:text-white/90 mt-1">
+                      {solicitud.empleadoAutoriza ?? "Sin registro"}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-[11px] font-semibold uppercase tracking-widest text-gray-400 dark:text-gray-500">
+                      Fecha de autorización
+                    </p>
+                    <p className="text-sm font-medium text-gray-800 dark:text-white/90 mt-1">
+                      {solicitud.fechaAutoriza
+                        ?.toDate?.()
+                        ?.toLocaleString("es-HN") ?? "Sin registro"}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Producto */}
+            <div className="flex items-center gap-5 p-4 rounded-2xl border border-gray-200 dark:border-white/10 bg-white dark:bg-gray-900 shadow-sm">
+              <div className="relative w-24 h-24 rounded-xl bg-white p-2 border border-gray-100 dark:border-white/5 flex items-center justify-center shrink-0 shadow-inner">
+                {solicitud.productoImgUrl ? (
+                  <img
+                    src={solicitud.productoImgUrl}
+                    alt={solicitud.productoNombre}
+                    className="max-w-full max-h-full object-contain"
+                  />
+                ) : (
+                  <span className="text-xs text-gray-400 font-medium">N/A</span>
+                )}
+              </div>
+
+              <div className="flex flex-col justify-center">
+                <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-blue-600 dark:text-blue-400 mb-1">
+                  Detalle de Compra
+                </span>
+
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white leading-tight mb-1">
+                  {solicitud.productoNombre}
+                </h3>
+
+                <p className="text-xl font-black text-gray-800 dark:text-gray-100 tracking-tight">
+                  <span className="text-sm font-medium mr-1 text-gray-500"></span>
+                  {lps(fin.totalCredito)}
+                </p>
+              </div>
+            </div>
+            {/* Perfil financiero */}
+            <div className="rounded-xl border border-gray-200 dark:border-white/10 overflow-hidden">
+              <div className="px-4 py-2 bg-gray-50 dark:bg-gray-900/50 border-b border-gray-200 dark:border-white/10">
+                <p className="text-xs font-semibold uppercase tracking-widest text-gray-400 dark:text-gray-500">
+                  Perfil Financiero
+                </p>
+              </div>
+              <div className="bg-gray-50 dark:bg-gray-900/50 px-4 py-5 sm:px-6">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-8 gap-y-4">
+                  {[
+                    {
+                      label: "Salario Neto",
+                      value: lps(fin.salarioNetoAlMomento),
+                      color: "text-gray-800 dark:text-white/90",
+                    },
+                    {
+                      label: "Límite Aplicado",
+                      value: lps(limite),
+                      color: "text-gray-800 dark:text-white/90",
+                    },
+                    {
+                      label: "Crédito Utilizado",
+                      value: lps(creditoUtilizado),
+                      color: "text-emerald-700 dark:text-emerald-400",
+                    },
+                    {
+                      label: "Disponible",
+                      value: lps(disponible),
+                      color: "text-green-700 dark:text-green-400",
+                    },
+                  ].map((item) => (
+                    <div key={item.label} className="flex flex-col gap-1">
+                      <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 min-h-[16px]">
+                        {item.label}
+                      </p>
+                      <p
+                        className={`text-xl leading-none font-bold tabular-nums whitespace-nowrap ${item.color}`}
+                      >
+                        {item.value}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Alerta — solo si excede límite */}
+            {isPendiente && excedeLimite && (
+              <div className="flex items-start gap-3 p-4 rounded-xl border border-red-200 dark:border-red-500/30 bg-red-50 dark:bg-red-500/10">
+                <svg
+                  className="w-5 h-5 text-red-500 shrink-0 mt-0.5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"
+                  />
+                </svg>
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-widest text-red-600 dark:text-red-400">
+                    Estado de Alerta
+                  </p>
+                  <p className="text-xs font-medium text-red-600 dark:text-red-400 mt-0.5">
+                    La cuota mensual solicitada excede el disponible mensual del
+                    cliente.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Condiciones de financiamiento */}
+            <div className="rounded-xl border border-gray-200 dark:border-white/10 overflow-hidden">
+              <div className="px-4 py-2 bg-gray-50 dark:bg-gray-900/50 border-b border-gray-200 dark:border-white/10">
+                <p className="text-xs font-semibold uppercase tracking-widest text-gray-400 dark:text-gray-500">
+                  Condiciones del Financiamiento
+                </p>
+              </div>
+              <div className="bg-gray-50 dark:bg-gray-900/50 px-4 py-5 sm:px-6">
+                <div className="grid grid-cols-2 gap-x-8 gap-y-4">
+                  <div className="flex flex-col gap-1">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                      Plazo Elegido
+                    </p>
+                    <p className="text-xl leading-none font-bold text-gray-800 dark:text-white/90">
+                      {fin.plazoCuotas} Meses
+                    </p>
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                      Cuota Mensual
+                    </p>
+                    <p className="text-xl leading-none font-bold text-gray-800 dark:text-white/90">
+                      {lps(fin.cuotaMensual)}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Footer acciones */}
+          <div className="px-6 py-4 border-t border-gray-200 dark:border-white/10 flex gap-3 bg-white dark:bg-gray-800">
+            <button
+              onClick={() => onDecision("Aprobado")}
+              disabled={
+                procesando || !isPendiente || limiteConsumido || excedeLimite
+              }
+              className="flex-1 flex items-center justify-center gap-2 p-2 rounded-md font-bold text-sm transition
+                bg-green-600 hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600 text-white
+                disabled:bg-gray-200 dark:disabled:bg-gray-700 disabled:text-gray-400 dark:disabled:text-gray-500 disabled:cursor-not-allowed"
+            >
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M5 13l4 4L19 7"
+                />
+              </svg>
+              {procesando ? "Procesando..." : "Aprobar Crédito"}
+            </button>
+            <button
+              onClick={() => onDecision("Rechazado")}
+              disabled={procesando || !isPendiente}
+              className="flex-1 flex items-center justify-center gap-2 p-2 rounded-md font-bold text-sm transition
+                bg-red-600 hover:bg-red-700 text-white
+                disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+              Rechazar Solicitud
+            </button>
+          </div>
+        </div>
+      </div>
+    </Modal>
+  );
+}
+
+// ── Página principal ───────────────────────────────────────────────
 export default function SolicitudesCredito() {
   const [solicitudes, setSolicitudes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [procesando, setProcesando] = useState(false);
   const [solicitudSeleccionada, setSolicitudSeleccionada] = useState(null);
-
+  const [filtroEstadoSolicitud, setFiltroEstadoSolicitud] = useState("");
+  const [historialPrevioSeleccionado, setHistorialPrevioSeleccionado] =
+    useState([]);
+  const [loadingHistorial, setLoadingHistorial] = useState(false);
   const { isOpen, openModal, closeModal } = useModal();
+  const { user } = useAuth();
 
-  // ── Métricas ──────────────────────────────────────────────────────
-  const totalPendientes = solicitudes.filter(s => s.estado === "Pendiente").length;
-  const totalAprobados = solicitudes.filter(s => s.estado === "Aprobado").length;
+  // Métricas
+  const totalPendientes = solicitudes.filter(
+    (s) => s.estado === "Pendiente",
+  ).length;
+  const totalAprobados = solicitudes.filter(
+    (s) => s.estado === "Aprobado",
+  ).length;
   const montoEnRiesgo = solicitudes
-    .filter(s => s.estado === "Pendiente")
-    .reduce((acc, s) => acc + (s.datosFinancierosHistoricos?.totalCredito || 0), 0);
+    .filter((s) => s.estado === "Pendiente")
+    .reduce(
+      (acc, s) => acc + (s.datosFinancierosHistoricos?.totalCredito ?? 0),
+      0,
+    );
+
+  const totalRechazados = solicitudes.filter(
+    (s) => s.estado === "Rechazado",
+  ).length;
+
+  const getEmpleadoKey = (s) => {
+    if (!s) return "";
+    return String(
+      s.empleadoId ??
+        s.empleadoUid ??
+        s.idEmpleado ??
+        `${s.empleadoNombres ?? ""}|${s.empleadoaApellidos ?? ""}`,
+    )
+      .trim()
+      .toLowerCase();
+  };
+
+  const resumenEmpleadoSeleccionado = useMemo(() => {
+    if (!solicitudSeleccionada) {
+      return { cantidadActivos: 0, cuotaMensualActiva: 0 };
+    }
+
+    const empleadoKey = getEmpleadoKey(solicitudSeleccionada);
+    const creditosActivos = solicitudes.filter((s) => {
+      const mismoEmpleado = getEmpleadoKey(s) === empleadoKey;
+      const aprobado = s.estado === "Aprobado";
+      const estadoCredito = String(s.estadoCredito ?? "").toLowerCase();
+      const sigueActivo = !["pagado", "cancelado", "finalizado"].includes(
+        estadoCredito,
+      );
+      return mismoEmpleado && aprobado && sigueActivo;
+    });
+
+    const cuotaMensualActiva = creditosActivos.reduce(
+      (acc, s) =>
+        acc +
+        Number(
+          s.datosFinancierosHistoricos?.cuotaMensual ?? s.cuotaMensual ?? 0,
+        ),
+      0,
+    );
+
+    return {
+      cantidadActivos: creditosActivos.length,
+      cuotaMensualActiva,
+    };
+  }, [solicitudSeleccionada, solicitudes]);
+
+  useEffect(() => {
+    const cargarHistorialPrevio = async () => {
+      if (!isOpen || !solicitudSeleccionada) {
+        setHistorialPrevioSeleccionado([]);
+        return;
+      }
+
+      const toMillis = (fecha) => {
+        if (!fecha) return 0;
+        if (typeof fecha?.toMillis === "function") return fecha.toMillis();
+        const parsed = new Date(fecha).getTime();
+        return Number.isNaN(parsed) ? 0 : parsed;
+      };
+
+      const estadosHistorial = ["Aprobado", "Rechazado"];
+
+      setLoadingHistorial(true);
+      try {
+        const empleadoId = solicitudSeleccionada.empleadoId;
+
+        if (empleadoId) {
+          const q = query(
+            collection(db, "creditos"),
+            where("empleadoId", "==", empleadoId),
+          );
+          const snap = await getDocs(q);
+          const docs = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+
+          const historial = docs
+            .filter((s) => estadosHistorial.includes(s.estado))
+            .sort((a, b) => {
+              const fechaB = toMillis(b.fechaAutoriza ?? b.fechaRegistro);
+              const fechaA = toMillis(a.fechaAutoriza ?? a.fechaRegistro);
+              return fechaB - fechaA;
+            });
+
+          const solicitudActualEsHistorial = estadosHistorial.includes(
+            solicitudSeleccionada.estado,
+          );
+          const yaExisteActual = historial.some(
+            (s) => s.id === solicitudSeleccionada.id,
+          );
+
+          if (solicitudActualEsHistorial && !yaExisteActual) {
+            historial.unshift(solicitudSeleccionada);
+          }
+
+          setHistorialPrevioSeleccionado(historial);
+          return;
+        }
+
+        const empleadoKey = getEmpleadoKey(solicitudSeleccionada);
+        const historialFallback = solicitudes
+          .filter((s) => getEmpleadoKey(s) === empleadoKey)
+          .filter((s) => estadosHistorial.includes(s.estado))
+          .sort((a, b) => {
+            const fechaB = toMillis(b.fechaAutoriza ?? b.fechaRegistro);
+            const fechaA = toMillis(a.fechaAutoriza ?? a.fechaRegistro);
+            return fechaB - fechaA;
+          });
+
+        setHistorialPrevioSeleccionado(historialFallback);
+      } catch (error) {
+        console.error("Error al cargar historial previo:", error);
+        setHistorialPrevioSeleccionado([]);
+      } finally {
+        setLoadingHistorial(false);
+      }
+    };
+
+    cargarHistorialPrevio();
+  }, [isOpen, solicitudSeleccionada, solicitudes]);
 
   const fetchSolicitudes = async () => {
     setLoading(true);
     try {
-      // Ordenamos por fechaRegistro para ver las más antiguas primero (Prioridad)
-      const q = query(collection(db, "creditos"), orderBy("fechaRegistro", "desc"));
-      const querySnapshot = await getDocs(q);
-      const docs = querySnapshot.docs.map((item) => ({
-        id: item.id,
-        ...item.data(),
-      }));
-      setSolicitudes(docs);
-    } catch (error) {
-      console.error("Error al cargar solicitudes:", error);
+      const q = query(
+        collection(db, "creditos"),
+        orderBy("fechaRegistro", "desc"),
+      );
+      const snap = await getDocs(q);
+      setSolicitudes(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+    } catch (err) {
+      console.error("Error al cargar solicitudes:", err);
     } finally {
       setLoading(false);
     }
@@ -58,219 +515,259 @@ export default function SolicitudesCredito() {
     fetchSolicitudes();
   }, []);
 
-  // ── Acciones de Decisión ──────────────────────────────────────────
   const handleDecision = async (nuevoEstado) => {
     if (!solicitudSeleccionada) return;
-    
     setProcesando(true);
     try {
-      const refDoc = doc(db, "creditos", solicitudSeleccionada.id);
-      const updateData = {
+      const fechaLocal = Timestamp.now();
+      await updateDoc(doc(db, "creditos", solicitudSeleccionada.id), {
         estado: nuevoEstado,
-        // Si aprueba, grabamos quién y cuándo (Juliana Lopez por ahora como ejemplo)
-        ...(nuevoEstado === "Aprobado" && {
+        ...(nuevoEstado !== "Pendiente" && {
           fechaAutoriza: serverTimestamp(),
-          empleadoAutoriza: "Juliana Lopez", 
-        })
-      };
+          empleadoAutoriza: user?.email ?? "desconocido",
+        }),
+      });
 
-      await updateDoc(refDoc, updateData);
+      setSolicitudes((prev) =>
+        prev.map((s) =>
+          s.id === solicitudSeleccionada.id
+            ? {
+                ...s,
+                estado: nuevoEstado,
+                ...(nuevoEstado !== "Pendiente" && {
+                  fechaAutoriza: fechaLocal,
+                  empleadoAutoriza: user?.email ?? "desconocido",
+                }),
+              }
+            : s,
+        ),
+      );
+
+      setSolicitudSeleccionada((prev) =>
+        prev
+          ? {
+              ...prev,
+              estado: nuevoEstado,
+              ...(nuevoEstado !== "Pendiente" && {
+                fechaAutoriza: fechaLocal,
+                empleadoAutoriza: user?.email ?? "desconocido",
+              }),
+            }
+          : prev,
+      );
+
       alert(`Solicitud ${nuevoEstado} con éxito`);
       fetchSolicitudes();
-      closeModal();
-    } catch (error) {
-      console.error("Error al procesar:", error);
+    } catch (err) {
+      console.error("Error al procesar:", err);
       alert("Error al procesar la solicitud");
     } finally {
       setProcesando(false);
     }
   };
 
-  // ── Columnas de la Tabla ──────────────────────────────────────────
-  const columns = useMemo(() => [
-    {
-      accessorKey: "empleadoNombres",
-      header: "Empleado",
-      cell: ({ row }) => (
-        <div className="flex flex-col">
-          <span className="font-bold text-gray-800 dark:text-white/90 text-theme-sm">
+  const solicitudesFiltradas = useMemo(() => {
+    return solicitudes.filter((s) => {
+      if (!filtroEstadoSolicitud) return true;
+
+      const estado = String(s.estado ?? "").toLowerCase();
+      return estado === filtroEstadoSolicitud;
+    });
+  }, [solicitudes, filtroEstadoSolicitud]);
+
+  const columns = useMemo(
+    () => [
+      {
+        accessorKey: "empleadoNombres",
+        header: "Empleado",
+        cell: ({ row }) => (
+          <span className="block font-medium text-gray-800 text-theme-sm dark:text-white/90">
             {row.original.empleadoNombres} {row.original.empleadoApellidos}
           </span>
-         
-        </div>
-      ),
-    },
-    { 
-      accessorKey: "productoNombre", 
-      header: "Articulo",
-      cell: (info) => <span className="font-medium">{info.getValue()}</span>
-    },
-    {
-      id: "cuota",
-      header: "Cuota",
-      cell: ({ row }) => {
-        const cuota = row.original.datosFinancierosHistoricos?.cuotaMensual || 0;
-        return <span className="font-black text-blue-600">L. {cuota.toLocaleString("es-HN")}</span>;
-      }
-    },
-    {
-      id: "total",
-      header: "Total Crédito",
-      cell: ({ row }) => {
-        const total = row.original.datosFinancierosHistoricos?.totalCredito || 0;
-        return <span className="font-bold">L. {total.toLocaleString("es-HN")}</span>;
-      }
-    },
-    {
-      accessorKey: "fechaRegistro",
-      header: "Registro",
-      cell: (info) => info.getValue()?.toDate().toLocaleDateString() || "---"
-    },
-    {
-      accessorKey: "estado",
-      header: "Estado",
-      cell: (info) => {
-        const val = info.getValue();
-        let color = "warning";
-        if (val === "Aprobado") color = "success";
-        if (val === "Rechazado") color = "error";
-        return <Badge size="sm" color={color}>{val}</Badge>;
+        ),
       },
-    },
-    {
-      id: "acciones",
-      header: "Detalle",
-      enableSorting: false,
-      cell: ({ row }) => (
-        <button
-          onClick={() => {
-            setSolicitudSeleccionada(row.original);
-            openModal();
-          }}
-          className="text-blue-600 hover:underline font-bold text-xs uppercase"
-        >
-          Ver Detalle
-        </button>
-      ),
-    },
-  ], []);
+      {
+        accessorKey: "productoNombre",
+        header: "Artículo",
+        cell: (info) => (
+          <span className="block font-medium text-gray-800 text-theme-sm dark:text-white/90">
+            {info.getValue()}
+          </span>
+        ),
+      },
+      {
+        id: "total",
+        header: "Total Crédito",
+        accessorFn: (row) =>
+          Number(row.datosFinancierosHistoricos?.totalCredito ?? 0),
+        cell: ({ row }) => (
+          <span className="block font-medium text-gray-800 text-theme-sm dark:text-white/90">
+            {lps(row.original.datosFinancierosHistoricos?.totalCredito)}
+          </span>
+        ),
+      },
+      {
+        id: "plazo",
+        header: "Plazo",
+        accessorFn: (row) =>
+          Number(row.datosFinancierosHistoricos?.plazoCuotas ?? 0),
+        cell: ({ row }) => (
+          <span className="block font-medium text-gray-800 text-theme-sm dark:text-white/90">
+            {row.original.datosFinancierosHistoricos?.plazoCuotas
+              ? `${row.original.datosFinancierosHistoricos.plazoCuotas}`
+              : "---"}
+          </span>
+        ),
+      },
+      {
+        id: "cuota",
+        header: "Cuota",
+        accessorFn: (row) =>
+          Number(row.datosFinancierosHistoricos?.cuotaMensual ?? 0),
+        cell: ({ row }) => (
+          <span className="block font-medium text-gray-800 text-theme-sm dark:text-white/90">
+            {lps(row.original.datosFinancierosHistoricos?.cuotaMensual)}
+          </span>
+        ),
+      },
+      {
+        accessorKey: "fechaRegistro",
+        header: "Solicitado",
+        cell: (info) => (
+          <span className="block font-medium text-gray-800 text-theme-sm dark:text-white/90">
+            {info.getValue()?.toDate().toLocaleDateString("es-HN") ?? "---"}
+          </span>
+        ),
+      },
+      {
+        accessorKey: "estado",
+        header: "Estado",
+        cell: (info) => {
+          const val = info.getValue();
+          return (
+            <Badge size="sm" color={estadoColor[val] ?? "warning"}>
+              {val}
+            </Badge>
+          );
+        },
+      },
+      {
+        id: "acciones",
+        header: "Acción",
+        enableSorting: false,
+        cell: ({ row }) => {
+          const estadoSolicitud = String(
+            row.original.estado ?? "",
+          ).toLowerCase();
+          const esPendiente = estadoSolicitud === "pendiente";
+          const textoAccion = esPendiente
+            ? "Revisar Solicitud"
+            : "Ver Historial";
+          const colorAccion = esPendiente
+            ? "text-blue-600 hover:text-blue-800"
+            : "text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200";
+
+          return (
+            <button
+              onClick={() => {
+                setSolicitudSeleccionada(row.original);
+                openModal();
+              }}
+              className={`inline-flex items-center gap-1.5 transition text-theme-sm font-medium ${colorAccion}`}
+            >
+              <EyeIcon className="w-4 h-4" />
+              {textoAccion}
+            </button>
+          );
+        },
+      },
+    ],
+    [],
+  );
 
   return (
     <div className="space-y-6">
-      <h2 className="text-2xl font-bold text-gray-800 dark:text-white/90">Solicitudes de Crédito</h2>
+      <h2 className="text-2xl font-bold text-gray-800 dark:text-white/90">
+        Solicitudes de Crédito
+      </h2>
 
-      {/* ── Métricas ── */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 md:gap-6">
+      {/* Métricas */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-4 md:gap-6">
         <MetricCard
           title="Pendientes Revisión"
           value={totalPendientes}
-          icon={<BoxIconLine className="text-gray-800 size-6 dark:text-white/90" />}
+          icon={
+            <BoxIconLine className="text-gray-800 size-6 dark:text-white/90" />
+          }
           iconWrapperClass="bg-gray-100 dark:bg-gray-800"
         />
         <MetricCard
           title="Monto por Aprobar"
-          value={`L. ${montoEnRiesgo.toLocaleString()}`}
-          icon={<CheckCircleIcon className="text-green-600 size-6" />}
+          value={lps(montoEnRiesgo)}
+          icon={
+            <CheckCircleIcon className="text-green-600 size-6 dark:text-green-400" />
+          }
           iconWrapperClass="bg-green-50 dark:bg-green-500/10"
         />
         <MetricCard
-          title="Aprobados Hoy"
+          title="Aprobados"
           value={totalAprobados}
-          icon={<CloseIcon className="text-blue-600 size-6" />}
+          icon={
+            <CloseIcon className="text-blue-600 size-6 dark:text-blue-400" />
+          }
           iconWrapperClass="bg-blue-50 dark:bg-blue-500/10"
+        />
+        <MetricCard
+          title="Rechazados"
+          value={totalRechazados}
+          icon={<CloseIcon className="text-red-600 size-6 dark:text-red-400" />}
+          iconWrapperClass="bg-red-50 dark:bg-red-500/10"
         />
       </div>
 
-      {/* ── DataTable ── */}
-      <DataTable columns={columns} data={solicitudes} loading={loading}>
-        <DataTable.Toolbar searchPlaceholder="Buscar por empleado..." />
+      {/* Tabla */}
+      <DataTable
+        columns={columns}
+        data={solicitudesFiltradas}
+        loading={loading}
+      >
+        <DataTable.Toolbar searchPlaceholder="Buscar por empleado...">
+          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto sm:ml-auto">
+            <select
+              value={filtroEstadoSolicitud}
+              onChange={(e) => setFiltroEstadoSolicitud(e.target.value)}
+              className="w-full sm:w-56 p-2 border border-gray-300 rounded-md text-sm text-gray-900 focus:ring-blue-500 focus:border-blue-500 dark:bg-white/5 dark:border-white/10 dark:text-gray-100"
+            >
+              <option value="" className="bg-white text-gray-900">
+                Estado
+              </option>
+              <option value="pendiente" className="bg-white text-gray-900">
+                Pendiente
+              </option>
+              <option value="aprobado" className="bg-white text-gray-900">
+                Aprobado
+              </option>
+              <option value="rechazado" className="bg-white text-gray-900">
+                Rechazado
+              </option>
+            </select>
+          </div>
+        </DataTable.Toolbar>
         <DataTable.Table />
         <DataTable.Pagination />
       </DataTable>
 
-      {/* ── Modal de Detalle (Basado en tu código de diseño) ── */}
-      <Modal isOpen={isOpen} onClose={closeModal} className="max-w-4xl">
-        {solicitudSeleccionada && (
-          <div className="p-8 grid grid-cols-1 md:grid-cols-12 gap-8 bg-white dark:bg-gray-900 rounded-xl overflow-hidden">
-            
-            {/* Panel Izquierdo: Perfil */}
-            <div className="md:col-span-7 space-y-6">
-               <div className="flex items-center gap-4 border-b border-gray-100 dark:border-white/5 pb-6">
-                  <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center font-black text-blue-600 text-xl">
-                    {solicitudSeleccionada.empleadoNombres[0]}
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-black">{solicitudSeleccionada.empleadoNombres} {solicitudSeleccionada.empleadoApellidos}</h3>
-               
-                  </div>
-               </div>
-
-               <div className="grid grid-cols-2 gap-6">
-                  <div>
-                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Salario Neto</p>
-                    <p className="text-lg font-black text-blue-600">
-                      L. {solicitudSeleccionada.datosFinancierosHistoricos?.salarioNetoAlMomento.toLocaleString()}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Límite Aplicado</p>
-                    <p className="text-lg font-black">
-                      L. {(solicitudSeleccionada.datosFinancierosHistoricos?.salarioNetoAlMomento * solicitudSeleccionada.datosFinancierosHistoricos?.porcentajeLimiteAplicado).toLocaleString()}
-                    </p>
-                  </div>
-               </div>
-
-               <div className="bg-gray-50 dark:bg-white/5 p-6 rounded-xl border border-dashed border-gray-200 dark:border-white/10">
-                  <h4 className="font-bold text-sm mb-4">Condiciones de Financiamiento</h4>
-                  <div className="flex justify-between items-end">
-                    <div>
-                      <p className="text-[10px] font-bold text-gray-500 uppercase">Plazo Elegido</p>
-                      <p className="text-xl font-black">{solicitudSeleccionada.datosFinancierosHistoricos?.plazoCuotas} Meses</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-[10px] font-bold text-gray-500 uppercase">Cuota Mensual</p>
-                      <p className="text-2xl font-black text-green-600">L. {solicitudSeleccionada.datosFinancierosHistoricos?.cuotaMensual.toLocaleString()}</p>
-                    </div>
-                  </div>
-               </div>
-            </div>
-
-            {/* Panel Derecho: Producto y Acciones */}
-            <div className="md:col-span-5 flex flex-col justify-between">
-              <div className="bg-gray-100 dark:bg-white/5 p-4 rounded-xl space-y-4">
-                <p className="text-[10px] font-black text-gray-400 uppercase">Artículo Solicitado</p>
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-white rounded border border-gray-200 flex items-center justify-center font-bold text-gray-400">
-                    IMG
-                  </div>
-                  <div>
-                    <p className="font-bold leading-tight">{solicitudSeleccionada.productoNombre}</p>
-                    <p className="text-xs text-blue-500 font-bold">L. {solicitudSeleccionada.datosFinancierosHistoricos?.totalCredito.toLocaleString()}</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="space-y-3 mt-8">
-                <button
-                  disabled={procesando || solicitudSeleccionada.estado !== "Pendiente"}
-                  onClick={() => handleDecision("Aprobado")}
-                  className="w-full py-4 bg-blue-600 text-white rounded-lg font-black uppercase text-xs tracking-widest hover:bg-blue-700 disabled:bg-gray-300 transition-all"
-                >
-                  {procesando ? "Procesando..." : "Aprobar Crédito"}
-                </button>
-                <button
-                  disabled={procesando || solicitudSeleccionada.estado !== "Pendiente"}
-                  onClick={() => handleDecision("Rechazado")}
-                  className="w-full py-4 bg-red-50 text-red-600 border border-red-100 rounded-lg font-black uppercase text-xs tracking-widest hover:bg-red-100 disabled:opacity-50"
-                >
-                  Rechazar Solicitud
-                </button>
-              </div>
-            </div>
-
-          </div>
-        )}
-      </Modal>
+      {/* Modal */}
+      <CreditReviewModal
+        isOpen={isOpen}
+        onClose={closeModal}
+        solicitud={solicitudSeleccionada}
+        resumenEmpleado={resumenEmpleadoSeleccionado}
+        historialPrevio={historialPrevioSeleccionado}
+        loadingHistorial={loadingHistorial}
+        onDecision={handleDecision}
+        procesando={procesando}
+      />
     </div>
   );
 }

@@ -44,6 +44,8 @@ export default function Empleados() {
   const [departamentoNombre, setDepartamentoNombre] = useState("");
   const [salario, setSalario] = useState("");
   const [estado, setEstado] = useState("Activo");
+  const [filtroDepartamento, setFiltroDepartamento] = useState("");
+  const [filtroEstado, setFiltroEstado] = useState("");
 
   const { isOpen, openModal, closeModal } = useModal();
 
@@ -276,6 +278,18 @@ export default function Empleados() {
     ],
     [departamentos],
   );
+
+  const empleadosFiltrados = useMemo(() => {
+    return empleados.filter((e) => {
+      const coincideDepartamento = filtroDepartamento
+        ? e.departamentoId === filtroDepartamento
+        : true;
+
+      const coincideEstado = filtroEstado ? e.estado === filtroEstado : true;
+
+      return coincideDepartamento && coincideEstado;
+    });
+  }, [empleados, filtroDepartamento, filtroEstado]);
 
   return (
     <div className="space-y-6">
@@ -520,8 +534,45 @@ export default function Empleados() {
         </div>
       </Modal>
 
-      <DataTable columns={columns} data={empleados} loading={loading}>
-        <DataTable.Toolbar searchPlaceholder="Buscar empleado..." />
+      <DataTable columns={columns} data={empleadosFiltrados} loading={loading}>
+        <DataTable.Toolbar searchPlaceholder="Buscar empleado...">
+          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto sm:ml-auto">
+            <select
+              value={filtroDepartamento}
+              onChange={(e) => setFiltroDepartamento(e.target.value)}
+              className="w-full sm:w-52 p-2 border border-gray-300 rounded-md text-sm text-gray-900 focus:ring-blue-500 focus:border-blue-500 dark:bg-white/5 dark:border-white/10 dark:text-gray-100"
+            >
+              <option value="" className="bg-white text-gray-900">
+                Departamento
+              </option>
+              {departamentos.map((dep) => (
+                <option
+                  key={dep.id}
+                  value={dep.id}
+                  className="bg-white text-gray-900"
+                >
+                  {dep.nombre}
+                </option>
+              ))}
+            </select>
+
+            <select
+              value={filtroEstado}
+              onChange={(e) => setFiltroEstado(e.target.value)}
+              className="w-full sm:w-40 p-2 border border-gray-300 rounded-md text-sm text-gray-900 focus:ring-blue-500 focus:border-blue-500 dark:bg-white/5 dark:border-white/10 dark:text-gray-100"
+            >
+              <option value="" className="bg-white text-gray-900">
+                Estado
+              </option>
+              <option value="Activo" className="bg-white text-gray-900">
+                Activo
+              </option>
+              <option value="Inactivo" className="bg-white text-gray-900">
+                Inactivo
+              </option>
+            </select>
+          </div>
+        </DataTable.Toolbar>
         <DataTable.Table />
         <DataTable.Pagination />
       </DataTable>

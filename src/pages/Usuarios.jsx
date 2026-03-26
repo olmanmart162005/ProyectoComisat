@@ -14,7 +14,13 @@ import DataTable from "../components/ui/table/DataTable";
 import Badge from "../components/ui/badge/Badge";
 import { useModal } from "../hooks/useModal";
 import { Modal } from "../components/ui/modal";
-import { GroupIcon, CheckCircleIcon, CloseIcon, PencilIcon, TrashBinIcon } from "../icons";
+import {
+  GroupIcon,
+  CheckCircleIcon,
+  CloseIcon,
+  PencilIcon,
+  TrashBinIcon,
+} from "../icons";
 import MetricCard from "../components/common/MetricCard";
 import { sileo, Toaster } from "sileo";
 
@@ -32,18 +38,21 @@ export default function Usuarios() {
   // Campos del formulario
   const [empleadoId, setEmpleadoId] = useState("");
   const [nombre, setNombre] = useState("");
-  const [correoPersonal, setCorreoPersonal] = useState(""); 
-  const [correo, setCorreo] = useState("");                 
+  const [correoPersonal, setCorreoPersonal] = useState("");
+  const [correo, setCorreo] = useState("");
   const [rolId, setRolId] = useState("");
   const [rolNombre, setRolNombre] = useState("");
   const [estado, setEstado] = useState("Activo");
+  const [filtroEstado, setFiltroEstado] = useState("");
 
   const { isOpen, openModal, closeModal } = useModal();
 
   // Contadores
   const totalUsuarios = usuarios.length;
   const usuariosActivos = usuarios.filter((u) => u.estado === "Activo").length;
-  const usuariosInactivos = usuarios.filter((u) => u.estado === "Inactivo").length;
+  const usuariosInactivos = usuarios.filter(
+    (u) => u.estado === "Inactivo",
+  ).length;
 
   // ── Fetchers ─────────────────────────────────────────────
   const fetchEmpleados = async () => {
@@ -112,7 +121,7 @@ export default function Usuarios() {
     const selectedId = e.target.value;
     const rol = roles.find((r) => r.id === selectedId);
     setRolId(selectedId);
-    setRolNombre(rol ? rol.nombre ?? "" : "");
+    setRolNombre(rol ? (rol.nombre ?? "") : "");
   };
 
   // ── CRUD ─────────────────────────────────────────────────
@@ -184,7 +193,9 @@ export default function Usuarios() {
     setEditandoId(null);
     if (empleados.length > 0) {
       setEmpleadoId(empleados[0].id);
-      setNombre(`${empleados[0].nombres ?? ""} ${empleados[0].apellidos ?? ""}`.trim());
+      setNombre(
+        `${empleados[0].nombres ?? ""} ${empleados[0].apellidos ?? ""}`.trim(),
+      );
       setCorreoPersonal(empleados[0]?.correo ?? "");
       setCorreo("");
     } else {
@@ -265,6 +276,12 @@ export default function Usuarios() {
     [],
   );
 
+  const usuariosFiltrados = useMemo(() => {
+    return usuarios.filter((u) => {
+      return filtroEstado ? u.estado === filtroEstado : true;
+    });
+  }, [usuarios, filtroEstado]);
+
   // ── JSX ──────────────────────────────────────────────────
   return (
     <div className="space-y-6">
@@ -274,11 +291,24 @@ export default function Usuarios() {
           Usuarios
         </h2>
         <button
-          onClick={() => { resetFormulario(); openModal(); }}
+          onClick={() => {
+            resetFormulario();
+            openModal();
+          }}
           className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-5 py-2.5 rounded-lg shadow-sm transition flex items-center gap-2"
         >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+          <svg
+            className="w-5 h-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+            />
           </svg>
           Nuevo Usuario
         </button>
@@ -289,13 +319,17 @@ export default function Usuarios() {
         <MetricCard
           title="Total Usuarios"
           value={totalUsuarios}
-          icon={<GroupIcon className="text-gray-800 size-6 dark:text-white/90" />}
+          icon={
+            <GroupIcon className="text-gray-800 size-6 dark:text-white/90" />
+          }
           iconWrapperClass="bg-gray-100 dark:bg-gray-800"
         />
         <MetricCard
           title="Usuarios Activos"
           value={usuariosActivos}
-          icon={<CheckCircleIcon className="text-green-600 size-6 dark:text-green-400" />}
+          icon={
+            <CheckCircleIcon className="text-green-600 size-6 dark:text-green-400" />
+          }
           iconWrapperClass="bg-green-50 dark:bg-green-500/10"
         />
         <MetricCard
@@ -396,10 +430,18 @@ export default function Usuarios() {
                 type="submit"
                 disabled={enviando}
                 className={`flex-1 p-2 rounded-md text-white font-bold transition ${
-                  enviando ? "bg-gray-400" : editandoId ? "bg-blue-600 hover:bg-blue-700" : "bg-green-600 hover:bg-green-700"
+                  enviando
+                    ? "bg-gray-400"
+                    : editandoId
+                      ? "bg-blue-600 hover:bg-blue-700"
+                      : "bg-green-600 hover:bg-green-700"
                 }`}
               >
-                {enviando ? "Procesando..." : editandoId ? "Actualizar" : "Guardar"}
+                {enviando
+                  ? "Procesando..."
+                  : editandoId
+                    ? "Actualizar"
+                    : "Guardar"}
               </button>
             </div>
           </form>
@@ -407,8 +449,26 @@ export default function Usuarios() {
       </Modal>
 
       {/* Tabla */}
-      <DataTable columns={columns} data={usuarios} loading={loading}>
-        <DataTable.Toolbar searchPlaceholder="Buscar usuario..." />
+      <DataTable columns={columns} data={usuariosFiltrados} loading={loading}>
+        <DataTable.Toolbar searchPlaceholder="Buscar usuario...">
+          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto sm:ml-auto">
+            <select
+              value={filtroEstado}
+              onChange={(e) => setFiltroEstado(e.target.value)}
+              className="w-full sm:w-40 p-2 border border-gray-300 rounded-md text-sm text-gray-900 focus:ring-blue-500 focus:border-blue-500 dark:bg-white/5 dark:border-white/10 dark:text-gray-100"
+            >
+              <option value="" className="bg-white text-gray-900">
+                Estado
+              </option>
+              <option value="Activo" className="bg-white text-gray-900">
+                Activo
+              </option>
+              <option value="Inactivo" className="bg-white text-gray-900">
+                Inactivo
+              </option>
+            </select>
+          </div>
+        </DataTable.Toolbar>
         <DataTable.Table />
         <DataTable.Pagination />
       </DataTable>

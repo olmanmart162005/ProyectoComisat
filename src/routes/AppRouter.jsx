@@ -138,7 +138,13 @@ export default function AppRouter() {
           <Route
             path="solicitudes-reservas"
             element={
-              <RoleRoute roles={["Administrador", "Oficial de Crédito", "Oficial de Credito"]}>
+              <RoleRoute
+                roles={[
+                  "Administrador",
+                  "Oficial de Crédito",
+                  "Oficial de Credito",
+                ]}
+              >
                 <SolicitudesReservas />
               </RoleRoute>
             }

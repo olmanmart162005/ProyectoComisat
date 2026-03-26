@@ -24,7 +24,8 @@ import Empleados from "../pages/Empleados";
 import Productos from "../pages/Productos";
 import Usuarios from "../pages/Usuarios";
 import ConfiguracionGlobal from "../pages/ConfiguracionGlobal";
-import ConfiguracionGlobal from "../pages/ConfiguracionGlobal";
+import SolicitudesReservas from "../pages/SolicitudesReservas";
+import PagosMensuales from "../pages/PagosMensuales";
 
 export default function AppRouter() {
   const { user } = useAuth();
@@ -33,7 +34,6 @@ export default function AppRouter() {
     <>
       <Toaster position="top-center" />
       <Routes>
-
         {/* Pública */}
         <Route
           path="/login"
@@ -88,7 +88,7 @@ export default function AppRouter() {
           <Route
             path="dashboard-oficial"
             element={
-              <RoleRoute roles={["Oficial de Credito"]}>
+              <RoleRoute roles={["Oficial de Crédito", "Oficial de Credito"]}>
                 <DashboardOficial />
               </RoleRoute>
             }
@@ -135,11 +135,26 @@ export default function AppRouter() {
               </RoleRoute>
             }
           />
+          <Route
+            path="solicitudes-reservas"
+            element={
+              <RoleRoute roles={["Administrador", "Oficial de Crédito", "Oficial de Credito"]}>
+                <SolicitudesReservas />
+              </RoleRoute>
+            }
+          />
+          <Route
+            path="pagos-mensuales"
+            element={
+              <RoleRoute roles={["Oficial de Crédito", "Oficial de Credito"]}>
+                <PagosMensuales />
+              </RoleRoute>
+            }
+          />
         </Route>
 
         {/* 404 */}
         <Route path="*" element={<Navigate to="/noencontrado" replace />} />
-
       </Routes>
     </>
   );

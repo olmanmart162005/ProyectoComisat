@@ -143,7 +143,7 @@ export default function ParametrosGlobales() {
 
           await updateDoc(doc(db, "productos", productoDoc.id), {
             precioCredito: parseFloat(nuevoPrecioCredito.toFixed(2)),
-            ultima_modificacion: serverTimestamp(),
+            ultimaModificacion: serverTimestamp(),
           });
         }
       } catch (e) {

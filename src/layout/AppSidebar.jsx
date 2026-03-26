@@ -167,8 +167,6 @@ const AppSidebar = () => {
             </div>
           </div>
         </nav>
-
-
       </div>
     </aside>
   );

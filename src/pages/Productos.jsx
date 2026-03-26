@@ -5,6 +5,7 @@ import {
   collection,
   deleteDoc,
   doc,
+  getDoc,
   getDocs,
   serverTimestamp,
   updateDoc,
@@ -28,6 +29,7 @@ export default function Productos() {
   const [productos, setProductos] = useState([]);
   const [categorias, setCategorias] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [porcentajeAumento, setPorcentajeAumento] = useState(0);
 
   const [editandoId, setEditandoId] = useState(null);
   const [enviando, setEnviando] = useState(false);
@@ -40,12 +42,12 @@ export default function Productos() {
   const [categoriaId, setCategoriaId] = useState("");
   const [categoriaNombre, setCategoriaNombre] = useState("");
   const [estado, setEstado] = useState("Activo");
+  const [filtroCategoria, setFiltroCategoria] = useState("");
+  const [filtroStock, setFiltroStock] = useState("");
 
   const [archivoImagen, setArchivoImagen] = useState(null);
   const [previewImagen, setPreviewImagen] = useState(null);
   const [imagenUrlActual, setImagenUrlActual] = useState("");
-  const [categoriaFiltro, setCategoriaFiltro] = useState("");
-  const [stockFiltro, setStockFiltro] = useState("");
 
   const { isOpen, openModal, closeModal } = useModal();
 
@@ -59,25 +61,17 @@ export default function Productos() {
     0,
   );
 
-  // Filtrar productos
-  const productosFiltrados = useMemo(() => {
-    return productos.filter((p) => {
-      const cumpleCategoria =
-        !categoriaFiltro || p.categoriaId === categoriaFiltro;
-      const cumpleStock =
-        stockFiltro === ""
-          ? true
-          : stockFiltro === "bajo"
-            ? Number(p.stock) <= 5
-            : stockFiltro === "medio"
-              ? Number(p.stock) > 5 && Number(p.stock) <= 15
-              : stockFiltro === "alto"
-                ? Number(p.stock) > 15
-                : true;
-
-      return cumpleCategoria && cumpleStock;
-    });
-  }, [productos, categoriaFiltro, stockFiltro]);
+  const fetchConfig = async () => {
+    try {
+      const snap = await getDoc(doc(db, "configuracion", "creditoComisariato"));
+      if (snap.exists()) {
+        const data = snap.data();
+        setPorcentajeAumento(Number(data.porcentajeAumento) || 0);
+      }
+    } catch (error) {
+      console.error("Error al cargar configuración:", error);
+    }
+  };
 
   const fetchCategorias = async () => {
     try {
@@ -115,9 +109,21 @@ export default function Productos() {
   };
 
   useEffect(() => {
+    fetchConfig();
     fetchCategorias();
     fetchProductos();
   }, []);
+
+  useEffect(() => {
+    if (precioContado === "") {
+      setPrecioCredito("");
+      return;
+    }
+    const contado = Number(precioContado);
+    if (Number.isNaN(contado)) return;
+    const credito = contado * (1 + porcentajeAumento);
+    setPrecioCredito(credito.toFixed(2));
+  }, [precioContado, porcentajeAumento]);
 
   const handleCategoriaChange = (e) => {
     const selectedId = e.target.value;
@@ -145,6 +151,9 @@ export default function Productos() {
     e.preventDefault();
     setEnviando(true);
     try {
+      const contado = parseFloat(precioContado) || 0;
+      const creditoCalculado = contado * (1 + porcentajeAumento);
+
       let imagenUrl = "";
       if (archivoImagen) {
         imagenUrl = await subirImagen(archivoImagen);
@@ -153,8 +162,8 @@ export default function Productos() {
       await addDoc(collection(db, "productos"), {
         nombre,
         descripcion,
-        precioContado: parseFloat(precioContado),
-        precioCredito: parseFloat(precioCredito),
+        precioContado: contado,
+        precioCredito: parseFloat(creditoCalculado.toFixed(2)),
         stock: parseInt(stock),
         categoriaId,
         categoriaNombre,
@@ -178,6 +187,9 @@ export default function Productos() {
     e.preventDefault();
     setEnviando(true);
     try {
+      const contado = parseFloat(precioContado) || 0;
+      const creditoCalculado = contado * (1 + porcentajeAumento);
+
       // Si subió una imagen nueva, la sube; si no, conserva la anterior
       let imagenUrl = imagenUrlActual;
       if (archivoImagen) {
@@ -187,14 +199,14 @@ export default function Productos() {
       await updateDoc(doc(db, "productos", editandoId), {
         nombre,
         descripcion,
-        precioContado: parseFloat(precioContado),
-        precioCredito: parseFloat(precioCredito),
+        precioContado: contado,
+        precioCredito: parseFloat(creditoCalculado.toFixed(2)),
         stock: parseInt(stock),
         categoriaId,
         categoriaNombre,
         estado,
         imagenUrl,
-        ultima_modificacion: serverTimestamp(),
+        ultimaModificacion: serverTimestamp(),
       });
       resetFormulario();
       fetchProductos();
@@ -237,6 +249,24 @@ export default function Productos() {
       setCategoriaNombre(categorias[0].nombre || "");
     }
   };
+
+  const productosFiltrados = useMemo(() => {
+    return productos.filter((p) => {
+      const coincideCategoria = filtroCategoria
+        ? p.categoriaId === filtroCategoria
+        : true;
+
+      const stockNum = Number(p.stock) || 0;
+      let coincideStock = true;
+
+      if (filtroStock === "bajo") coincideStock = stockNum <= 5;
+      if (filtroStock === "medio")
+        coincideStock = stockNum > 5 && stockNum <= 20;
+      if (filtroStock === "alto") coincideStock = stockNum > 20;
+
+      return coincideCategoria && coincideStock;
+    });
+  }, [productos, filtroCategoria, filtroStock]);
 
   // ── Columnas ──────────────────────────────────────────────────────
   const columns = useMemo(
@@ -319,7 +349,7 @@ export default function Productos() {
                   setNombre(p.nombre || "");
                   setDescripcion(p.descripcion || "");
                   setPrecioContado(String(p.precioContado || ""));
-                  setPrecioCredito(String(p.precioCredito || ""));
+                  setPrecioCredito("");
                   setStock(String(p.stock || ""));
                   setCategoriaId(p.categoriaId || "");
                   setCategoriaNombre(p.categoriaNombre || "");
@@ -501,12 +531,10 @@ export default function Productos() {
                 required
                 min="0"
                 value={precioCredito}
-                onChange={(e) => {
-                  if (e.target.value === "" || Number(e.target.value) >= 0)
-                    setPrecioCredito(e.target.value);
-                }}
-                placeholder="3600"
-                className="mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+                readOnly
+                disabled
+                placeholder="Calculado automáticamente"
+                className="mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm bg-gray-50 dark:bg-gray-700 text-gray-700 dark:text-gray-300 cursor-not-allowed opacity-70 dark:border-gray-700"
               />
             </div>
 
@@ -624,53 +652,53 @@ export default function Productos() {
         </div>
       </Modal>
 
-      {/* ── Tabla con Filtros ── */}
-      <div className="space-y-3">
-        <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
-          <select
-            value={categoriaFiltro}
-            onChange={(e) => setCategoriaFiltro(e.target.value)}
-            className="px-3 py-2 text-sm border border-gray-300 rounded-md text-gray-900 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
-          >
-            <option value="">Categorías</option>
-            {categorias.map((cat) => (
-              <option key={cat.id} value={cat.id}>
-                {cat.nombre}
-              </option>
-            ))}
-          </select>
-
-          <select
-            value={stockFiltro}
-            onChange={(e) => setStockFiltro(e.target.value)}
-            className="px-3 py-2 text-sm border border-gray-300 rounded-md text-gray-900 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
-          >
-            <option value="">Stock</option>
-            <option value="bajo">Bajo (≤ 5)</option>
-            <option value="medio">Medio (6 - 15)</option>
-            <option value="alto">Alto ({`> 15`})</option>
-          </select>
-
-          {(categoriaFiltro || stockFiltro) && (
-            <button
-              onClick={() => {
-                setCategoriaFiltro("");
-                setStockFiltro("");
-              }}
-              className="px-3 py-2 text-sm rounded-md border border-gray-300 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-white/[0.06] transition"
+      {/* ── Tabla ── */}
+      <DataTable columns={columns} data={productosFiltrados} loading={loading}>
+        <DataTable.Toolbar searchPlaceholder="Buscar producto...">
+          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto sm:ml-auto">
+            <select
+              value={filtroCategoria}
+              onChange={(e) => setFiltroCategoria(e.target.value)}
+              className="w-full sm:w-48 p-2 border border-gray-300 rounded-md text-sm text-gray-900 focus:ring-blue-500 focus:border-blue-500 dark:bg-white/5 dark:border-white/10 dark:text-gray-100"
             >
-              Limpiar
-            </button>
-          )}
-        </div>
+              <option value="" className="bg-white text-gray-900">
+                Categoría
+              </option>
+              {categorias.map((cat) => (
+                <option
+                  key={cat.id}
+                  value={cat.id}
+                  className="bg-white text-gray-900"
+                >
+                  {cat.nombre}
+                </option>
+              ))}
+            </select>
 
-        <DataTable
-          columns={columns}
-          data={productosFiltrados}
-          loading={loading}
-          searchPlaceholder="Buscar producto..."
-        />
-      </div>
+            <select
+              value={filtroStock}
+              onChange={(e) => setFiltroStock(e.target.value)}
+              className="w-full sm:w-40 p-2 border border-gray-300 rounded-md text-sm text-gray-900 focus:ring-blue-500 focus:border-blue-500 dark:bg-white/5 dark:border-white/10 dark:text-gray-100"
+            >
+              <option value="" className="bg-white text-gray-900">
+                Stock
+              </option>
+              <option value="bajo" className="bg-white text-gray-900">
+                Bajo
+              </option>
+              <option value="medio" className="bg-white text-gray-900">
+                Medio
+              </option>
+              <option value="alto" className="bg-white text-gray-900">
+                Alto
+              </option>
+            </select>
+          </div>
+        </DataTable.Toolbar>
+
+        <DataTable.Table />
+        <DataTable.Pagination />
+      </DataTable>
     </div>
   );
 }

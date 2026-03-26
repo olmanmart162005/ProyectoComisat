@@ -6,7 +6,6 @@ import {
   ListIcon,
   PlugInIcon,
   TableIcon,
-  PlugInIcon,
   UserCircleIcon,
 } from "../icons";
 import { useSidebar } from "../context/SidebarContext";
@@ -18,33 +17,60 @@ const navItems = [
     icon: <GridIcon />,
     name: "Dashboard",
     path: "/",
+    allowedRoles: [
+      "Administrador",
+      "Gestor de Inventario",
+      "Oficial de Crédito",
+      "Recursos Humanos",
+      "Empleado",
+    ],
   },
   {
     icon: <UserCircleIcon />,
     name: "Usuarios",
     path: "/usuarios",
+    allowedRoles: ["Administrador"],
   },
   {
     name: "Empleados",
     icon: <ListIcon />,
     path: "/empleados",
+    allowedRoles: ["Administrador", "Recursos Humanos"],
   },
   {
     name: "Productos",
     icon: <TableIcon />,
     path: "/productos",
+    allowedRoles: ["Administrador", "Gestor de Inventario"],
+  },
+  {
+    name: "Solicitudes Reservas",
+    icon: <TableIcon />,
+    path: "/solicitudes-reservas",
+    allowedRoles: ["Administrador", "Oficial de Crédito"],
+  },
+  {
+    name: "Pagos Mensuales",
+    icon: <TableIcon />,
+    path: "/pagos-mensuales",
+    allowedRoles: ["Oficial de Crédito"],
   },
   {
     name: "Configuración",
     icon: <PlugInIcon />,
     path: "/configuracion",
-  }
+    allowedRoles: ["Administrador"],
+  },
 ];
 
 const AppSidebar = () => {
   const { isExpanded, isMobileOpen, isHovered, setIsHovered } = useSidebar();
-  const { logout } = useAuth();
+  const { logout, role } = useAuth();
   const navigate = useNavigate();
+
+  const visibleNavItems = navItems.filter(
+    (item) => !item.allowedRoles || item.allowedRoles.includes(role),
+  );
 
   const handleLogout = async () => {
     try {
@@ -137,24 +163,12 @@ const AppSidebar = () => {
                   <HorizontaLDots className="size-6" />
                 )}
               </h2>
-              {renderMenuItems(navItems)}
+              {renderMenuItems(visibleNavItems)}
             </div>
           </div>
         </nav>
 
-        {/* <div className="mt-auto pb-6">
-          <button
-            type="button"
-            onClick={handleLogout}
-            className={`menu-item group w-full ${
-              !isExpanded && !isHovered
-                ? "lg:justify-center"
-                : "lg:justify-start"
-            } menu-item-inactive`}
-          >
-            <span className="menu-item-text">Cerrar sesión</span>
-          </button>
-        </div> */}
+
       </div>
     </aside>
   );

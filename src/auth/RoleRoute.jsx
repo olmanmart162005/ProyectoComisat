@@ -14,8 +14,7 @@ export const RoleRoute = ({ children, roles }) => {
     return <Navigate to="/login" replace />;
 
   // Rol no permitido → acceso denegado
-  if (!roles.includes(role))
-    return <Navigate to="/acceso-denegado" replace />;
+  if (!roles.includes(role)) return <Navigate to="/acceso-denegado" replace />;
 
   return children;
 };

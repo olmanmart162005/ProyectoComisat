@@ -14,13 +14,19 @@ import DataTable from "../components/ui/table/DataTable";
 import Badge from "../components/ui/badge/Badge";
 import { useModal } from "../hooks/useModal";
 import { Modal } from "../components/ui/modal";
-import { GroupIcon, CheckCircleIcon, CloseIcon, PencilIcon, TrashBinIcon } from "../icons";
+import {
+  GroupIcon,
+  CheckCircleIcon,
+  CloseIcon,
+  PencilIcon,
+  TrashBinIcon,
+} from "../icons";
 import MetricCard from "../components/common/MetricCard";
 import PhoneInput from "../components/form/group-input/PhoneInput";
 import { sileo, Toaster } from "sileo";
 
 export default function Empleados() {
-  Toaster.position = "top-right"; 
+  Toaster.position = "top-right";
   const [empleados, setEmpleados] = useState([]);
   const [departamentos, setDepartamentos] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -44,8 +50,12 @@ export default function Empleados() {
   //contadores de empleados
 
   const totalEmpleados = empleados.length;
-  const empleadosActivos = empleados.filter((e) => e.estado === "Activo").length;
-  const empleadosInactivos = empleados.filter((e) => e.estado === "Inactivo").length;
+  const empleadosActivos = empleados.filter(
+    (e) => e.estado === "Activo",
+  ).length;
+  const empleadosInactivos = empleados.filter(
+    (e) => e.estado === "Inactivo",
+  ).length;
 
   const fetchDepartamentos = async () => {
     try {
@@ -144,7 +154,7 @@ export default function Empleados() {
       resetFormulario();
       fetchEmpleados();
       closeModal();
-      sileo.success("Empleado actualizado")
+      sileo.success("Empleado actualizado");
     } catch (error) {
       console.error("Error al actualizar", error);
       sileo.error("Error al actualizar");
@@ -280,7 +290,20 @@ export default function Empleados() {
           }}
           className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-5 py-2.5 rounded-lg shadow-sm transition flex items-center gap-2"
         >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
+          <svg
+            className="w-5 h-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+            />
+          </svg>
           Nuevo Empleado
         </button>
       </div>
@@ -289,13 +312,17 @@ export default function Empleados() {
         <MetricCard
           title="Total Empleados"
           value={totalEmpleados}
-          icon={<GroupIcon className="text-gray-800 size-6 dark:text-white/90" />}
+          icon={
+            <GroupIcon className="text-gray-800 size-6 dark:text-white/90" />
+          }
           iconWrapperClass="bg-gray-100 dark:bg-gray-800"
         />
         <MetricCard
           title="Empleados Activos"
           value={empleadosActivos}
-          icon={<CheckCircleIcon className="text-green-600 size-6 dark:text-green-400" />}
+          icon={
+            <CheckCircleIcon className="text-green-600 size-6 dark:text-green-400" />
+          }
           iconWrapperClass="bg-green-50 dark:bg-green-500/10"
         />
         <MetricCard
@@ -336,7 +363,11 @@ export default function Empleados() {
                 type="text"
                 required
                 value={nombres}
-                onChange={(e) => setNombres(e.target.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, ""))}
+                onChange={(e) =>
+                  setNombres(
+                    e.target.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, ""),
+                  )
+                }
                 placeholder="Ej. Sasha Maria"
                 className="mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white"
               />
@@ -349,7 +380,11 @@ export default function Empleados() {
                 type="text"
                 required
                 value={apellidos}
-                onChange={(e) => setApellidos(e.target.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, ""))}
+                onChange={(e) =>
+                  setApellidos(
+                    e.target.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, ""),
+                  )
+                }
                 placeholder="Ej. Sosa Enamorado"
                 className="mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white"
               />
@@ -454,10 +489,16 @@ export default function Empleados() {
                 onChange={(e) => setEstado(e.target.value)}
                 className="mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm text-gray-900 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
               >
-                <option value="Activo" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white">
+                <option
+                  value="Activo"
+                  className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                >
                   Activo
                 </option>
-                <option value="Inactivo" className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white">
+                <option
+                  value="Inactivo"
+                  className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                >
                   Inactivo
                 </option>
               </select>
@@ -479,12 +520,11 @@ export default function Empleados() {
         </div>
       </Modal>
 
-      <DataTable
-        columns={columns}
-        data={empleados}
-        loading={loading}
-        searchPlaceholder="Buscar empleado..."
-      />
+      <DataTable columns={columns} data={empleados} loading={loading}>
+        <DataTable.Toolbar searchPlaceholder="Buscar empleado..." />
+        <DataTable.Table />
+        <DataTable.Pagination />
+      </DataTable>
     </div>
   );
 }

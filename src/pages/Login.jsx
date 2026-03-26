@@ -80,12 +80,12 @@ export default function Login() {
               <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wide">
                 Password
               </label>
-              <button
+              {/* <button
                 type="button"
                 className="text-xs text-blue-600 hover:text-blue-800 font-medium transition"
               >
                 ¿Olvidaste tu contraseña?
-              </button>
+              </button> */}
             </div>
             <div className="relative">
               <input

@@ -83,7 +83,8 @@ export const AuthProvider = ({ children }) => {
           if (estadoActual === "inactivo") {
             sileo.error({
               title: "Cuenta Inactiva",
-              description: "Tu cuenta está inactiva. Contacta al administrador.",
+              description:
+                "Tu cuenta está inactiva. Contacta al administrador.",
             });
           }
         }
@@ -100,7 +101,11 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const login = async (email, password) => {
-    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    const userCredential = await signInWithEmailAndPassword(
+      auth,
+      email,
+      password,
+    );
 
     // Verificamos estado ANTES de dejar pasar al usuario en la UI
     const data = await getUserData(userCredential.user.email);
@@ -115,7 +120,9 @@ export const AuthProvider = ({ children }) => {
   const logout = () => signOut(auth);
 
   return (
-    <AuthContext.Provider value={{ user, role, estado, login, logout, loading }}>
+    <AuthContext.Provider
+      value={{ user, role, estado, login, logout, loading }}
+    >
       {!loading && children}
     </AuthContext.Provider>
   );

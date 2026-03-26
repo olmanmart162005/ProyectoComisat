@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { ReactComponent as PlusIcon } from "./plus.svg?react";
 import { ReactComponent as CloseIcon } from "./close.svg?react";
 import { ReactComponent as BoxIcon } from "./box.svg?react";
@@ -54,11 +55,17 @@ import { ReactComponent as ChatIcon } from "./chat.svg?react";
 import { ReactComponent as MoreDotIcon } from "./moredot.svg?react";
 import { ReactComponent as AlertHexaIcon } from "./alert-hexa.svg?react";
 import { ReactComponent as ErrorHexaIcon } from "./info-hexa.svg?react";
+import { ReactComponent as SavePlusIcon } from "./savePlus.svg?react";
+import { ReactComponent as CreditPercentIcon } from "./creditPercent.svg?react";
+import { ReactComponent as PercentIcon } from "./percent.svg?react";
 
 export {
   ErrorHexaIcon,
   AlertHexaIcon,
   MoreDotIcon,
+  SavePlusIcon,
+  CreditPercentIcon,
+  PercentIcon,
   DownloadIcon,
   FileIcon,
   GridIcon,

@@ -44,6 +44,7 @@ export default function Usuarios() {
   const [rolNombre, setRolNombre] = useState("");
   const [estado, setEstado] = useState("Activo");
   const [filtroEstado, setFiltroEstado] = useState("");
+  const [filtroRol, setFiltroRol] = useState("");
 
   const { isOpen, openModal, closeModal } = useModal();
 
@@ -278,9 +279,17 @@ export default function Usuarios() {
 
   const usuariosFiltrados = useMemo(() => {
     return usuarios.filter((u) => {
-      return filtroEstado ? u.estado === filtroEstado : true;
+
+      const coincideRol = filtroRol
+        ? u.rolId === filtroRol
+        : true;
+
+      const coincideEstado = filtroEstado ? u.estado === filtroEstado : true;
+
+      return coincideRol && coincideEstado;
     });
-  }, [usuarios, filtroEstado]);
+  }, [usuarios, filtroRol, filtroEstado]);
+
 
   // ── JSX ──────────────────────────────────────────────────
   return (
@@ -452,6 +461,24 @@ export default function Usuarios() {
       <DataTable columns={columns} data={usuariosFiltrados} loading={loading}>
         <DataTable.Toolbar searchPlaceholder="Buscar usuario...">
           <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto sm:ml-auto">
+            <select
+              value={filtroRol}
+              onChange={(e) => setFiltroRol(e.target.value)}
+              className="w-full sm:w-52 p-2 border border-gray-300 rounded-md text-sm text-gray-900 focus:ring-blue-500 focus:border-blue-500 dark:bg-white/5 dark:border-white/10 dark:text-gray-100"
+            >
+              <option value="" className="bg-white text-gray-900">
+                Rol
+              </option>
+              {roles.map((r) => (
+                <option
+                  key={r.id}
+                  value={r.id}
+                  className="bg-white text-gray-900"
+                >
+                  {r.nombre}
+                </option>
+              ))}
+            </select>
             <select
               value={filtroEstado}
               onChange={(e) => setFiltroEstado(e.target.value)}

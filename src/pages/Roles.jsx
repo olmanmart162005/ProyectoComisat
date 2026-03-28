@@ -15,10 +15,12 @@ import { useModal } from "../hooks/useModal";
 import { Modal } from "../components/ui/modal";
 import { sileo, Toaster } from "sileo";
 
-export default function Categorias() {
+
+
+export default function Roles() {
   Toaster.position = "top-right";
 
-  const [categorias, setCategorias] = useState([]);
+  const [roles, setRoles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [editandoId, setEditandoId] = useState(null);
   const [enviando, setEnviando] = useState(false);
@@ -26,39 +28,37 @@ export default function Categorias() {
   const { isOpen, openModal, closeModal } = useModal();
 
   // ── Fetchers ─────────────────────────────────────────────
-  const fetchCategorias = async () => {
-
+  const fetchRoles = async () => {
     setLoading(true);
     try {
-      const snap = await getDocs(collection(db, "categoria"));
+      const snap = await getDocs(collection(db, "roles"));
       const docs = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-      setCategorias(docs);
+      setRoles(docs);
     } catch (error) {
-      console.error("Error al cargar categorías:", error);
-      sileo.error("No se pudieron cargar las categorías.");
+      console.error("Error al cargar roles:", error);
+      sileo.error("No se pudieron cargar los roles.");
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchCategorias();
+    fetchRoles();
   }, []);
-
 
   // ── CRUD ─────────────────────────────────────────────────
   const handleSubmit = async (e) => {
     e.preventDefault();
     setEnviando(true);
     try {
-      await addDoc(collection(db, "categoria"), {
+      await addDoc(collection(db, "roles"), {
         nombre,
         fechaRegistro: serverTimestamp(),
       });
       setNombre("");
-      fetchCategorias();
+      fetchRoles();
       closeModal();
-      sileo.success("Categoría creada con éxito");
+      sileo.success("Rol creado con éxito");
     } catch (error) {
       console.error("Error al guardar", error);
       sileo.error("Error al guardar");
@@ -71,14 +71,14 @@ export default function Categorias() {
     e.preventDefault();
     setEnviando(true);
     try {
-      await updateDoc(doc(db, "categoria", editandoId), {
+      await updateDoc(doc(db, "roles", editandoId), {
         nombre,
       });
       setEditandoId(null);
       setNombre("");
-      fetchCategorias();
+      fetchRoles();
       closeModal();
-      sileo.success("Categoría actualizada con éxito");
+      sileo.success("Rol actualizado con éxito");
     } catch (error) {
       console.error("Error al actualizar", error);
       sileo.error("Error al actualizar");
@@ -88,11 +88,11 @@ export default function Categorias() {
   };
 
   const handleEliminar = async (id) => {
-    if (window.confirm("¿Estás seguro de que deseas eliminar esta categoría?")) {
+    if (window.confirm("¿Estás seguro de que deseas eliminar este rol?")) {
       try {
-        await deleteDoc(doc(db, "categoria", id));
-        fetchCategorias();
-        sileo.success("Categoría eliminada");
+        await deleteDoc(doc(db, "roles", id));
+        fetchRoles();
+        sileo.success("Rol eliminado");
       } catch (error) {
         console.error("Error al eliminar", error);
         sileo.error("Error al eliminar");
@@ -117,13 +117,13 @@ export default function Categorias() {
         header: "Acciones",
         enableSorting: false,
         cell: ({ row }) => {
-          const cat = row.original;
+          const rol = row.original;
           return (
             <div className="flex justify-center gap-3">
               <button
                 onClick={() => {
-                  setEditandoId(cat.id);
-                  setNombre(cat.nombre || "");
+                  setEditandoId(rol.id);
+                  setNombre(rol.nombre || "");
                   openModal();
                 }}
                 className="text-blue-600 hover:text-blue-800 transition"
@@ -131,7 +131,7 @@ export default function Categorias() {
                 Editar
               </button>
               <button
-                onClick={() => handleEliminar(cat.id)}
+                onClick={() => handleEliminar(rol.id)}
                 className="text-red-500 hover:text-red-700 transition"
               >
                 Eliminar
@@ -150,7 +150,7 @@ export default function Categorias() {
       {/* Encabezado */}
       <div className="flex sm:justify-between flex-col sm:flex-row gap-4 items-start sm:items-center">
         <h2 className="text-2xl font-bold text-gray-800 dark:text-white/90">
-          Categorías
+          Roles
         </h2>
         <button
           onClick={() => {
@@ -173,7 +173,7 @@ export default function Categorias() {
               d="M12 6v6m0 0v6m0-6h6m-6 0H6"
             />
           </svg>
-          Nueva Categoría
+          Nuevo Rol
         </button>
       </div>
 
@@ -181,7 +181,7 @@ export default function Categorias() {
       <Modal isOpen={isOpen} onClose={closeModal} className="max-w-xl">
         <div className="p-6">
           <h2 className="text-xl font-bold mb-6 text-gray-800 dark:text-white/90">
-            {editandoId ? "Editando Categoría" : "Registrar Nueva Categoría"}
+            {editandoId ? "Editando Rol" : "Registrar Nuevo Rol"}
           </h2>
           <form
             onSubmit={editandoId ? handleUpdate : handleSubmit}
@@ -196,7 +196,7 @@ export default function Categorias() {
                 required
                 value={nombre}
                 onChange={(e) => setNombre(e.target.value)}
-                placeholder="Nombre de la categoría"
+                placeholder="Nombre del rol"
                 className="mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white"
               />
             </div>
@@ -224,8 +224,8 @@ export default function Categorias() {
       </Modal>
 
       {/* Tabla */}
-      <DataTable columns={columns} data={categorias} loading={loading}>
-        <DataTable.Toolbar searchPlaceholder="Buscar categoría..." />
+      <DataTable columns={columns} data={roles} loading={loading}>
+        <DataTable.Toolbar searchPlaceholder="Buscar rol..." />
         <DataTable.Table />
         <DataTable.Pagination />
       </DataTable>

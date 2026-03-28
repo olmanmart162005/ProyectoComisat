@@ -38,6 +38,24 @@ const navItems = [
     allowedRoles: ["Administrador", "Recursos Humanos"],
   },
   {
+    name: "Departamentos",
+    icon: <ListIcon />,
+    path: "/departamentos",
+    allowedRoles: ["Administrador", "Recursos Humanos"],
+  },
+  {
+    name: "Roles",
+    icon: <ListIcon />,
+    path: "/roles",
+    allowedRoles: ["Administrador"],
+  },
+  {
+    name: "Categorías",
+    icon: <TableIcon />,
+    path: "/categorias",
+    allowedRoles: ["Administrador", "Gestor de Inventario"],
+  },
+  {
     name: "Productos",
     icon: <TableIcon />,
     path: "/productos",
@@ -47,13 +65,13 @@ const navItems = [
     name: "Solicitudes Reservas",
     icon: <TableIcon />,
     path: "/solicitudes-reservas",
-    allowedRoles: ["Administrador", "Oficial de Crédito"],
+    allowedRoles: ["Administrador", "Oficial de Credito"],
   },
   {
     name: "Pagos Mensuales",
     icon: <TableIcon />,
     path: "/pagos-mensuales",
-    allowedRoles: ["Oficial de Crédito"],
+    allowedRoles: ["Oficial de Credito"],
   },
   {
     name: "Configuración",

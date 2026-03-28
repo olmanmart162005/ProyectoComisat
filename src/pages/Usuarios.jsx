@@ -31,6 +31,8 @@ export default function Usuarios() {
   const [empleados, setEmpleados] = useState([]);
   const [roles, setRoles] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [busquedaEmpleado, setBusquedaEmpleado] = useState("");
+  const [mostrarSugerencias, setMostrarSugerencias] = useState(false);
 
   const [editandoId, setEditandoId] = useState(null);
   const [enviando, setEnviando] = useState(false);
@@ -197,6 +199,7 @@ export default function Usuarios() {
       setNombre(
         `${empleados[0].nombres ?? ""} ${empleados[0].apellidos ?? ""}`.trim(),
       );
+      setBusquedaEmpleado("");
       setCorreoPersonal(empleados[0]?.correo ?? "");
       setCorreo("");
     } else {
@@ -253,6 +256,7 @@ export default function Usuarios() {
                   setEditandoId(u.id);
                   setEmpleadoId(u.empleadoId || "");
                   setNombre(u.nombre || "");
+                  setBusquedaEmpleado(u.nombre || "");
                   setCorreo(u.correo || "");
                   setRolId(u.rolId || "");
                   setRolNombre(u.rolNombre || "");
@@ -361,24 +365,76 @@ export default function Usuarios() {
           >
             {/* Empleado */}
             <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-400">
-                Empleado
-              </label>
-              <select
-                value={empleadoId}
-                onChange={handleEmpleadoChange}
-                className="mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm text-gray-900 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100 disabled:opacity-60"
-              >
-                {empleados.length === 0 ? (
-                  <option disabled>Cargando empleados...</option>
-                ) : (
-                  empleados.map((emp) => (
-                    <option key={emp.id} value={emp.id}>
-                      {`${emp.nombres ?? ""} ${emp.apellidos ?? ""}`.trim()}
-                    </option>
-                  ))
-                )}
-              </select>
+              {/* Empleado con búsqueda */}
+           <div className="md:col-span-2 relative">
+             <label className="block text-sm font-medium text-gray-700 dark:text-gray-400">
+               Empleado
+             </label>
+             <input
+               type="text"
+               value={busquedaEmpleado}
+               onChange={(e) => {
+                 setBusquedaEmpleado(e.target.value);
+                 setMostrarSugerencias(true);
+                 // Si borra el texto, limpia la selección
+                 if (!e.target.value) {
+                   setEmpleadoId("");
+                   setNombre("");
+                   setCorreoPersonal("");
+                 }
+               }}
+               onFocus={() => setMostrarSugerencias(true)}
+               onBlur={() => setTimeout(() => setMostrarSugerencias(false), 150)}
+               placeholder="Buscar empleado..."
+               className="mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm text-gray-900 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
+             />
+           
+             {/* Sugerencias */}
+             {mostrarSugerencias && busquedaEmpleado.length > 0 && (
+               <ul className="absolute z-50 w-full mt-1 max-h-52 overflow-y-auto bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg">
+                 {empleados
+                   .filter((emp) =>
+                     `${emp.nombres ?? ""} ${emp.apellidos ?? ""}`
+                       .toLowerCase()
+                       .includes(busquedaEmpleado.toLowerCase())
+                   )
+                   .map((emp) => {
+                     const nombreCompleto = `${emp.nombres ?? ""} ${emp.apellidos ?? ""}`.trim();
+                     return (
+                       <li
+                         key={emp.id}
+                         onMouseDown={() => {
+                           setEmpleadoId(emp.id);
+                           setNombre(nombreCompleto);
+                           setCorreoPersonal(emp.correo ?? "");
+                           setBusquedaEmpleado(nombreCompleto);
+                           setMostrarSugerencias(false);
+                         }}
+                         className="px-4 py-2 cursor-pointer hover:bg-blue-50 dark:hover:bg-gray-700"
+                       >
+                         <p className="text-sm font-medium text-gray-800 dark:text-white/90">
+                           {nombreCompleto}
+                         </p>
+                         <p className="text-xs text-gray-500 dark:text-gray-400">
+                           {emp.correo ?? "Sin correo"}
+                         </p>
+                       </li>
+                     );
+                   })}
+           
+                 {/* Sin resultados */}
+                 {empleados.filter((emp) =>
+                   `${emp.nombres ?? ""} ${emp.apellidos ?? ""}`
+                     .toLowerCase()
+                     .includes(busquedaEmpleado.toLowerCase())
+                 ).length === 0 && (
+                   <li className="px-4 py-3 text-sm text-gray-400 dark:text-gray-500 text-center">
+                     Sin resultados para "{busquedaEmpleado}"
+                   </li>
+                 )}
+               </ul>
+             )}
+           </div>
             </div>
 
             {/* Correo (autocompletado, editable) */}

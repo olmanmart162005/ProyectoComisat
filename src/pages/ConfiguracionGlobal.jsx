@@ -291,11 +291,10 @@ export default function ParametrosGlobales() {
               </div>
               <div>
                 <p className="text-xs font-semibold text-gray-600 dark:text-gray-400">
-                  Límite de Crédito Global
+                  Límite de Crédito 
                 </p>
                 <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
-                  Cupo máximo de compra mensual basado en el sueldo del
-                  empleado.
+                  Porcentaje máximo del salario mensual que un empleado puede usar como crédito.
                 </p>
               </div>
             </div>

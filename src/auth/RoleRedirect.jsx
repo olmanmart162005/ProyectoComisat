@@ -4,7 +4,7 @@ import { useAuth } from "./AuthProvider";
 const ROLE_HOME = {
   Administrador: "/dashboard",
   "Gestor de Inventario": "/dashboard-gestor",
-  "Oficial de Crédito": "/dashboard-oficial",
+  "Oficial de Credito": "/dashboard-oficial",
   "Recursos Humanos": "/dashboard-rrhh",
   Empleado: "/descarga-app",
 };

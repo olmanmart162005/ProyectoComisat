@@ -26,6 +26,10 @@ import Usuarios from "../pages/Usuarios";
 import ConfiguracionGlobal from "../pages/ConfiguracionGlobal";
 import SolicitudesReservas from "../pages/SolicitudesReservas";
 import PagosMensuales from "../pages/PagosMensuales";
+import HistorialCreditos from "../pages/HistorialCreditos";
+import Categorias from "../pages/Categorias";
+import Departamentos from "../pages/Departamentos";
+import Roles from "../pages/Roles";
 
 export default function AppRouter() {
   const { user } = useAuth();
@@ -120,6 +124,30 @@ export default function AppRouter() {
             }
           />
           <Route
+            path="departamentos"
+            element={
+              <RoleRoute roles={["Administrador", "Recursos Humanos"]}>
+                <Departamentos />
+              </RoleRoute>
+            }
+          />
+          <Route
+            path="roles"
+            element={
+              <RoleRoute roles={["Administrador"]}>
+                <Roles />
+              </RoleRoute>
+            }
+          />
+          <Route
+            path="categorias"
+            element={
+              <RoleRoute roles={["Administrador", "Gestor de Inventario"]}>
+                <Categorias />
+              </RoleRoute>
+            }
+          />
+          <Route
             path="usuarios"
             element={
               <RoleRoute roles={["Administrador"]}>
@@ -154,6 +182,20 @@ export default function AppRouter() {
             element={
               <RoleRoute roles={["Oficial de Crédito", "Oficial de Credito"]}>
                 <PagosMensuales />
+              </RoleRoute>
+            }
+          />
+          <Route
+            path="historial-creditos"
+            element={
+              <RoleRoute
+                roles={[
+                  "Administrador",
+                  "Oficial de Crédito",
+                  "Oficial de Credito",
+                ]}
+              >
+                <HistorialCreditos />
               </RoleRoute>
             }
           />

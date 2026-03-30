@@ -15,25 +15,12 @@ import { getStorage } from "firebase/storage";
     Puedes obtenerlos en la consola de Firebase
 */
 
-
-const firebaseConfig = {
-  apiKey: "AIzaSyCmwypHciuDjPmRj7UIVCWb0JuoEZkPcgg",
-  authDomain: "comisariatoazucarera.firebaseapp.com",
-  projectId: "comisariatoazucarera",
-  storageBucket: "comisariatoazucarera.firebasestorage.app",
-  messagingSenderId: "527894657764",
-  appId: "1:527894657764:web:9873e9286a274e39c74af1"
-};
-
 // Your web app's Firebase configuration
-
-
-
 
 // Inicializa Firebase
 const app = initializeApp(firebaseConfig);
 
-// Inicializa el servicio de autenticacion 
+// Inicializa el servicio de autenticacion
 export const auth = getAuth(app);
 // Inicializa el servicio de Firestore
 export const db = getFirestore(app);

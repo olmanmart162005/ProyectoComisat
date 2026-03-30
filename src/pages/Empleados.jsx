@@ -6,8 +6,10 @@ import {
   deleteDoc,
   doc,
   getDocs,
+  query,
   serverTimestamp,
   updateDoc,
+  where,
 } from "firebase/firestore";
 
 import DataTable from "../components/ui/table/DataTable";
@@ -107,11 +109,70 @@ export default function Empleados() {
     setDepartamentoNombre(selectedDep ? selectedDep.nombre || "" : "");
   };
 
+  const getRolEmpleadoId = async () => {
+    try {
+      const q = query(
+        collection(db, "roles"),
+        where("nombre", "==", "Empleado"),
+      );
+      const snap = await getDocs(q);
+      if (!snap.empty) return snap.docs[0].id;
+      return "";
+    } catch (error) {
+      console.error("Error al buscar rol Empleado:", error);
+      return "";
+    }
+  };
+
+  const syncUsuarioConEmpleado = async ({
+    empleadoIdDoc,
+    empleadoNombres,
+    empleadoApellidos,
+    empleadoCorreo,
+    empleadoEstado,
+  }) => {
+    const q = query(
+      collection(db, "usuarios"),
+      where("empleadoId", "==", empleadoIdDoc),
+    );
+    const snap = await getDocs(q);
+
+    const payloadBase = {
+      empleadoId: empleadoIdDoc,
+      empleadoNombres,
+      empleadoApellidos,
+      nombre: `${empleadoNombres} ${empleadoApellidos}`.trim(),
+      correo: empleadoCorreo,
+      estado: empleadoEstado,
+    };
+
+    if (!snap.empty) {
+      await Promise.all(
+        snap.docs.map((d) =>
+          updateDoc(doc(db, "usuarios", d.id), {
+            ...payloadBase,
+            ultimaModificacion: serverTimestamp(),
+          }),
+        ),
+      );
+      return;
+    }
+
+    const rolEmpleadoId = await getRolEmpleadoId();
+
+    await addDoc(collection(db, "usuarios"), {
+      ...payloadBase,
+      rolId: rolEmpleadoId,
+      rolNombre: "Empleado",
+      fechaRegistro: serverTimestamp(),
+    });
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setEnviando(true);
     try {
-      await addDoc(collection(db, "empleados"), {
+      const docRef = await addDoc(collection(db, "empleados"), {
         codigoEmpleado,
         nombres,
         apellidos,
@@ -124,6 +185,15 @@ export default function Empleados() {
         estado,
         fechaRegistro: serverTimestamp(),
       });
+
+      await syncUsuarioConEmpleado({
+        empleadoIdDoc: docRef.id,
+        empleadoNombres: nombres,
+        empleadoApellidos: apellidos,
+        empleadoCorreo: correo,
+        empleadoEstado: estado,
+      });
+
       resetFormulario();
       fetchEmpleados();
       sileo.success("Empleado creado con éxito");
@@ -151,8 +221,17 @@ export default function Empleados() {
         departamentoNombre,
         salario: parseFloat(salario),
         estado,
-        ultima_modificacion: serverTimestamp(),
+        ultimaModificacion: serverTimestamp(),
       });
+
+      await syncUsuarioConEmpleado({
+        empleadoIdDoc: editandoId,
+        empleadoNombres: nombres,
+        empleadoApellidos: apellidos,
+        empleadoCorreo: correo,
+        empleadoEstado: estado,
+      });
+
       resetFormulario();
       fetchEmpleados();
       closeModal();

@@ -26,6 +26,7 @@ import Usuarios from "../pages/Usuarios";
 import ConfiguracionGlobal from "../pages/ConfiguracionGlobal";
 import SolicitudesReservas from "../pages/SolicitudesReservas";
 import PagosMensuales from "../pages/PagosMensuales";
+import HistorialCreditos from "../pages/HistorialCreditos";
 import Categorias from "../pages/Categorias";
 import Departamentos from "../pages/Departamentos";
 import Roles from "../pages/Roles";
@@ -181,6 +182,20 @@ export default function AppRouter() {
             element={
               <RoleRoute roles={["Oficial de Crédito", "Oficial de Credito"]}>
                 <PagosMensuales />
+              </RoleRoute>
+            }
+          />
+          <Route
+            path="historial-creditos"
+            element={
+              <RoleRoute
+                roles={[
+                  "Administrador",
+                  "Oficial de Crédito",
+                  "Oficial de Credito",
+                ]}
+              >
+                <HistorialCreditos />
               </RoleRoute>
             }
           />

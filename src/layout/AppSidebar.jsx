@@ -74,6 +74,12 @@ const navItems = [
     allowedRoles: ["Oficial de Credito"],
   },
   {
+    name: "Historial de Créditos",
+    icon: <TableIcon />,
+    path: "/historial-creditos",
+    allowedRoles: ["Administrador", "Oficial de Credito"],
+  },
+  {
     name: "Configuración",
     icon: <PlugInIcon />,
     path: "/configuracion",

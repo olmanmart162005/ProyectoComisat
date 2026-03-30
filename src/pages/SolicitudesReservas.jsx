@@ -526,6 +526,13 @@ export default function SolicitudesCredito() {
           fechaAutoriza: serverTimestamp(),
           empleadoAutoriza: user?.email ?? "desconocido",
         }),
+        // ── Nuevos campos al aprobar ──────────────────────────────
+        ...(nuevoEstado === "Aprobado" && {
+          cuotasPagadas: 0,
+          saldoPendiente:
+            solicitudSeleccionada.datosFinancierosHistoricos?.totalCredito ?? 0,
+          estadoCredito: "Activo",
+        }),
       });
 
       setSolicitudes((prev) =>
@@ -537,6 +544,14 @@ export default function SolicitudesCredito() {
                 ...(nuevoEstado !== "Pendiente" && {
                   fechaAutoriza: fechaLocal,
                   empleadoAutoriza: user?.email ?? "desconocido",
+                }),
+                // ── Nuevos campos al aprobar ──────────────────────
+                ...(nuevoEstado === "Aprobado" && {
+                  cuotasPagadas: 0,
+                  saldoPendiente:
+                    solicitudSeleccionada.datosFinancierosHistoricos
+                      ?.totalCredito ?? 0,
+                  estadoCredito: "Activo",
                 }),
               }
             : s,
@@ -551,6 +566,13 @@ export default function SolicitudesCredito() {
               ...(nuevoEstado !== "Pendiente" && {
                 fechaAutoriza: fechaLocal,
                 empleadoAutoriza: user?.email ?? "desconocido",
+              }),
+              // ── Nuevos campos al aprobar ────────────────────────
+              ...(nuevoEstado === "Aprobado" && {
+                cuotasPagadas: 0,
+                saldoPendiente:
+                  prev.datosFinancierosHistoricos?.totalCredito ?? 0,
+                estadoCredito: "Activo",
               }),
             }
           : prev,

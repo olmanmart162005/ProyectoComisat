@@ -24,8 +24,17 @@ import {
   TrashBinIcon,
 } from "../icons";
 import MetricCard from "../components/common/MetricCard";
+import { sileo, Toaster } from "sileo";
+
+
+import ExportButtons from "../layout/Exportbuttons";
+import { useAuth } from "../auth/AuthProvider";
+import { useNombreEmpleadoActual } from "../hooks/useNombreEmpleadoActual";
+
 
 export default function Productos() {
+  const { user } = useAuth();
+  const nombreEmpleado = useNombreEmpleadoActual();
   const [productos, setProductos] = useState([]);
   const [categorias, setCategorias] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -87,7 +96,7 @@ export default function Productos() {
       }
     } catch (error) {
       console.error("Error al cargar categorías:", error);
-      alert("No se pudieron cargar las categorías.");
+      sileo.error("No se pudieron cargar las categorías.");
     }
   };
 
@@ -102,7 +111,7 @@ export default function Productos() {
       setProductos(docs);
     } catch (error) {
       console.error("Error al cargar productos:", error);
-      alert("No se pudieron cargar los productos.");
+      sileo.error("No se pudieron cargar los productos.");
     } finally {
       setLoading(false);
     }
@@ -173,11 +182,11 @@ export default function Productos() {
       });
       resetFormulario();
       fetchProductos();
-      alert("Producto creado con éxito");
+      sileo.success("Producto creado con éxito");
       closeModal();
     } catch (error) {
       console.error("Error al guardar", error);
-      alert("Error al guardar");
+      sileo.error("Error al guardar");
     } finally {
       setEnviando(false);
     }
@@ -210,11 +219,11 @@ export default function Productos() {
       });
       resetFormulario();
       fetchProductos();
-      alert("Producto actualizado");
+      sileo.success("Producto actualizado");
       closeModal();
     } catch (error) {
       console.error("Error al actualizar", error);
-      alert("Error al actualizar");
+      sileo.error("Error al actualizar");
     } finally {
       setEnviando(false);
     }
@@ -225,10 +234,10 @@ export default function Productos() {
       try {
         await deleteDoc(doc(db, "productos", id));
         fetchProductos();
-        alert("Producto eliminado");
+        sileo.info("Producto eliminado");
       } catch (error) {
         console.error("Error al eliminar", error);
-        alert("Error al eliminar");
+        sileo.error("Error al eliminar");
       }
     }
   };
@@ -267,6 +276,26 @@ export default function Productos() {
       return coincideCategoria && coincideStock;
     });
   }, [productos, filtroCategoria, filtroStock]);
+
+  // Dentro de tu componente Productos
+  const textoFiltrosPdf = useMemo(() => {
+  const partes = [];
+
+  if (filtroCategoria) {
+    // Buscamos el nombre de la categoría para que no aparezca solo el ID
+    const cat = categorias.find(c => c.id === filtroCategoria);
+    partes.push(`Categoría: ${cat ? cat.nombre : filtroCategoria}`);
+  }
+
+  if (filtroStock) {
+    const stockLabels = { bajo: "Bajo (≤5)", medio: "Medio (6-20)", alto: "Alto (>20)" };
+    partes.push(`Stock: ${stockLabels[filtroStock]}`);
+  }
+
+  return partes.length > 0 
+    ? `Filtros activos: ${partes.join(" | ")}` 
+    : "Catálogo Completo";
+}, [filtroCategoria, filtroStock, categorias]);
 
   // ── Columnas ──────────────────────────────────────────────────────
   const columns = useMemo(
@@ -376,6 +405,18 @@ export default function Productos() {
     ],
     [categorias],
   );
+
+  const COLUMNAS_EXPORT_PRODUCTOS = [
+  { key: "nombre",          header: "Nombre",           type: "text"     },
+  { key: "descripcion",     header: "Descripción",       type: "text"     },
+  { key: "categoriaNombre", header: "Categoría",         type: "text"     },
+  { key: "precioContado",   header: "Precio Contado (L.)", type: "currency" },
+  { key: "precioCredito",   header: "Precio Crédito (L.)", type: "currency" },
+  { key: "stock",           header: "Stock",             type: "number"   },
+  { key: "estado",          header: "Estado",            type: "text"     },
+];
+
+
   // ─────────────────────────────────────────────────────────────────
 
   return (
@@ -694,7 +735,20 @@ export default function Productos() {
               </option>
             </select>
           </div>
+
+          <ExportButtons
+            rows={productosFiltrados}
+            columns={COLUMNAS_EXPORT_PRODUCTOS}
+            filename={"Productos Seleccionados " + new Date().toLocaleDateString("es-HN")}
+            meta={{
+              empresa: "Comisariato San Jose",
+              usuario: nombreEmpleado || "Sistema",
+              extra:   textoFiltrosPdf,
+            }}
+            pdfOptions={{ title: "Productos Seleccionados", subtitle: new Date().toLocaleDateString("es-HN") }}
+          />
         </DataTable.Toolbar>
+        
 
         <DataTable.Table />
         <DataTable.Pagination />

@@ -30,6 +30,9 @@ import HistorialCreditos from "../pages/HistorialCreditos";
 import Categorias from "../pages/Categorias";
 import Departamentos from "../pages/Departamentos";
 import Roles from "../pages/Roles";
+import Bitacora from "../pages/Bitacora";
+import HistorialProductos from "../pages/HistorialProductos";
+import HistorialEmpleados from "../pages/HistorialEmpleados";
 
 export default function AppRouter() {
   const { user } = useAuth();
@@ -196,6 +199,30 @@ export default function AppRouter() {
                 ]}
               >
                 <HistorialCreditos />
+              </RoleRoute>
+            }
+          />
+          <Route
+            path="bitacora"
+            element={
+              <RoleRoute roles={["Administrador"]}>
+                <Bitacora />
+              </RoleRoute>
+            }
+          />
+          <Route
+            path="historial-productos"
+            element={
+              <RoleRoute roles={["Administrador", "Gestor de Inventario"]}>
+                <HistorialProductos />
+              </RoleRoute>
+            }
+          />
+          <Route
+            path="historial-empleados"
+            element={
+              <RoleRoute roles={["Administrador", "Recursos Humanos"]}>
+                <HistorialEmpleados />
               </RoleRoute>
             }
           />

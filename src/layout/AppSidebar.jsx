@@ -88,8 +88,12 @@ const navItems = [
 const navGroups = [
   {
     name: "Auditoría",
-    allowedRoles: ["Administrador", "Oficial de Credito"],
-    // Ícono del botón del grupo
+    allowedRoles: [
+      "Administrador",
+      "Oficial de Credito",
+      "Recursos Humanos",
+      "Gestor de Inventario",
+    ],
     icon: (
       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8}
@@ -98,18 +102,30 @@ const navGroups = [
     ),
     children: [
       {
+        name: "Bitácora",
+        icon: <ListIcon />,
+        path: "/bitacora",
+        allowedRoles: ["Administrador"],
+      },
+      {
         name: "Historial de Créditos",
         icon: <TableIcon />,
         path: "/historial-creditos",
         allowedRoles: ["Administrador", "Oficial de Credito"],
       },
-      // Futuras pantallas de auditoría se agregan aquí:
-      // {
-      //   name: "Registro de Cambios",
-      //   icon: <TableIcon />,
-      //   path: "/auditoria-cambios",
-      //   allowedRoles: ["Administrador"],
-      // },
+      {
+        name: "Historial de Empleados",
+        icon: <TableIcon />,
+        path: "/historial-empleados",
+        allowedRoles: ["Administrador", "Recursos Humanos"],
+      },
+      {
+        name: "Historial Productos",
+        icon: <TableIcon />,
+        path: "/historial-productos",
+        allowedRoles: ["Administrador", "Gestor de Inventario"],
+      },
+      
     ],
   },
 ];

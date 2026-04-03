@@ -1,0 +1,5 @@
+/* Personalización del color de la descripción de sileo.success */
+[data-sileo-viewport="true"] [data-sileo-description] {
+  color: #343942 !important; /* gris oscuro */
+  text-align: center !important;
+}

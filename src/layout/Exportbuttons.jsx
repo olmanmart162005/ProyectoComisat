@@ -16,7 +16,7 @@
  */
 
 import { useState } from "react";
-import { exportToExcel, exportToPDF } from "../layout/exportUtils";
+import { exportToExcel, exportToPDF } from "../layout/ExportUtils";
 
 function IconExcel() {
   return (
@@ -55,6 +55,7 @@ export default function ExportButtons({
   meta       = {},           // ← nuevo: { empresa, usuario, extra }
   disabled   = false,
   className  = "",
+  onExport   = null,
 }) {
   const [loadingExcel, setLoadingExcel] = useState(false);
   const [loadingPDF,   setLoadingPDF]   = useState(false);
@@ -67,6 +68,7 @@ export default function ExportButtons({
     try {
       await new Promise((r) => setTimeout(r, 50));
       await exportToExcel(rows, columns, filename, sheetName, meta);
+      onExport?.("excel");
     } catch (err) {
       console.error("Error exportando Excel:", err);
     } finally {
@@ -79,6 +81,7 @@ export default function ExportButtons({
     try {
       await new Promise((r) => setTimeout(r, 50));
       exportToPDF(rows, columns, filename, { ...pdfOptions, meta });
+      onExport?.("pdf");
     } catch (err) {
       console.error("Error exportando PDF:", err);
     } finally {

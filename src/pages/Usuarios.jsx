@@ -145,7 +145,10 @@ export default function Usuarios() {
       resetFormulario();
       fetchUsuarios();
       closeModal();
-      setTimeout(() => sileo.success("Usuario creado con éxito"), 150);
+      sileo.success({
+        title: "Usuario creado",
+        description: "El nuevo usuario se ha registrado correctamente.",
+      });
     } catch (error) {
       console.error("Error al guardar", error);
       sileo.error("Error al guardar");

@@ -30,6 +30,7 @@ import { sileo, Toaster } from "sileo";
 import ExportButtons from "../layout/Exportbuttons";
 import { useAuth } from "../auth/AuthProvider";
 import { useNombreEmpleadoActual } from "../hooks/useNombreEmpleadoActual";
+import { registrarBitacora } from "../services/bitacora";
 
 
 export default function Productos() {
@@ -157,40 +158,57 @@ export default function Productos() {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    setEnviando(true);
-    try {
-      const contado = parseFloat(precioContado) || 0;
-      const creditoCalculado = contado * (1 + porcentajeAumento);
+  e.preventDefault();
+  setEnviando(true);
+  try {
+    const contado = parseFloat(precioContado) || 0;
+    const creditoCalculado = contado * (1 + porcentajeAumento);
 
-      let imagenUrl = "";
-      if (archivoImagen) {
-        imagenUrl = await subirImagen(archivoImagen);
-      }
-
-      await addDoc(collection(db, "productos"), {
-        nombre,
-        descripcion,
-        precioContado: contado,
-        precioCredito: parseFloat(creditoCalculado.toFixed(2)),
-        stock: parseInt(stock),
-        categoriaId,
-        categoriaNombre,
-        estado,
-        imagenUrl,
-        fechaRegistro: serverTimestamp(),
-      });
-      resetFormulario();
-      fetchProductos();
-      sileo.success("Producto creado con éxito");
-      closeModal();
-    } catch (error) {
-      console.error("Error al guardar", error);
-      sileo.error("Error al guardar");
-    } finally {
-      setEnviando(false);
+    let imagenUrl = "";
+    if (archivoImagen) {
+      imagenUrl = await subirImagen(archivoImagen);
     }
-  };
+
+    // ← CAMBIO: guardamos la referencia para obtener el ID
+    const nuevoDoc = await addDoc(collection(db, "productos"), {
+      nombre,
+      descripcion,
+      precioContado: contado,
+      precioCredito: parseFloat(creditoCalculado.toFixed(2)),
+      stock: parseInt(stock),
+      categoriaId,
+      categoriaNombre,
+      estado,
+      imagenUrl,
+      fechaRegistro: serverTimestamp(),
+    });
+
+    // ← NUEVO: registro en bitácora
+    await registrarBitacora({
+      usuario: user.email,
+      nombre: nombreEmpleado,
+      coleccion: "productos",
+      accion: "creacion",
+      docId: nuevoDoc.id,
+      metadata: {
+        nombre,
+        categoriaNombre,
+        stock: parseInt(stock),
+        estado,
+      },
+    });
+
+    resetFormulario();
+    fetchProductos();
+    sileo.success("Producto creado con éxito");
+    closeModal();
+  } catch (error) {
+    console.error("Error al guardar", error);
+    sileo.error("Error al guardar");
+  } finally {
+    setEnviando(false);
+  }
+};
 
   const handleUpdate = async (e) => {
     e.preventDefault();
@@ -205,6 +223,8 @@ export default function Productos() {
         imagenUrl = await subirImagen(archivoImagen);
       }
 
+      const productoAnterior = productos.find((p) => p.id === editandoId);
+
       await updateDoc(doc(db, "productos", editandoId), {
         nombre,
         descripcion,
@@ -217,9 +237,34 @@ export default function Productos() {
         imagenUrl,
         ultimaModificacion: serverTimestamp(),
       });
+
+      // ← NUEVO: registro en bitácora con comparativa de cambios
+    await registrarBitacora({
+      usuario: user.email,
+      nombre: nombreEmpleado,
+      coleccion: "productos",
+      accion: "actualizacion",
+      docId: editandoId,
+      metadata: {
+        nombre,
+        // Solo incluye el campo si realmente cambió
+        ...(productoAnterior?.stock !== parseInt(stock) && {
+          stockAnterior: productoAnterior?.stock,
+          stockNuevo: parseInt(stock),
+        }),
+        ...(productoAnterior?.estado !== estado && {
+          estadoAnterior: productoAnterior?.estado,
+          estadoNuevo: estado,
+        }),
+      },
+    });
+
       resetFormulario();
       fetchProductos();
-      sileo.success("Producto actualizado");
+      sileo.success({
+        title: "Producto actualizado",
+        description: "Los cambios se guardaron correctamente.",
+      });
       closeModal();
     } catch (error) {
       console.error("Error al actualizar", error);
@@ -230,17 +275,52 @@ export default function Productos() {
   };
 
   const handleEliminar = async (id) => {
-    if (window.confirm("¿Estás seguro de que deseas eliminar este producto?")) {
-      try {
-        await deleteDoc(doc(db, "productos", id));
-        fetchProductos();
-        sileo.info("Producto eliminado");
-      } catch (error) {
-        console.error("Error al eliminar", error);
-        sileo.error("Error al eliminar");
+  if (window.confirm("¿Estás seguro de que deseas eliminar este producto?")) {
+    try {
+      const productoAEliminar = productos.find((p) => p.id === id);
+
+      // ← NUEVO: mover a historialProductos antes de eliminar
+      if (productoAEliminar) {
+        await addDoc(collection(db, "historialProductos"), {
+          // Guardamos todo excepto estado, stock e imagenUrl
+          nombre:           productoAEliminar.nombre,
+          descripcion:      productoAEliminar.descripcion,
+          categoriaId:      productoAEliminar.categoriaId,
+          categoriaNombre:  productoAEliminar.categoriaNombre,
+          precioContado:    productoAEliminar.precioContado,
+          precioCredito:    productoAEliminar.precioCredito,
+          fechaRegistro:    productoAEliminar.fechaRegistro,
+          // Campos de auditoría propios del historial
+          productoId:       id,                    // referencia al ID original
+          fechaBaja:        serverTimestamp(),
+          bajadoPor:        user.email,
+          nombreBajadoPor:  nombreEmpleado,
+        });
       }
+
+      await deleteDoc(doc(db, "productos", id));
+
+      await registrarBitacora({
+        usuario: user.email,
+        nombre: nombreEmpleado,
+        coleccion: "productos",
+        accion: "eliminacion",
+        docId: id,
+        metadata: {
+          nombre:          productoAEliminar?.nombre,
+          categoriaNombre: productoAEliminar?.categoriaNombre,
+          precioContado:   productoAEliminar?.precioContado,
+        },
+      });
+
+      fetchProductos();
+      sileo.info("Producto eliminado y movido al historial");
+    } catch (error) {
+      console.error("Error al eliminar", error);
+      sileo.error("Error al eliminar");
     }
-  };
+  }
+};
 
   const resetFormulario = () => {
     setEditandoId(null);
@@ -277,7 +357,7 @@ export default function Productos() {
     });
   }, [productos, filtroCategoria, filtroStock]);
 
-  // Dentro de tu componente Productos
+
   const textoFiltrosPdf = useMemo(() => {
   const partes = [];
 
@@ -746,6 +826,19 @@ export default function Productos() {
               extra:   textoFiltrosPdf,
             }}
             pdfOptions={{ title: "Productos Seleccionados", subtitle: new Date().toLocaleDateString("es-HN") }}
+            onExport={(formato) =>            // ← NUEVO
+              registrarBitacora({
+                usuario: user.email,
+                nombre: nombreEmpleado,
+                coleccion: "productos",
+                accion: "exportar",
+                metadata: {
+                  formato,                                        // "excel" | "pdf"
+                  totalRegistros: productosFiltrados.length,
+                  filtros: textoFiltrosPdf,
+                },
+              })
+            }
           />
         </DataTable.Toolbar>
         

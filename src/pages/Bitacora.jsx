@@ -6,6 +6,8 @@ import DataTable from "../components/ui/table/DataTable";
 import Badge from "../components/ui/badge/Badge";
 import MetricCard from "../components/common/MetricCard";
 import { ListIcon, CheckCircleIcon, CloseIcon } from "../icons";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 
 // ── Constantes ─────────────────────────────────────────────────────
 const COLECCIONES = [
@@ -74,88 +76,137 @@ const selectClass =
 // ── Componente ─────────────────────────────────────────────────────
 export default function Bitacora() {
   const [registros,        setRegistros]        = useState([]);
+  const [todosLosRegistros, setTodosLosRegistros] = useState([]);
   const [loading,          setLoading]          = useState(true);
   const [filtroColeccion,  setFiltroColeccion]  = useState("");
   const [filtroAccion,     setFiltroAccion]     = useState("");
-  const [fechaInicio,      setFechaInicio]      = useState("");
-  const [fechaFin,         setFechaFin]         = useState("");
+  const [rangoFecha,  setRangoFecha]  = useState(""); 
+  const [rangoPersonalizado, setRangoPersonalizado] = useState([null, null]);
+  const [fechaInicioDP, fechaFinDP] = rangoPersonalizado;
 
   // Re-fetch cuando cambian los filtros que van a Firestore
   const fetchBitacora = async () => {
-    setLoading(true);
-    try {
-      let q;
+      setLoading(true);
+      try {
+        // ── Query completa — siempre, para métricas ──
+        const qCompleta = query(
+          collection(db, "bitacora"),
+          orderBy("fecha", "desc"),
+        );
+        const snapCompleta = await getDocs(qCompleta);
+        const todos = snapCompleta.docs.map((d) => ({ id: d.id, ...d.data() }));
+        setTodosLosRegistros(todos);
 
-      if (filtroColeccion && filtroAccion) {
-        q = query(
-          collection(db, "bitacora"),
-          where("coleccion", "==", filtroColeccion),
-          where("accion",    "==", filtroAccion),
-          orderBy("fecha", "desc"),
-        );
-      } else if (filtroColeccion) {
-        q = query(
-          collection(db, "bitacora"),
-          where("coleccion", "==", filtroColeccion),
-          orderBy("fecha", "desc"),
-        );
-      } else if (filtroAccion) {
-        q = query(
-          collection(db, "bitacora"),
-          where("accion", "==", filtroAccion),
-          orderBy("fecha", "desc"),
-        );
-      } else {
-        q = query(
-          collection(db, "bitacora"),
-          orderBy("fecha", "desc"),
-        );
+        // ── Query filtrada — para la tabla ──
+        let q;
+        if (filtroColeccion && filtroAccion) {
+          q = query(
+            collection(db, "bitacora"),
+            where("coleccion", "==", filtroColeccion),
+            where("accion",    "==", filtroAccion),
+            orderBy("fecha", "desc"),
+          );
+        } else if (filtroColeccion) {
+          q = query(
+            collection(db, "bitacora"),
+            where("coleccion", "==", filtroColeccion),
+            orderBy("fecha", "desc"),
+          );
+        } else if (filtroAccion) {
+          q = query(
+            collection(db, "bitacora"),
+            where("accion", "==", filtroAccion),
+            orderBy("fecha", "desc"),
+          );
+        } else {
+          // Sin filtros — reutiliza lo que ya cargamos
+          setRegistros(todos);
+          return;
+        }
+
+        const snap = await getDocs(q);
+        setRegistros(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+      } catch (error) {
+        console.error("Error al cargar bitácora:", error);
+      } finally {
+        setLoading(false);
       }
-
-      const snap = await getDocs(q);
-      setRegistros(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
-    } catch (error) {
-      console.error("Error al cargar bitácora:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
 
   useEffect(() => {
     fetchBitacora();
   }, [filtroColeccion, filtroAccion]);
 
+  const limitesFecha = useMemo(() => {
+      const hoy = new Date();
+      switch (rangoFecha) {
+        case "hoy": {
+          const inicio = new Date(hoy); inicio.setHours(0, 0, 0, 0);
+          const fin    = new Date(hoy); fin.setHours(23, 59, 59, 999);
+          return { inicio, fin };
+        }
+        case "semana": {
+          const inicio = new Date(hoy); inicio.setDate(hoy.getDate() - 6); inicio.setHours(0, 0, 0, 0);
+          const fin    = new Date(hoy); fin.setHours(23, 59, 59, 999);
+          return { inicio, fin };
+        }
+        case "mes": {
+          const inicio = new Date(hoy.getFullYear(), hoy.getMonth(), 1); inicio.setHours(0, 0, 0, 0);
+          const fin    = new Date(hoy); fin.setHours(23, 59, 59, 999);
+          return { inicio, fin };
+        }
+        case "anio": {
+          const inicio = new Date(hoy.getFullYear(), 0, 1); inicio.setHours(0, 0, 0, 0);
+          const fin    = new Date(hoy); fin.setHours(23, 59, 59, 999);
+          return { inicio, fin };
+        }
+        case "personalizado": {
+          const inicio = fechaInicioDP ? new Date(fechaInicioDP) : null;
+          if (inicio) inicio.setHours(0, 0, 0, 0);
+          const fin = fechaFinDP ? new Date(fechaFinDP) : null;
+          if (fin) fin.setHours(23, 59, 59, 999);
+          return { inicio, fin };
+        }
+        default:
+          return { inicio: null, fin: null };
+      }
+    }, [rangoFecha, fechaInicioDP, fechaFinDP]);
+
   // Filtro de rango de fecha en cliente (sobre los datos ya cargados)
   const registrosFiltrados = useMemo(() => {
-    if (!fechaInicio && !fechaFin) return registros;
-    return registros.filter((r) => {
-      const fecha = r.fecha?.toDate?.();
-      if (!fecha) return false;
-      if (fechaInicio) {
-        const inicio = new Date(fechaInicio);
-        inicio.setHours(0, 0, 0, 0);
-        if (fecha < inicio) return false;
-      }
-      if (fechaFin) {
-        const fin = new Date(fechaFin);
-        fin.setHours(23, 59, 59, 999);
-        if (fecha > fin) return false;
-      }
-      return true;
-    });
-  }, [registros, fechaInicio, fechaFin]);
+      const { inicio, fin } = limitesFecha;
+      if (!inicio && !fin) return registros;
+    
+      return registros.filter((r) => {
+        const fecha = r.fecha?.toDate?.();
+        if (!fecha) return false;
+        if (inicio && fecha < inicio) return false;
+        if (fin   && fecha > fin)    return false;
+        return true;
+      });
+    }, [registros, limitesFecha]);
 
   // Métricas calculadas sobre todos los registros cargados
-  const hoyInicio = new Date();
-  hoyInicio.setHours(0, 0, 0, 0);
+  const hoyInicio = useMemo(() => {
+      const d = new Date();
+      d.setHours(0, 0, 0, 0);
+      return d;
+   }, []);
 
-  const totalHoy = registros.filter((r) => {
-    const f = r.fecha?.toDate?.();
-    return f && f >= hoyInicio;
-  }).length;
+  const totalHoy = useMemo(() =>
+     todosLosRegistros.filter((r) => {
+       const f = r.fecha?.toDate?.();
+       return f && f >= hoyInicio;
+     }).length,
+   [todosLosRegistros, hoyInicio]);
 
-  const totalEliminaciones = registros.filter((r) => r.accion === "eliminacion").length;
-  const totalExportaciones  = registros.filter((r) => r.accion === "exportar").length;
+  const totalEliminaciones = useMemo(() => {
+    return todosLosRegistros.filter((r) => r.accion === "eliminacion").length;
+  }, [todosLosRegistros]);
+
+  const totalExportaciones = useMemo(() => {
+    return todosLosRegistros.filter((r) => r.accion === "exportar").length;
+  }, [todosLosRegistros]);
 
   const columns = useMemo(() => [
     {
@@ -219,6 +270,8 @@ export default function Bitacora() {
     },
   ], []);
 
+    
+
   return (
     <div className="space-y-6">
       <h2 className="text-2xl font-bold text-gray-800 dark:text-white/90">
@@ -275,20 +328,39 @@ export default function Bitacora() {
               ))}
             </select>
 
-            <input
-              type="date"
-              value={fechaInicio}
-              onChange={(e) => setFechaInicio(e.target.value)}
-              title="Fecha inicio"
-              className={`w-full sm:w-40 ${selectClass}`}
-            />
-            <input
-              type="date"
-              value={fechaFin}
-              onChange={(e) => setFechaFin(e.target.value)}
-              title="Fecha fin"
-              className={`w-full sm:w-40 ${selectClass}`}
-            />
+            <select
+              value={rangoFecha}
+              onChange={(e) => {
+                setRangoFecha(e.target.value);
+                if (e.target.value !== "personalizado") {
+                  setRangoPersonalizado([null, null]);
+                }
+              }}
+              className={`w-full sm:w-48 ${selectClass}`}
+            >
+              <option value=""              className="bg-white text-gray-900">Todas las fechas</option>
+              <option value="hoy"           className="bg-white text-gray-900">Hoy</option>
+              <option value="semana"        className="bg-white text-gray-900">Últimos 7 días</option>
+              <option value="mes"           className="bg-white text-gray-900">Este mes</option>
+              <option value="anio"          className="bg-white text-gray-900">Este año</option>
+              <option value="personalizado" className="bg-white text-gray-900">Personalizado</option>
+            </select>
+          
+            {/* Date picker de rango — solo en personalizado */}
+            {rangoFecha === "personalizado" && (
+              <DatePicker
+                selectsRange
+                startDate={fechaInicioDP}
+                endDate={fechaFinDP}
+                onChange={(rango) => setRangoPersonalizado(rango)}
+                placeholderText="Seleccionar rango"
+                dateFormat="dd/MM/yyyy"
+                locale="es"
+                isClearable
+                className={`w-full sm:w-56 ${selectClass}`}
+                wrapperClassName="w-full sm:w-auto"
+              />
+            )}
           </div>
         </DataTable.Toolbar>
         <DataTable.Table />

@@ -26,6 +26,10 @@ import {
 import MetricCard from "../components/common/MetricCard";
 import PhoneInput from "../components/form/group-input/PhoneInput";
 import { sileo, Toaster } from "sileo";
+import ExportButtons from "../layout/Exportbuttons";
+import { useAuth } from "../auth/AuthProvider";
+import { useNombreEmpleadoActual } from "../hooks/useNombreEmpleadoActual";
+import { registrarBitacora } from "../services/bitacora";
 
 export default function Empleados() {
   Toaster.position = "top-right";
@@ -49,7 +53,10 @@ export default function Empleados() {
   const [filtroDepartamento, setFiltroDepartamento] = useState("");
   const [filtroEstado, setFiltroEstado] = useState("");
 
+
   const { isOpen, openModal, closeModal } = useModal();
+  const { user } = useAuth();
+  const nombreEmpleado = useNombreEmpleadoActual();
 
   //contadores de empleados
 
@@ -194,6 +201,20 @@ export default function Empleados() {
         empleadoEstado: estado,
       });
 
+      await registrarBitacora({
+      usuario: user.email,
+      nombre: nombreEmpleado,
+      coleccion: "empleados",
+      accion: "creacion",
+      docId: docRef.id,
+      metadata: {
+        nombreCompleto: `${nombres} ${apellidos}`,
+        codigoEmpleado,
+        departamentoNombre,
+        estado,
+      },
+    });
+
       resetFormulario();
       fetchEmpleados();
       sileo.success("Empleado creado con éxito");
@@ -210,6 +231,9 @@ export default function Empleados() {
     e.preventDefault();
     setEnviando(true);
     try {
+
+      const empleadoAnterior = empleados.find((e) => e.id === editandoId);
+
       await updateDoc(doc(db, "empleados", editandoId), {
         codigoEmpleado,
         nombres,
@@ -232,6 +256,30 @@ export default function Empleados() {
         empleadoEstado: estado,
       });
 
+      await registrarBitacora({
+      usuario: user.email,
+      nombre: nombreEmpleado,
+      coleccion: "empleados",
+      accion: "actualizacion",
+      docId: editandoId,
+      metadata: {
+        nombreCompleto: `${nombres} ${apellidos}`,
+        // Solo registra si realmente cambió
+        ...(empleadoAnterior?.estado !== estado && {
+          estadoAnterior: empleadoAnterior?.estado,
+          estadoNuevo: estado,
+        }),
+        ...(empleadoAnterior?.salario !== parseFloat(salario) && {
+          salarioAnterior: empleadoAnterior?.salario,
+          salarioNuevo: parseFloat(salario),
+        }),
+        ...(empleadoAnterior?.departamentoNombre !== departamentoNombre && {
+          departamentoAnterior: empleadoAnterior?.departamentoNombre,
+          departamentoNuevo: departamentoNombre,
+        }),
+      },
+    });
+
       resetFormulario();
       fetchEmpleados();
       closeModal();
@@ -247,9 +295,62 @@ export default function Empleados() {
   const handleEliminar = async (id) => {
     if (window.confirm("¿Estás seguro de que deseas eliminar este empleado?")) {
       try {
+        const empleadoAEliminar = empleados.find((e) => e.id === id);
+
+        // ── Paso 1: eliminar todos los usuarios vinculados al empleado ──
+        const qUsuarios = query(
+          collection(db, "usuarios"),
+          where("empleadoId", "==", id),
+        );
+        const snapUsuarios = await getDocs(qUsuarios);
+
+        await Promise.all(
+          snapUsuarios.docs.map((d) => deleteDoc(doc(db, "usuarios", d.id))),
+        );
+
+        // ── Paso 2: mover el empleado a historialEmpleados ──
+        if (empleadoAEliminar) {
+          await addDoc(collection(db, "historialEmpleados"), {
+            // Todos los datos del empleado
+            codigoEmpleado:    empleadoAEliminar.codigoEmpleado,
+            nombres:           empleadoAEliminar.nombres,
+            apellidos:         empleadoAEliminar.apellidos,
+            correo:            empleadoAEliminar.correo,
+            dni:               empleadoAEliminar.dni,
+            telefono:          empleadoAEliminar.telefono,
+            departamentoId:    empleadoAEliminar.departamentoId,
+            departamentoNombre:empleadoAEliminar.departamentoNombre,
+            salario:           empleadoAEliminar.salario,
+            fechaRegistro:     empleadoAEliminar.fechaRegistro,
+            // Auditoría del historial
+            empleadoId:        id,
+            fechaBaja:         serverTimestamp(),
+            bajadoPor:         user.email,
+            nombreBajadoPor:   nombreEmpleado,
+            usuariosEliminados: snapUsuarios.docs.length, // cuántos usuarios se borraron
+          });
+        }
+
+        // ── Paso 3: eliminar el empleado ──
         await deleteDoc(doc(db, "empleados", id));
+
+        // ── Paso 4: bitácora ──
+        await registrarBitacora({
+          usuario: user.email,
+          nombre: nombreEmpleado,
+          coleccion: "empleados",
+          accion: "eliminacion",
+          docId: id,
+          metadata: {
+            nombreCompleto:     `${empleadoAEliminar?.nombres} ${empleadoAEliminar?.apellidos}`,
+            codigoEmpleado:     empleadoAEliminar?.codigoEmpleado,
+            departamentoNombre: empleadoAEliminar?.departamentoNombre,
+            usuariosEliminados: snapUsuarios.docs.length,
+          },
+        });
+
         fetchEmpleados();
-        sileo.success("Empleado eliminado");
+        sileo.success("Empleado eliminado correctamente");
       } catch (error) {
         console.error("Error al eliminar", error);
         sileo.error("Error al eliminar");
@@ -358,6 +459,17 @@ export default function Empleados() {
     [departamentos],
   );
 
+  const COLUMNAS_EXPORT_EMPLEADOS = [
+    { key: "codigoEmpleado",   header: "Código",         type: "text"     },
+    { key: "dni",              header: "DNI",            type: "text" },
+    { key: "nombres",          header: "Nombres",        type: "text"     },
+    { key: "apellidos",        header: "Apellidos",      type: "text"     },
+    { key: "correo",           header: "Correo",         type: "text" },
+    { key: "telefono",         header: "Teléfono",       type: "text"   },
+    { key: "salario",          header: "Salario",        type: "currency" },
+    { key: "estado",           header: "Estado",         type: "text"     },
+  ];
+
   const empleadosFiltrados = useMemo(() => {
     return empleados.filter((e) => {
       const coincideDepartamento = filtroDepartamento
@@ -369,6 +481,24 @@ export default function Empleados() {
       return coincideDepartamento && coincideEstado;
     });
   }, [empleados, filtroDepartamento, filtroEstado]);
+
+
+  const textoFiltrosPdf = useMemo(() => {
+    const partes = [];
+
+    if (filtroDepartamento) {
+      const dep = departamentos.find(d => d.id === filtroDepartamento);
+      partes.push(`Departamento: ${dep ? dep.nombre : filtroDepartamento}`);
+    }
+
+    if (filtroEstado) {
+      partes.push(`Estado: ${filtroEstado}`);
+    }
+
+    return partes.length > 0
+      ? `Filtros activos: ${partes.join(" | ")}`
+      : "Listado Completo";
+  }, [filtroDepartamento, filtroEstado, departamentos]);
 
   return (
     <div className="space-y-6">
@@ -650,6 +780,29 @@ export default function Empleados() {
                 Inactivo
               </option>
             </select>
+            <ExportButtons
+              rows={empleadosFiltrados}
+              columns={COLUMNAS_EXPORT_EMPLEADOS}
+              filename={"Empleados " + new Date().toLocaleDateString("es-HN")}
+              sheetName="Lista de Empleados"
+              meta={{ 
+                empresa: "Comisariato San Jose", 
+                usuario: nombreEmpleado || "Sistema",
+                extra:   textoFiltrosPdf }}
+              pdfOptions={{ title: "Empleados", subtitle: new Date().toLocaleDateString("es-HN") }}
+              onExport={(formato) =>
+                registrarBitacora({
+                  usuario: user.email,
+                  nombre: nombreEmpleado,
+                  coleccion: "empleados", 
+                  accion: "exportar",
+                  metadata: {
+                    formato,
+                    totalRegistros: empleadosFiltrados.length,
+                  },
+                })
+              }
+            />
           </div>
         </DataTable.Toolbar>
         <DataTable.Table />

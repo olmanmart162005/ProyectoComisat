@@ -58,9 +58,15 @@ function calcWidth(header, rows, col, max = 60) {
       : String(row[col.key] ?? "");
     return Math.max(m, val.length);
   }, 0);
-  // Si el encabezado es largo (como 'Fecha de generación'), dale un mínimo mayor
   const minWidth = headerLen >= 16 ? headerLen + 6 : headerLen + 2;
-  return Math.min(max, Math.max(minWidth, dataLen + 2));
+  const base = Math.min(max, Math.max(minWidth, dataLen + 2));
+
+  // Las columnas currency muestran "L. #,##0.00" — el formato
+  // visual es más ancho que el valor crudo numérico
+  if (col.type === "currency") return Math.max(base, 16);
+  if (col.type === "number")   return Math.max(base, 10);
+
+  return base;
 }
 
 // ─────────────────────────────────────────────────────────────────
@@ -170,13 +176,22 @@ export async function exportToExcel(
   }
 
   // Fila separadora vacía entre metadatos y tabla
-  ws.getRow(currentRow).height = 6;
+  ws.getRow(currentRow).height = 10;
   currentRow++;
 
   // ── Anchos de columna ───────────────────────────────────────────
-  ws.columns = columns.map((col) => ({
+  const colWidths = columns.map((col) => ({
     width: col.width ?? calcWidth(col.header, rows, col),
   }));
+
+  // La etiqueta más larga de metadatos es "Fecha de generación:" (20 chars)
+  // Le sumamos margen para que no se corte
+  const MIN_LABEL_COL_WIDTH = 24;
+  if (colWidths.length > 0 && colWidths[0].width < MIN_LABEL_COL_WIDTH) {
+    colWidths[0].width = MIN_LABEL_COL_WIDTH;
+  }
+
+  ws.columns = colWidths;
 
   // ── Fila de encabezado de la tabla ──────────────────────────────
   const headerRowIndex = currentRow;

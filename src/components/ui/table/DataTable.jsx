@@ -26,14 +26,16 @@ export default function DataTable({
   const [globalFilter, setGlobalFilter] = useState("");
   const [sorting, setSorting] = useState([]);
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 10 });
+  const [columnFilters, setColumnFilters] = useState([]);
 
   const table = useReactTable({
     data,
     columns,
-    state: { globalFilter, sorting, pagination },
+    state: { globalFilter, sorting, pagination, columnFilters },
     onGlobalFilterChange: setGlobalFilter,
     onSortingChange: setSorting,
     onPaginationChange: setPagination,
+    onColumnFiltersChange: setColumnFilters,
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getSortedRowModel: getSortedRowModel(),
@@ -85,6 +87,60 @@ DataTable.Toolbar = function Toolbar({
         />
       </div>
       {children}
+    </div>
+  );
+};
+
+DataTable.NumberRangeFilter = function NumberRangeFilter({
+  columnId,
+  label,
+  onChange,
+}) {
+  const { table } = useDataTable();
+  const column = table.getColumn(columnId);
+  const [min, max] = column?.getFilterValue() ?? [undefined, undefined];
+
+  if (!column) return null;
+
+  return (
+    <div className="flex items-center gap-2">
+      {label && (
+        <span className="text-sm text-gray-500 dark:text-gray-400">
+          {label}
+        </span>
+      )}
+      <input
+        type="number"
+        min="0"
+        value={min ?? ""}
+        onChange={(e) => {
+          const nextRange = [
+            e.target.value !== "" ? Number(e.target.value) : undefined,
+            max,
+          ];
+          column.setFilterValue(nextRange);
+          onChange?.(nextRange);
+        }}
+        placeholder="Min"
+        className="w-20 px-2 py-2 border border-gray-300/70 dark:border-white/10 rounded-lg text-sm
+                   bg-white dark:bg-white/[0.02] text-gray-900 dark:text-white"
+      />
+      <span className="text-gray-400 dark:text-gray-500">—</span>
+      <input
+        type="number"
+        value={max ?? ""}
+        onChange={(e) => {
+          const nextRange = [
+            min,
+            e.target.value !== "" ? Number(e.target.value) : undefined,
+          ];
+          column.setFilterValue(nextRange);
+          onChange?.(nextRange);
+        }}
+        placeholder="Max"
+        className="w-20 px-2 py-2 border border-gray-300/70 dark:border-white/10 rounded-lg text-sm
+                   bg-white dark:bg-white/[0.02] text-gray-900 dark:text-white"
+      />
     </div>
   );
 };

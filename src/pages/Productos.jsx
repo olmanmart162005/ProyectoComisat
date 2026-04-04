@@ -26,12 +26,10 @@ import {
 import MetricCard from "../components/common/MetricCard";
 import { sileo, Toaster } from "sileo";
 
-
 import ExportButtons from "../layout/Exportbuttons";
 import { useAuth } from "../auth/AuthProvider";
 import { useNombreEmpleadoActual } from "../hooks/useNombreEmpleadoActual";
 import { registrarBitacora } from "../services/bitacora";
-
 
 export default function Productos() {
   const { user } = useAuth();
@@ -49,11 +47,15 @@ export default function Productos() {
   const [precioContado, setPrecioContado] = useState("");
   const [precioCredito, setPrecioCredito] = useState("");
   const [stock, setStock] = useState("");
+  const [stockMinimo, setStockMinimo] = useState("");
   const [categoriaId, setCategoriaId] = useState("");
   const [categoriaNombre, setCategoriaNombre] = useState("");
   const [estado, setEstado] = useState("Activo");
   const [filtroCategoria, setFiltroCategoria] = useState("");
-  const [filtroStock, setFiltroStock] = useState("");
+  const [filtroStockRange, setFiltroStockRange] = useState([
+    undefined,
+    undefined,
+  ]);
 
   const [archivoImagen, setArchivoImagen] = useState(null);
   const [previewImagen, setPreviewImagen] = useState(null);
@@ -158,62 +160,76 @@ export default function Productos() {
   };
 
   const handleSubmit = async (e) => {
-  e.preventDefault();
-  setEnviando(true);
-  try {
-    const contado = parseFloat(precioContado) || 0;
-    const creditoCalculado = contado * (1 + porcentajeAumento);
+    e.preventDefault();
+    setEnviando(true);
+    try {
+      const stockMinimoNumero = parseInt(stockMinimo, 10);
+      if (Number.isNaN(stockMinimoNumero) || stockMinimoNumero < 0) {
+        sileo.error("Stock mínimo no puede ser menor que 0");
+        return;
+      }
 
-    let imagenUrl = "";
-    if (archivoImagen) {
-      imagenUrl = await subirImagen(archivoImagen);
-    }
+      const contado = parseFloat(precioContado) || 0;
+      const creditoCalculado = contado * (1 + porcentajeAumento);
 
-    // ← CAMBIO: guardamos la referencia para obtener el ID
-    const nuevoDoc = await addDoc(collection(db, "productos"), {
-      nombre,
-      descripcion,
-      precioContado: contado,
-      precioCredito: parseFloat(creditoCalculado.toFixed(2)),
-      stock: parseInt(stock),
-      categoriaId,
-      categoriaNombre,
-      estado,
-      imagenUrl,
-      fechaRegistro: serverTimestamp(),
-    });
+      let imagenUrl = "";
+      if (archivoImagen) {
+        imagenUrl = await subirImagen(archivoImagen);
+      }
 
-    // ← NUEVO: registro en bitácora
-    await registrarBitacora({
-      usuario: user.email,
-      nombre: nombreEmpleado,
-      coleccion: "productos",
-      accion: "creacion",
-      docId: nuevoDoc.id,
-      metadata: {
+      // ← CAMBIO: guardamos la referencia para obtener el ID
+      const nuevoDoc = await addDoc(collection(db, "productos"), {
         nombre,
-        categoriaNombre,
+        descripcion,
+        precioContado: contado,
+        precioCredito: parseFloat(creditoCalculado.toFixed(2)),
         stock: parseInt(stock),
+        stockMinimo: stockMinimoNumero,
+        categoriaId,
+        categoriaNombre,
         estado,
-      },
-    });
+        imagenUrl,
+        fechaRegistro: serverTimestamp(),
+      });
 
-    resetFormulario();
-    fetchProductos();
-    sileo.success("Producto creado con éxito");
-    closeModal();
-  } catch (error) {
-    console.error("Error al guardar", error);
-    sileo.error("Error al guardar");
-  } finally {
-    setEnviando(false);
-  }
-};
+      // ← NUEVO: registro en bitácora
+      await registrarBitacora({
+        usuario: user.email,
+        nombre: nombreEmpleado,
+        coleccion: "productos",
+        accion: "creacion",
+        docId: nuevoDoc.id,
+        metadata: {
+          nombre,
+          categoriaNombre,
+          stock: parseInt(stock),
+          stockMinimo: stockMinimoNumero,
+          estado,
+        },
+      });
+
+      resetFormulario();
+      fetchProductos();
+      sileo.success("Producto creado con éxito");
+      closeModal();
+    } catch (error) {
+      console.error("Error al guardar", error);
+      sileo.error("Error al guardar");
+    } finally {
+      setEnviando(false);
+    }
+  };
 
   const handleUpdate = async (e) => {
     e.preventDefault();
     setEnviando(true);
     try {
+      const stockMinimoNumero = parseInt(stockMinimo, 10);
+      if (Number.isNaN(stockMinimoNumero) || stockMinimoNumero < 0) {
+        sileo.error("Stock mínimo no puede ser menor que 0");
+        return;
+      }
+
       const contado = parseFloat(precioContado) || 0;
       const creditoCalculado = contado * (1 + porcentajeAumento);
 
@@ -231,6 +247,7 @@ export default function Productos() {
         precioContado: contado,
         precioCredito: parseFloat(creditoCalculado.toFixed(2)),
         stock: parseInt(stock),
+        stockMinimo: stockMinimoNumero,
         categoriaId,
         categoriaNombre,
         estado,
@@ -239,25 +256,29 @@ export default function Productos() {
       });
 
       // ← NUEVO: registro en bitácora con comparativa de cambios
-    await registrarBitacora({
-      usuario: user.email,
-      nombre: nombreEmpleado,
-      coleccion: "productos",
-      accion: "actualizacion",
-      docId: editandoId,
-      metadata: {
-        nombre,
-        // Solo incluye el campo si realmente cambió
-        ...(productoAnterior?.stock !== parseInt(stock) && {
-          stockAnterior: productoAnterior?.stock,
-          stockNuevo: parseInt(stock),
-        }),
-        ...(productoAnterior?.estado !== estado && {
-          estadoAnterior: productoAnterior?.estado,
-          estadoNuevo: estado,
-        }),
-      },
-    });
+      await registrarBitacora({
+        usuario: user.email,
+        nombre: nombreEmpleado,
+        coleccion: "productos",
+        accion: "actualizacion",
+        docId: editandoId,
+        metadata: {
+          nombre,
+          // Solo incluye el campo si realmente cambió
+          ...(productoAnterior?.stock !== parseInt(stock) && {
+            stockAnterior: productoAnterior?.stock,
+            stockNuevo: parseInt(stock),
+          }),
+          ...(productoAnterior?.stockMinimo !== parseInt(stockMinimo) && {
+            stockMinimoAnterior: productoAnterior?.stockMinimo,
+            stockMinimoNuevo: stockMinimoNumero,
+          }),
+          ...(productoAnterior?.estado !== estado && {
+            estadoAnterior: productoAnterior?.estado,
+            estadoNuevo: estado,
+          }),
+        },
+      });
 
       resetFormulario();
       fetchProductos();
@@ -275,52 +296,53 @@ export default function Productos() {
   };
 
   const handleEliminar = async (id) => {
-  if (window.confirm("¿Estás seguro de que deseas eliminar este producto?")) {
-    try {
-      const productoAEliminar = productos.find((p) => p.id === id);
+    if (window.confirm("¿Estás seguro de que deseas eliminar este producto?")) {
+      try {
+        const productoAEliminar = productos.find((p) => p.id === id);
 
-      // ← NUEVO: mover a historialProductos antes de eliminar
-      if (productoAEliminar) {
-        await addDoc(collection(db, "historialProductos"), {
-          // Guardamos todo excepto estado, stock e imagenUrl
-          nombre:           productoAEliminar.nombre,
-          descripcion:      productoAEliminar.descripcion,
-          categoriaId:      productoAEliminar.categoriaId,
-          categoriaNombre:  productoAEliminar.categoriaNombre,
-          precioContado:    productoAEliminar.precioContado,
-          precioCredito:    productoAEliminar.precioCredito,
-          fechaRegistro:    productoAEliminar.fechaRegistro,
-          // Campos de auditoría propios del historial
-          productoId:       id,                    // referencia al ID original
-          fechaBaja:        serverTimestamp(),
-          bajadoPor:        user.email,
-          nombreBajadoPor:  nombreEmpleado,
+        // ← NUEVO: mover a historialProductos antes de eliminar
+        if (productoAEliminar) {
+          await addDoc(collection(db, "historialProductos"), {
+            // Guardamos todo excepto estado, stock, stockMinimo e imagenUrl
+            nombre: productoAEliminar.nombre,
+            descripcion: productoAEliminar.descripcion,
+            categoriaId: productoAEliminar.categoriaId,
+            categoriaNombre: productoAEliminar.categoriaNombre,
+            precioContado: productoAEliminar.precioContado,
+            precioCredito: productoAEliminar.precioCredito,
+            stockMinimo: productoAEliminar.stockMinimo,
+            fechaRegistro: productoAEliminar.fechaRegistro,
+            // Campos de auditoría propios del historial
+            productoId: id, // referencia al ID original
+            fechaBaja: serverTimestamp(),
+            bajadoPor: user.email,
+            nombreBajadoPor: nombreEmpleado,
+          });
+        }
+
+        await deleteDoc(doc(db, "productos", id));
+
+        await registrarBitacora({
+          usuario: user.email,
+          nombre: nombreEmpleado,
+          coleccion: "productos",
+          accion: "eliminacion",
+          docId: id,
+          metadata: {
+            nombre: productoAEliminar?.nombre,
+            categoriaNombre: productoAEliminar?.categoriaNombre,
+            precioContado: productoAEliminar?.precioContado,
+          },
         });
+
+        fetchProductos();
+        sileo.info("Producto eliminado y movido al historial");
+      } catch (error) {
+        console.error("Error al eliminar", error);
+        sileo.error("Error al eliminar");
       }
-
-      await deleteDoc(doc(db, "productos", id));
-
-      await registrarBitacora({
-        usuario: user.email,
-        nombre: nombreEmpleado,
-        coleccion: "productos",
-        accion: "eliminacion",
-        docId: id,
-        metadata: {
-          nombre:          productoAEliminar?.nombre,
-          categoriaNombre: productoAEliminar?.categoriaNombre,
-          precioContado:   productoAEliminar?.precioContado,
-        },
-      });
-
-      fetchProductos();
-      sileo.info("Producto eliminado y movido al historial");
-    } catch (error) {
-      console.error("Error al eliminar", error);
-      sileo.error("Error al eliminar");
     }
-  }
-};
+  };
 
   const resetFormulario = () => {
     setEditandoId(null);
@@ -329,6 +351,7 @@ export default function Productos() {
     setPrecioContado("");
     setPrecioCredito("");
     setStock("");
+    setStockMinimo("");
     setEstado("Activo");
     setArchivoImagen(null);
     setPreviewImagen(null);
@@ -346,36 +369,36 @@ export default function Productos() {
         : true;
 
       const stockNum = Number(p.stock) || 0;
-      let coincideStock = true;
+      const [stockMin, stockMax] = filtroStockRange;
+      const coincideStockMin =
+        stockMin === undefined ? true : stockNum >= stockMin;
+      const coincideStockMax =
+        stockMax === undefined ? true : stockNum <= stockMax;
 
-      if (filtroStock === "bajo") coincideStock = stockNum <= 5;
-      if (filtroStock === "medio")
-        coincideStock = stockNum > 5 && stockNum <= 20;
-      if (filtroStock === "alto") coincideStock = stockNum > 20;
-
-      return coincideCategoria && coincideStock;
+      return coincideCategoria && coincideStockMin && coincideStockMax;
     });
-  }, [productos, filtroCategoria, filtroStock]);
-
+  }, [productos, filtroCategoria, filtroStockRange]);
 
   const textoFiltrosPdf = useMemo(() => {
-  const partes = [];
+    const partes = [];
 
-  if (filtroCategoria) {
-    // Buscamos el nombre de la categoría para que no aparezca solo el ID
-    const cat = categorias.find(c => c.id === filtroCategoria);
-    partes.push(`Categoría: ${cat ? cat.nombre : filtroCategoria}`);
-  }
+    if (filtroCategoria) {
+      // Buscamos el nombre de la categoría para que no aparezca solo el ID
+      const cat = categorias.find((c) => c.id === filtroCategoria);
+      partes.push(`Categoría: ${cat ? cat.nombre : filtroCategoria}`);
+    }
 
-  if (filtroStock) {
-    const stockLabels = { bajo: "Bajo (≤5)", medio: "Medio (6-20)", alto: "Alto (>20)" };
-    partes.push(`Stock: ${stockLabels[filtroStock]}`);
-  }
+    const [stockMin, stockMax] = filtroStockRange;
+    if (stockMin !== undefined || stockMax !== undefined) {
+      const minLabel = stockMin !== undefined ? stockMin : "-";
+      const maxLabel = stockMax !== undefined ? stockMax : "-";
+      partes.push(`Stock: ${minLabel} a ${maxLabel}`);
+    }
 
-  return partes.length > 0 
-    ? `Filtros activos: ${partes.join(" | ")}` 
-    : "Catálogo Completo";
-}, [filtroCategoria, filtroStock, categorias]);
+    return partes.length > 0
+      ? `Filtros activos: ${partes.join(" | ")}`
+      : "Catálogo Completo";
+  }, [filtroCategoria, categorias, filtroStockRange]);
 
   // ── Columnas ──────────────────────────────────────────────────────
   const columns = useMemo(
@@ -423,6 +446,7 @@ export default function Productos() {
       {
         accessorKey: "stock",
         header: "Stock",
+        filterFn: "inNumberRange",
         cell: (info) => {
           const val = Number(info.getValue());
           return (
@@ -430,6 +454,14 @@ export default function Productos() {
               {val}
             </span>
           );
+        },
+      },
+      {
+        accessorKey: "stockMinimo",
+        header: "Stock Mínimo",
+        cell: (info) => {
+          const val = Number(info.getValue());
+          return <span>{Number.isNaN(val) ? "---" : val}</span>;
         },
       },
       {
@@ -460,6 +492,7 @@ export default function Productos() {
                   setPrecioContado(String(p.precioContado || ""));
                   setPrecioCredito("");
                   setStock(String(p.stock || ""));
+                  setStockMinimo(String(p.stockMinimo || ""));
                   setCategoriaId(p.categoriaId || "");
                   setCategoriaNombre(p.categoriaNombre || "");
                   setEstado(p.estado || "Activo");
@@ -487,15 +520,15 @@ export default function Productos() {
   );
 
   const COLUMNAS_EXPORT_PRODUCTOS = [
-  { key: "nombre",          header: "Nombre",           type: "text"     },
-  { key: "descripcion",     header: "Descripción",       type: "text"     },
-  { key: "categoriaNombre", header: "Categoría",         type: "text"     },
-  { key: "precioContado",   header: "Precio Contado (L.)", type: "currency" },
-  { key: "precioCredito",   header: "Precio Crédito (L.)", type: "currency" },
-  { key: "stock",           header: "Stock",             type: "number"   },
-  { key: "estado",          header: "Estado",            type: "text"     },
-];
-
+    { key: "nombre", header: "Nombre", type: "text" },
+    { key: "descripcion", header: "Descripción", type: "text" },
+    { key: "categoriaNombre", header: "Categoría", type: "text" },
+    { key: "precioContado", header: "Precio Contado (L.)", type: "currency" },
+    { key: "precioCredito", header: "Precio Crédito (L.)", type: "currency" },
+    { key: "stock", header: "Stock", type: "number" },
+    { key: "stockMinimo", header: "Stock Mínimo", type: "number" },
+    { key: "estado", header: "Estado", type: "text" },
+  ];
 
   // ─────────────────────────────────────────────────────────────────
 
@@ -678,6 +711,25 @@ export default function Productos() {
               />
             </div>
 
+            {/* Stock Mínimo */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-400">
+                Stock Mínimo
+              </label>
+              <input
+                type="number"
+                required
+                min="0"
+                value={stockMinimo}
+                onChange={(e) => {
+                  if (e.target.value === "" || Number(e.target.value) >= 0)
+                    setStockMinimo(e.target.value);
+                }}
+                placeholder="5"
+                className="mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+              />
+            </div>
+
             {/* Estado */}
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-400">
@@ -795,45 +847,39 @@ export default function Productos() {
                 </option>
               ))}
             </select>
-
-            <select
-              value={filtroStock}
-              onChange={(e) => setFiltroStock(e.target.value)}
-              className="w-full sm:w-40 p-2 border border-gray-300 rounded-md text-sm text-gray-900 focus:ring-blue-500 focus:border-blue-500 dark:bg-white/5 dark:border-white/10 dark:text-gray-100"
-            >
-              <option value="" className="bg-white text-gray-900">
-                Stock
-              </option>
-              <option value="bajo" className="bg-white text-gray-900">
-                Bajo
-              </option>
-              <option value="medio" className="bg-white text-gray-900">
-                Medio
-              </option>
-              <option value="alto" className="bg-white text-gray-900">
-                Alto
-              </option>
-            </select>
+            <DataTable.NumberRangeFilter
+              columnId="stock"
+              label="Stock:"
+              onChange={setFiltroStockRange}
+            />
           </div>
 
           <ExportButtons
             rows={productosFiltrados}
             columns={COLUMNAS_EXPORT_PRODUCTOS}
-            filename={"Productos Seleccionados " + new Date().toLocaleDateString("es-HN")}
+            filename={
+              "Productos Seleccionados " +
+              new Date().toLocaleDateString("es-HN")
+            }
             meta={{
               empresa: "Comisariato San Jose",
               usuario: nombreEmpleado || "Sistema",
-              extra:   textoFiltrosPdf,
+              extra: textoFiltrosPdf,
             }}
-            pdfOptions={{ title: "Productos Seleccionados", subtitle: new Date().toLocaleDateString("es-HN") }}
-            onExport={(formato) =>            // ← NUEVO
+            pdfOptions={{
+              title: "Productos Seleccionados",
+              subtitle: new Date().toLocaleDateString("es-HN"),
+            }}
+            onExport={(
+              formato, // ← NUEVO
+            ) =>
               registrarBitacora({
                 usuario: user.email,
                 nombre: nombreEmpleado,
                 coleccion: "productos",
                 accion: "exportar",
                 metadata: {
-                  formato,                                        // "excel" | "pdf"
+                  formato, // "excel" | "pdf"
                   totalRegistros: productosFiltrados.length,
                   filtros: textoFiltrosPdf,
                 },
@@ -841,7 +887,6 @@ export default function Productos() {
             }
           />
         </DataTable.Toolbar>
-        
 
         <DataTable.Table />
         <DataTable.Pagination />

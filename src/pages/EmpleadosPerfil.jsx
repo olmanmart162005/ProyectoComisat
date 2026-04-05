@@ -652,9 +652,7 @@ export default function EmpleadosOficialCredito() {
         <MetricCard
           title="Inactivos"
           value={totalInactivos}
-          icon={
-            <CloseIcon className="text-red-600 size-6 dark:text-red-400" />
-          }
+          icon={<CloseIcon className="text-red-600 size-6 dark:text-red-400" />}
           iconWrapperClass="bg-red-50 dark:bg-red-500/10"
         />
       </div>

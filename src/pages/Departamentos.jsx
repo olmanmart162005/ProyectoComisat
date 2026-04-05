@@ -13,8 +13,8 @@ import {
 import DataTable from "../components/ui/table/DataTable";
 import { useModal } from "../hooks/useModal";
 import { Modal } from "../components/ui/modal";
+import { PencilIcon, TrashBinIcon } from "../icons";
 import { sileo, Toaster } from "sileo";
-
 
 export default function Departamentos() {
   Toaster.position = "top-right";
@@ -87,7 +87,9 @@ export default function Departamentos() {
   };
 
   const handleEliminar = async (id) => {
-    if (window.confirm("¿Estás seguro de que deseas eliminar este departamento?")) {
+    if (
+      window.confirm("¿Estás seguro de que deseas eliminar este departamento?")
+    ) {
       try {
         await deleteDoc(doc(db, "departamentos", id));
         fetchDepartamentos();
@@ -127,13 +129,13 @@ export default function Departamentos() {
                 }}
                 className="text-blue-600 hover:text-blue-800 transition"
               >
-                Editar
+                <PencilIcon className="w-5 h-5 mx-auto" />
               </button>
               <button
                 onClick={() => handleEliminar(dep.id)}
                 className="text-red-500 hover:text-red-700 transition"
               >
-                Eliminar
+                <TrashBinIcon className="w-5 h-5 mx-auto" />
               </button>
             </div>
           );
@@ -180,7 +182,9 @@ export default function Departamentos() {
       <Modal isOpen={isOpen} onClose={closeModal} className="max-w-xl">
         <div className="p-6">
           <h2 className="text-xl font-bold mb-6 text-gray-800 dark:text-white/90">
-            {editandoId ? "Editando Departamento" : "Registrar Nuevo Departamento"}
+            {editandoId
+              ? "Editando Departamento"
+              : "Registrar Nuevo Departamento"}
           </h2>
           <form
             onSubmit={editandoId ? handleUpdate : handleSubmit}

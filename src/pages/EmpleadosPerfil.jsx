@@ -15,7 +15,13 @@ import Badge from "../components/ui/badge/Badge";
 import MetricCard from "../components/common/MetricCard";
 import { Modal } from "../components/ui/modal";
 import { useModal } from "../hooks/useModal";
-import { BoxIconLine, CheckCircleIcon, GroupIcon, EyeIcon, CloseIcon } from "../icons";
+import {
+  BoxIconLine,
+  CheckCircleIcon,
+  GroupIcon,
+  EyeIcon,
+  CloseIcon,
+} from "../icons";
 
 // ── Helpers ────────────────────────────────────────────────────────
 const lps = (n) => `L. ${Number(n ?? 0).toLocaleString("es-HN")}`;

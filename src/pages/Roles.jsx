@@ -11,10 +11,14 @@ import {
 } from "firebase/firestore";
 
 import DataTable from "../components/ui/table/DataTable";
+import ExportButtons from "../layout/Exportbuttons";
+import { useAuth } from "../auth/AuthProvider";
+import { useNombreEmpleadoActual } from "../hooks/useNombreEmpleadoActual";
 import { useModal } from "../hooks/useModal";
 import { Modal } from "../components/ui/modal";
 import { sileo, Toaster } from "sileo";
 import { PencilIcon, TrashBinIcon } from "../icons";
+import { registrarBitacora } from "../services/bitacora";
 
 export default function Roles() {
   Toaster.position = "top-right";
@@ -25,6 +29,12 @@ export default function Roles() {
   const [enviando, setEnviando] = useState(false);
   const [nombre, setNombre] = useState("");
   const { isOpen, openModal, closeModal } = useModal();
+  const { user } = useAuth();
+  const nombreEmpleado = useNombreEmpleadoActual();
+
+  const COLUMNAS_EXPORT_ROLES = [
+    { key: "nombre", header: "Nombre", type: "text" },
+  ];
 
   // ── Fetchers ─────────────────────────────────────────────
   const fetchRoles = async () => {
@@ -224,7 +234,31 @@ export default function Roles() {
 
       {/* Tabla */}
       <DataTable columns={columns} data={roles} loading={loading}>
-        <DataTable.Toolbar searchPlaceholder="Buscar rol..." />
+        <DataTable.Toolbar searchPlaceholder="Buscar rol...">
+          <ExportButtons
+            rows={roles}
+            columns={COLUMNAS_EXPORT_ROLES}
+            filename={"Roles " + new Date().toLocaleDateString("es-HN")}
+            sheetName="Lista de Roles"
+            meta={{ empresa: "Comisariato San Jose", usuario: "Sistema" }}
+            pdfOptions={{
+              title: "Roles",
+              subtitle: new Date().toLocaleDateString("es-HN"),
+            }}
+            onExport={(formato) =>
+              registrarBitacora({
+                usuario: user.email,
+                nombre: nombreEmpleado,
+                coleccion: "roles",
+                accion: "exportar",
+                metadata: {
+                  formato,
+                  totalRegistros: roles.length,
+                },
+              })
+            }
+          />
+        </DataTable.Toolbar>
         <DataTable.Table />
         <DataTable.Pagination />
       </DataTable>

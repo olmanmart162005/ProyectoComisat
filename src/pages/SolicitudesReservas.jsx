@@ -15,11 +15,14 @@ import {
 import { useAuth } from "../auth/AuthProvider";
 
 import DataTable from "../components/ui/table/DataTable";
+import ExportButtons from "../layout/Exportbuttons";
 import Badge from "../components/ui/badge/Badge";
 import { useModal } from "../hooks/useModal";
 import { Modal } from "../components/ui/modal";
 import MetricCard from "../components/common/MetricCard";
 import { CheckCircleIcon, CloseIcon, BoxIconLine, EyeIcon } from "../icons";
+import { useNombreEmpleadoActual } from "../hooks/useNombreEmpleadoActual";
+import { registrarBitacora } from "../services/bitacora";
 
 // ── Helpers ────────────────────────────────────────────────────────
 const lps = (n) => `L. ${Number(n ?? 0).toLocaleString("es-HN")}`;
@@ -27,6 +30,10 @@ const estadoColor = {
   Aprobado: "success",
   Activo: "success",
   Rechazado: "error",
+  Pagado: "primary",
+  Cancelado: "error",
+  Finalizado: "primary",
+  Mora: "warning",
   Pendiente: "warning",
 };
 
@@ -56,10 +63,10 @@ function CreditReviewModal({
   const historialColumns = useMemo(
     () => [
       {
-        accessorKey: "fechaAutoriza",
+        id: "fecha",
         header: "Fecha",
-        cell: (info) => {
-          const fecha = info.getValue();
+        cell: ({ row }) => {
+          const fecha = row.original.fechaAutoriza ?? row.original.fechaRegistro;
           return (
             <span className="block font-medium text-gray-800 text-theme-sm dark:text-white/90">
               {fecha?.toDate?.()?.toLocaleDateString("es-HN") ?? "---"}
@@ -83,6 +90,18 @@ function CreditReviewModal({
           const val = info.getValue();
           return (
             <Badge size="sm" color={estadoColor[val] ?? "warning"}>
+              {val}
+            </Badge>
+          );
+        },
+      },
+      {
+        id: "estadoCredito",
+        header: "Estado Crédito",
+        cell: ({ row }) => {
+          const val = row.original.estadoCredito ?? row.original.estado;
+          return (
+            <Badge size="sm" color={estadoColor[val] ?? "warning"}>
               {val ?? "---"}
             </Badge>
           );
@@ -96,7 +115,7 @@ function CreditReviewModal({
     <Modal isOpen={isOpen} onClose={onClose} className="max-w-4xl">
       <div className="flex h-full max-h-[90vh] overflow-hidden rounded-xl">
         {/* ── Panel izquierdo — Historial placeholder ── */}
-        <aside className="hidden md:flex flex-col w-[380px] shrink-0 border-r border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-gray-900 rounded-l-xl overflow-hidden">
+        <aside className="hidden md:flex flex-col w-[450px] shrink-0 border-r border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-gray-900 rounded-l-xl overflow-hidden">
           <div className="px-4 pt-5 pb-3 border-b border-gray-200 dark:border-white/10">
             <p className="text-xs font-semibold uppercase tracking-widest text-gray-400 dark:text-gray-500">
               Perfil del Empleado
@@ -360,6 +379,7 @@ export default function SolicitudesCredito() {
   const [loadingHistorial, setLoadingHistorial] = useState(false);
   const { isOpen, openModal, closeModal } = useModal();
   const { user } = useAuth();
+  const nombreEmpleado = useNombreEmpleadoActual();
 
   // Métricas
   const totalPendientes = solicitudes.filter(
@@ -385,7 +405,7 @@ export default function SolicitudesCredito() {
       s.empleadoId ??
         s.empleadoUid ??
         s.idEmpleado ??
-        `${s.empleadoNombres ?? ""}|${s.empleadoaApellidos ?? ""}`,
+        `${s.empleadoNombres ?? ""}|${s.empleadoApellidos ?? ""}`,
     )
       .trim()
       .toLowerCase();
@@ -436,7 +456,7 @@ export default function SolicitudesCredito() {
         return Number.isNaN(parsed) ? 0 : parsed;
       };
 
-      const estadosHistorial = ["Aprobado", "Rechazado"];
+      const estadosHistorial = ["Aprobado", "Aceptado", "Rechazado", "Cancelado"];
 
       setLoadingHistorial(true);
       try {
@@ -596,6 +616,42 @@ export default function SolicitudesCredito() {
       return estado === filtroEstadoSolicitud;
     });
   }, [solicitudes, filtroEstadoSolicitud]);
+
+  const COLUMNAS_EXPORT_SOLICITUDES = [
+    {
+      key: "empleadoNombreCompleto",
+      header: "Empleado",
+      type: "text",
+      getValue: (row) => `${row.empleadoNombres ?? ""} ${row.empleadoApellidos ?? ""}`.trim(),
+    },
+    { key: "productoNombre", header: "Artículo", type: "text" },
+    {
+      key: "totalCredito",
+      header: "Total Crédito",
+      type: "currency",
+      getValue: (row) => row.datosFinancierosHistoricos?.totalCredito ?? 0,
+    },
+    {
+      key: "cuotaMensual",
+      header: "Cuota Mensual",
+      type: "currency",
+      getValue: (row) => row.datosFinancierosHistoricos?.cuotaMensual ?? row.cuotaMensual ?? 0,
+    },
+    {
+      key: "plazo",
+      header: "Plazo",
+      type: "text",
+      getValue: (row) => row.datosFinancierosHistoricos?.plazo ?? row.plazo ?? "---",
+    },
+    { key: "estado", header: "Estado", type: "text" },
+    { key: "fechaRegistro", header: "Fecha Solicitud", type: "date" },
+    { key: "fechaAutoriza", header: "Fecha Autorización", type: "date" },
+    { key: "empleadoAutoriza", header: "Autorizado por", type: "text" },
+  ];
+
+  const textoFiltrosPdf = filtroEstadoSolicitud
+    ? `Estado: ${filtroEstadoSolicitud}`
+    : "Listado completo";
 
   const columns = useMemo(
     () => [
@@ -773,6 +829,35 @@ export default function SolicitudesCredito() {
                 Rechazado
               </option>
             </select>
+
+            <ExportButtons
+              rows={solicitudesFiltradas}
+              columns={COLUMNAS_EXPORT_SOLICITUDES}
+              filename={"Solicitudes Reservas " + new Date().toLocaleDateString("es-HN")}
+              sheetName="Solicitudes de Crédito"
+              meta={{
+                empresa: "Comisariato San Jose",
+                usuario: nombreEmpleado || "Sistema",
+                extra: textoFiltrosPdf,
+              }}
+              pdfOptions={{
+                title: "Solicitudes de Crédito",
+                subtitle: new Date().toLocaleDateString("es-HN"),
+              }}
+              onExport={(formato) =>
+                registrarBitacora({
+                  usuario: user.email,
+                  nombre: nombreEmpleado,
+                  coleccion: "creditos",
+                  accion: "exportar",
+                  metadata: {
+                    formato,
+                    totalRegistros: solicitudesFiltradas.length,
+                    filtros: textoFiltrosPdf,
+                  },
+                })
+              }
+            />
           </div>
         </DataTable.Toolbar>
         <DataTable.Table />

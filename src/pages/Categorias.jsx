@@ -14,6 +14,7 @@ import DataTable from "../components/ui/table/DataTable";
 import { useModal } from "../hooks/useModal";
 import { Modal } from "../components/ui/modal";
 import { sileo, Toaster } from "sileo";
+import { PencilIcon, TrashBinIcon } from "../icons";
 
 export default function Categorias() {
   Toaster.position = "top-right";
@@ -27,7 +28,6 @@ export default function Categorias() {
 
   // ── Fetchers ─────────────────────────────────────────────
   const fetchCategorias = async () => {
-
     setLoading(true);
     try {
       const snap = await getDocs(collection(db, "categoria"));
@@ -44,7 +44,6 @@ export default function Categorias() {
   useEffect(() => {
     fetchCategorias();
   }, []);
-
 
   // ── CRUD ─────────────────────────────────────────────────
   const handleSubmit = async (e) => {
@@ -88,7 +87,9 @@ export default function Categorias() {
   };
 
   const handleEliminar = async (id) => {
-    if (window.confirm("¿Estás seguro de que deseas eliminar esta categoría?")) {
+    if (
+      window.confirm("¿Estás seguro de que deseas eliminar esta categoría?")
+    ) {
       try {
         await deleteDoc(doc(db, "categoria", id));
         fetchCategorias();
@@ -128,13 +129,13 @@ export default function Categorias() {
                 }}
                 className="text-blue-600 hover:text-blue-800 transition"
               >
-                Editar
+                <PencilIcon className="w-5 h-5 mx-auto" />
               </button>
               <button
                 onClick={() => handleEliminar(cat.id)}
                 className="text-red-500 hover:text-red-700 transition"
               >
-                Eliminar
+                <TrashBinIcon className="w-5 h-5 mx-auto" />
               </button>
             </div>
           );

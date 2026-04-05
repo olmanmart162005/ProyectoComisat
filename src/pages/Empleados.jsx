@@ -31,9 +31,30 @@ import { useAuth } from "../auth/AuthProvider";
 import { useNombreEmpleadoActual } from "../hooks/useNombreEmpleadoActual";
 import { registrarBitacora } from "../services/bitacora";
 
+const generarNuevoCodigo = (listaEmpleados, listaHistorial = []) => {
+  const anioActual = new Date().getFullYear().toString();
+
+  const todosLosCodigos = [
+    ...listaEmpleados.map((e) => e.codigoEmpleado),
+    ...listaHistorial.map((h) => h.codigoEmpleado),
+  ]
+    .filter((cod) => cod && cod.toString().startsWith(anioActual))
+    .map((cod) => cod.toString());
+
+  if (todosLosCodigos.length === 0) {
+    return `${anioActual}001`;
+  }
+
+  const ultimosNumeros = todosLosCodigos.map((cod) => parseInt(cod.slice(4)));
+  const maxActual = Math.max(...ultimosNumeros);
+
+  return `${anioActual}${(maxActual + 1).toString().padStart(3, "0")}`;
+};
+
 export default function Empleados() {
   Toaster.position = "top-right";
   const [empleados, setEmpleados] = useState([]);
+  const [historialEmpleados, setHistorialEmpleados] = useState([]);
   const [departamentos, setDepartamentos] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -52,7 +73,6 @@ export default function Empleados() {
   const [estado, setEstado] = useState("Activo");
   const [filtroDepartamento, setFiltroDepartamento] = useState("");
   const [filtroEstado, setFiltroEstado] = useState("");
-
 
   const { isOpen, openModal, closeModal } = useModal();
   const { user } = useAuth();
@@ -104,9 +124,23 @@ export default function Empleados() {
     }
   };
 
+  const fetchHistorialEmpleados = async () => {
+    try {
+      const querySnapshot = await getDocs(collection(db, "historialEmpleados"));
+      const docs = querySnapshot.docs.map((item) => ({
+        id: item.id,
+        ...item.data(),
+      }));
+      setHistorialEmpleados(docs);
+    } catch (error) {
+      console.error("Error al cargar historial de empleados:", error);
+    }
+  };
+
   useEffect(() => {
     fetchDepartamentos();
     fetchEmpleados();
+    fetchHistorialEmpleados();
   }, []);
 
   const handleDepartamentoChange = (e) => {
@@ -202,18 +236,18 @@ export default function Empleados() {
       });
 
       await registrarBitacora({
-      usuario: user.email,
-      nombre: nombreEmpleado,
-      coleccion: "empleados",
-      accion: "creacion",
-      docId: docRef.id,
-      metadata: {
-        nombreCompleto: `${nombres} ${apellidos}`,
-        codigoEmpleado,
-        departamentoNombre,
-        estado,
-      },
-    });
+        usuario: user.email,
+        nombre: nombreEmpleado,
+        coleccion: "empleados",
+        accion: "creacion",
+        docId: docRef.id,
+        metadata: {
+          nombreCompleto: `${nombres} ${apellidos}`,
+          codigoEmpleado,
+          departamentoNombre,
+          estado,
+        },
+      });
 
       resetFormulario();
       fetchEmpleados();
@@ -231,7 +265,6 @@ export default function Empleados() {
     e.preventDefault();
     setEnviando(true);
     try {
-
       const empleadoAnterior = empleados.find((e) => e.id === editandoId);
 
       await updateDoc(doc(db, "empleados", editandoId), {
@@ -257,28 +290,28 @@ export default function Empleados() {
       });
 
       await registrarBitacora({
-      usuario: user.email,
-      nombre: nombreEmpleado,
-      coleccion: "empleados",
-      accion: "actualizacion",
-      docId: editandoId,
-      metadata: {
-        nombreCompleto: `${nombres} ${apellidos}`,
-        // Solo registra si realmente cambió
-        ...(empleadoAnterior?.estado !== estado && {
-          estadoAnterior: empleadoAnterior?.estado,
-          estadoNuevo: estado,
-        }),
-        ...(empleadoAnterior?.salario !== parseFloat(salario) && {
-          salarioAnterior: empleadoAnterior?.salario,
-          salarioNuevo: parseFloat(salario),
-        }),
-        ...(empleadoAnterior?.departamentoNombre !== departamentoNombre && {
-          departamentoAnterior: empleadoAnterior?.departamentoNombre,
-          departamentoNuevo: departamentoNombre,
-        }),
-      },
-    });
+        usuario: user.email,
+        nombre: nombreEmpleado,
+        coleccion: "empleados",
+        accion: "actualizacion",
+        docId: editandoId,
+        metadata: {
+          nombreCompleto: `${nombres} ${apellidos}`,
+          // Solo registra si realmente cambió
+          ...(empleadoAnterior?.estado !== estado && {
+            estadoAnterior: empleadoAnterior?.estado,
+            estadoNuevo: estado,
+          }),
+          ...(empleadoAnterior?.salario !== parseFloat(salario) && {
+            salarioAnterior: empleadoAnterior?.salario,
+            salarioNuevo: parseFloat(salario),
+          }),
+          ...(empleadoAnterior?.departamentoNombre !== departamentoNombre && {
+            departamentoAnterior: empleadoAnterior?.departamentoNombre,
+            departamentoNuevo: departamentoNombre,
+          }),
+        },
+      });
 
       resetFormulario();
       fetchEmpleados();
@@ -312,21 +345,21 @@ export default function Empleados() {
         if (empleadoAEliminar) {
           await addDoc(collection(db, "historialEmpleados"), {
             // Todos los datos del empleado
-            codigoEmpleado:    empleadoAEliminar.codigoEmpleado,
-            nombres:           empleadoAEliminar.nombres,
-            apellidos:         empleadoAEliminar.apellidos,
-            correo:            empleadoAEliminar.correo,
-            dni:               empleadoAEliminar.dni,
-            telefono:          empleadoAEliminar.telefono,
-            departamentoId:    empleadoAEliminar.departamentoId,
-            departamentoNombre:empleadoAEliminar.departamentoNombre,
-            salario:           empleadoAEliminar.salario,
-            fechaRegistro:     empleadoAEliminar.fechaRegistro,
+            codigoEmpleado: empleadoAEliminar.codigoEmpleado,
+            nombres: empleadoAEliminar.nombres,
+            apellidos: empleadoAEliminar.apellidos,
+            correo: empleadoAEliminar.correo,
+            dni: empleadoAEliminar.dni,
+            telefono: empleadoAEliminar.telefono,
+            departamentoId: empleadoAEliminar.departamentoId,
+            departamentoNombre: empleadoAEliminar.departamentoNombre,
+            salario: empleadoAEliminar.salario,
+            fechaRegistro: empleadoAEliminar.fechaRegistro,
             // Auditoría del historial
-            empleadoId:        id,
-            fechaBaja:         serverTimestamp(),
-            bajadoPor:         user.email,
-            nombreBajadoPor:   nombreEmpleado,
+            empleadoId: id,
+            fechaBaja: serverTimestamp(),
+            bajadoPor: user.email,
+            nombreBajadoPor: nombreEmpleado,
             usuariosEliminados: snapUsuarios.docs.length, // cuántos usuarios se borraron
           });
         }
@@ -342,8 +375,8 @@ export default function Empleados() {
           accion: "eliminacion",
           docId: id,
           metadata: {
-            nombreCompleto:     `${empleadoAEliminar?.nombres} ${empleadoAEliminar?.apellidos}`,
-            codigoEmpleado:     empleadoAEliminar?.codigoEmpleado,
+            nombreCompleto: `${empleadoAEliminar?.nombres} ${empleadoAEliminar?.apellidos}`,
+            codigoEmpleado: empleadoAEliminar?.codigoEmpleado,
             departamentoNombre: empleadoAEliminar?.departamentoNombre,
             usuariosEliminados: snapUsuarios.docs.length,
           },
@@ -460,14 +493,14 @@ export default function Empleados() {
   );
 
   const COLUMNAS_EXPORT_EMPLEADOS = [
-    { key: "codigoEmpleado",   header: "Código",         type: "text"     },
-    { key: "dni",              header: "DNI",            type: "text" },
-    { key: "nombres",          header: "Nombres",        type: "text"     },
-    { key: "apellidos",        header: "Apellidos",      type: "text"     },
-    { key: "correo",           header: "Correo",         type: "text" },
-    { key: "telefono",         header: "Teléfono",       type: "text"   },
-    { key: "salario",          header: "Salario",        type: "currency" },
-    { key: "estado",           header: "Estado",         type: "text"     },
+    { key: "codigoEmpleado", header: "Código", type: "text" },
+    { key: "dni", header: "DNI", type: "text" },
+    { key: "nombres", header: "Nombres", type: "text" },
+    { key: "apellidos", header: "Apellidos", type: "text" },
+    { key: "correo", header: "Correo", type: "text" },
+    { key: "telefono", header: "Teléfono", type: "text" },
+    { key: "salario", header: "Salario", type: "currency" },
+    { key: "estado", header: "Estado", type: "text" },
   ];
 
   const empleadosFiltrados = useMemo(() => {
@@ -482,12 +515,11 @@ export default function Empleados() {
     });
   }, [empleados, filtroDepartamento, filtroEstado]);
 
-
   const textoFiltrosPdf = useMemo(() => {
     const partes = [];
 
     if (filtroDepartamento) {
-      const dep = departamentos.find(d => d.id === filtroDepartamento);
+      const dep = departamentos.find((d) => d.id === filtroDepartamento);
       partes.push(`Departamento: ${dep ? dep.nombre : filtroDepartamento}`);
     }
 
@@ -509,6 +541,8 @@ export default function Empleados() {
         <button
           onClick={() => {
             resetFormulario();
+            const nuevoCod = generarNuevoCodigo(empleados, historialEmpleados);
+            setCodigoEmpleado(nuevoCod);
             openModal();
           }}
           className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-5 py-2.5 rounded-lg shadow-sm transition flex items-center gap-2"
@@ -571,11 +605,10 @@ export default function Empleados() {
               </label>
               <input
                 type="text"
-                required
+                readOnly
                 value={codigoEmpleado}
-                onChange={(e) => setCodigoEmpleado(e.target.value)}
-                placeholder="Ej. 1234"
-                className="mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+                placeholder="Generando..."
+                className="mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm bg-gray-100 cursor-not-allowed dark:bg-gray-700 dark:border-gray-600 dark:text-gray-400 font-mono font-bold"
               />
             </div>
             <div>
@@ -785,16 +818,20 @@ export default function Empleados() {
               columns={COLUMNAS_EXPORT_EMPLEADOS}
               filename={"Empleados " + new Date().toLocaleDateString("es-HN")}
               sheetName="Lista de Empleados"
-              meta={{ 
-                empresa: "Comisariato San Jose", 
+              meta={{
+                empresa: "Comisariato San Jose",
                 usuario: nombreEmpleado || "Sistema",
-                extra:   textoFiltrosPdf }}
-              pdfOptions={{ title: "Empleados", subtitle: new Date().toLocaleDateString("es-HN") }}
+                extra: textoFiltrosPdf,
+              }}
+              pdfOptions={{
+                title: "Empleados",
+                subtitle: new Date().toLocaleDateString("es-HN"),
+              }}
               onExport={(formato) =>
                 registrarBitacora({
                   usuario: user.email,
                   nombre: nombreEmpleado,
-                  coleccion: "empleados", 
+                  coleccion: "empleados",
                   accion: "exportar",
                   metadata: {
                     formato,

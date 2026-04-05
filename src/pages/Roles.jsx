@@ -14,8 +14,7 @@ import DataTable from "../components/ui/table/DataTable";
 import { useModal } from "../hooks/useModal";
 import { Modal } from "../components/ui/modal";
 import { sileo, Toaster } from "sileo";
-
-
+import { PencilIcon, TrashBinIcon } from "../icons";
 
 export default function Roles() {
   Toaster.position = "top-right";
@@ -128,13 +127,13 @@ export default function Roles() {
                 }}
                 className="text-blue-600 hover:text-blue-800 transition"
               >
-                Editar
+                <PencilIcon className="w-5 h-5 mx-auto" />
               </button>
               <button
                 onClick={() => handleEliminar(rol.id)}
                 className="text-red-500 hover:text-red-700 transition"
               >
-                Eliminar
+                <TrashBinIcon className="w-5 h-5 mx-auto" />
               </button>
             </div>
           );

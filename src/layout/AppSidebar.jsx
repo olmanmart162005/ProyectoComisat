@@ -5,6 +5,7 @@ import {
   GridIcon,
   HorizontaLDots,
   ListIcon,
+  GroupIcon,
   PlugInIcon,
   TableIcon,
   UserCircleIcon,
@@ -35,7 +36,7 @@ const navItems = [
   },
   {
     name: "Empleados",
-    icon: <ListIcon />,
+    icon: <GroupIcon />,
     path: "/empleados",
     allowedRoles: ["Administrador", "Recursos Humanos"],
   },
@@ -297,13 +298,6 @@ const AppSidebar = () => {
                 {visibleNavItems.map((nav) => (
                   <NavItem key={nav.path} nav={nav} showLabel={showLabel} />
                 ))}
-
-                {/* Separador visual antes de grupos — solo si hay grupos visibles */}
-                {visibleNavGroups.length > 0 && showLabel && (
-                  <li>
-                    <div className="border-t border-gray-100 dark:border-gray-800 my-1" />
-                  </li>
-                )}
 
                 {/* Grupos colapsables */}
                 {visibleNavGroups.map((group) => (

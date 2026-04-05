@@ -15,7 +15,7 @@ import Badge from "../components/ui/badge/Badge";
 import MetricCard from "../components/common/MetricCard";
 import { Modal } from "../components/ui/modal";
 import { useModal } from "../hooks/useModal";
-import { BoxIconLine, CheckCircleIcon, GroupIcon, EyeIcon } from "../icons";
+import { BoxIconLine, CheckCircleIcon, GroupIcon, EyeIcon, CloseIcon } from "../icons";
 
 // ── Helpers ────────────────────────────────────────────────────────
 const lps = (n) => `L. ${Number(n ?? 0).toLocaleString("es-HN")}`;
@@ -557,7 +557,7 @@ export default function EmpleadosOficialCredito() {
       {
         accessorFn: (row) => `${row.nombres} ${row.apellidos}`,
         id: "nombreCompleto",
-        header: "Nombre Completo",
+        header: "Nombre",
         cell: (info) => (
           <span className="block font-medium text-gray-800 text-theme-sm dark:text-white/90">
             {info.getValue()}

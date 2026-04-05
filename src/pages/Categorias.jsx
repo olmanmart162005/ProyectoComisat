@@ -11,10 +11,14 @@ import {
 } from "firebase/firestore";
 
 import DataTable from "../components/ui/table/DataTable";
+import ExportButtons from "../layout/Exportbuttons";
+import { useAuth } from "../auth/AuthProvider";
+import { useNombreEmpleadoActual } from "../hooks/useNombreEmpleadoActual";
 import { useModal } from "../hooks/useModal";
 import { Modal } from "../components/ui/modal";
 import { sileo, Toaster } from "sileo";
 import { PencilIcon, TrashBinIcon } from "../icons";
+import { registrarBitacora } from "../services/bitacora";
 
 export default function Categorias() {
   Toaster.position = "top-right";
@@ -25,6 +29,12 @@ export default function Categorias() {
   const [enviando, setEnviando] = useState(false);
   const [nombre, setNombre] = useState("");
   const { isOpen, openModal, closeModal } = useModal();
+  const { user } = useAuth();
+  const nombreEmpleado = useNombreEmpleadoActual();
+
+  const COLUMNAS_EXPORT_CATEGORIAS = [
+    { key: "nombre", header: "Nombre", type: "text" },
+  ];
 
   // ── Fetchers ─────────────────────────────────────────────
   const fetchCategorias = async () => {
@@ -226,7 +236,31 @@ export default function Categorias() {
 
       {/* Tabla */}
       <DataTable columns={columns} data={categorias} loading={loading}>
-        <DataTable.Toolbar searchPlaceholder="Buscar categoría..." />
+        <DataTable.Toolbar searchPlaceholder="Buscar categoría...">
+          <ExportButtons
+            rows={categorias}
+            columns={COLUMNAS_EXPORT_CATEGORIAS}
+            filename={"Categorías " + new Date().toLocaleDateString("es-HN")}
+            sheetName="Lista de Categorías"
+            meta={{ empresa: "Comisariato San Jose", usuario: "Sistema" }}
+            pdfOptions={{
+              title: "Categorías",
+              subtitle: new Date().toLocaleDateString("es-HN"),
+            }}
+            onExport={(formato) =>
+              registrarBitacora({
+                usuario: user.email,
+                nombre: nombreEmpleado,
+                coleccion: "categoria",
+                accion: "exportar",
+                metadata: {
+                  formato,
+                  totalRegistros: categorias.length,
+                },
+              })
+            }
+          />
+        </DataTable.Toolbar>
         <DataTable.Table />
         <DataTable.Pagination />
       </DataTable>

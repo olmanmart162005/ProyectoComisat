@@ -63,6 +63,27 @@ export default function Productos() {
 
   const { isOpen, openModal, closeModal } = useModal();
 
+  const getEstadoProducto = (
+    stockValue,
+    stockMinimoValue,
+    estadoBase = "Activo",
+  ) => {
+    if (estadoBase === "Inactivo") return "Inactivo";
+    return Number(stockValue) <= Number(stockMinimoValue)
+      ? "Agotado"
+      : "Activo";
+  };
+
+  useEffect(() => {
+    if (estado === "Inactivo") return;
+    if (stock === "" || stockMinimo === "") return;
+
+    const siguienteEstado = getEstadoProducto(stock, stockMinimo, estado);
+    if (siguienteEstado !== estado) {
+      setEstado(siguienteEstado);
+    }
+  }, [stock, stockMinimo]);
+
   //contandores
   const totalProductos = productos.length;
   const productosActivos = productos.filter(
@@ -171,6 +192,7 @@ export default function Productos() {
 
       const contado = parseFloat(precioContado) || 0;
       const creditoCalculado = contado * (1 + porcentajeAumento);
+      const estadoFinal = getEstadoProducto(stock, stockMinimo, estado);
 
       let imagenUrl = "";
       if (archivoImagen) {
@@ -187,7 +209,7 @@ export default function Productos() {
         stockMinimo: stockMinimoNumero,
         categoriaId,
         categoriaNombre,
-        estado,
+        estado: estadoFinal,
         imagenUrl,
         fechaRegistro: serverTimestamp(),
       });
@@ -204,7 +226,7 @@ export default function Productos() {
           categoriaNombre,
           stock: parseInt(stock),
           stockMinimo: stockMinimoNumero,
-          estado,
+          estado: estadoFinal,
         },
       });
 
@@ -232,6 +254,7 @@ export default function Productos() {
 
       const contado = parseFloat(precioContado) || 0;
       const creditoCalculado = contado * (1 + porcentajeAumento);
+      const estadoFinal = getEstadoProducto(stock, stockMinimo, estado);
 
       // Si subió una imagen nueva, la sube; si no, conserva la anterior
       let imagenUrl = imagenUrlActual;
@@ -250,7 +273,7 @@ export default function Productos() {
         stockMinimo: stockMinimoNumero,
         categoriaId,
         categoriaNombre,
-        estado,
+        estado: estadoFinal,
         imagenUrl,
         ultimaModificacion: serverTimestamp(),
       });
@@ -275,7 +298,7 @@ export default function Productos() {
           }),
           ...(productoAnterior?.estado !== estado && {
             estadoAnterior: productoAnterior?.estado,
-            estadoNuevo: estado,
+            estadoNuevo: estadoFinal,
           }),
         },
       });
@@ -447,14 +470,7 @@ export default function Productos() {
         accessorKey: "stock",
         header: "Stock",
         filterFn: "inNumberRange",
-        cell: (info) => {
-          const val = Number(info.getValue());
-          return (
-            <span className={val <= 5 ? "text-red-500 font-semibold" : ""}>
-              {val}
-            </span>
-          );
-        },
+        cell: (info) => Number(info.getValue()),
       },
       {
         accessorKey: "stockMinimo",
@@ -469,8 +485,14 @@ export default function Productos() {
         header: "Estado",
         cell: (info) => {
           const val = info.getValue();
+          const color =
+            val === "Activo"
+              ? "success"
+              : val === "Agotado"
+                ? "warning"
+                : "error";
           return (
-            <Badge size="sm" color={val === "Activo" ? "success" : "error"}>
+            <Badge size="sm" color={color}>
               {val}
             </Badge>
           );
@@ -650,6 +672,7 @@ export default function Productos() {
               <textarea
                 value={descripcion}
                 onChange={(e) => setDescripcion(e.target.value)}
+                maxLength={150}
                 placeholder="Ej. Cafetera Oster de 8 tazas"
                 rows={2}
                 className="mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white resize-none"
@@ -745,6 +768,12 @@ export default function Productos() {
                   className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
                 >
                   Activo
+                </option>
+                <option
+                  value="Agotado"
+                  className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                >
+                  Agotado
                 </option>
                 <option
                   value="Inactivo"

@@ -96,9 +96,18 @@ const navGroups = [
       "Gestor de Inventario",
     ],
     icon: (
-      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8}
-          d="M9 17v-2a4 4 0 014-4h4m0 0l-2-2m2 2l-2 2M3 7h4a2 2 0 012 2v6a2 2 0 01-2 2H3" />
+      <svg
+        className="w-5 h-5"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={1.8}
+          d="M9 17v-2a4 4 0 014-4h4m0 0l-2-2m2 2l-2 2M3 7h4a2 2 0 012 2v6a2 2 0 01-2 2H3"
+        />
       </svg>
     ),
     children: [
@@ -126,7 +135,6 @@ const navGroups = [
         path: "/historial-productos",
         allowedRoles: ["Administrador", "Gestor de Inventario"],
       },
-      
     ],
   },
 ];
@@ -144,7 +152,9 @@ function NavItem({ nav, showLabel }) {
           isActive ? "menu-item-active" : "menu-item-inactive"
         } ${!showLabel ? "lg:justify-center" : "lg:justify-start"}`}
       >
-        <span className={`menu-item-icon-size ${isActive ? "menu-item-icon-active" : "menu-item-icon-inactive"}`}>
+        <span
+          className={`menu-item-icon-size ${isActive ? "menu-item-icon-active" : "menu-item-icon-inactive"}`}
+        >
           {nav.icon}
         </span>
         {showLabel && <span className="menu-item-text">{nav.name}</span>}
@@ -199,7 +209,12 @@ function NavGroup({ group, showLabel, role }) {
           stroke="currentColor"
           viewBox="0 0 24 24"
         >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M19 9l-7 7-7-7"
+          />
         </svg>
       </button>
 
@@ -269,11 +284,19 @@ const AppSidebar = () => {
       onMouseLeave={() => setIsHovered(false)}
     >
       {/* Logo */}
-      <div className={`py-8 flex ${!showLabel ? "lg:justify-center" : "justify-start"}`}>
+      <div
+        className={`py-8 flex ${!showLabel ? "lg:justify-center" : "justify-start"}`}
+      >
         <Link to="/">
           {showLabel ? (
             <div className="flex items-center gap-3">
-              <img className="shrink-0" src={supermarketLogo} alt="Logo" width={36} height={36} />
+              <img
+                className="shrink-0"
+                src={supermarketLogo}
+                alt="Logo"
+                width={36}
+                height={36}
+              />
               <span className="text-lg font-semibold text-gray-900 dark:text-white">
                 Comisariato
               </span>
@@ -289,7 +312,9 @@ const AppSidebar = () => {
         <nav className="mb-6">
           <div className="flex flex-col gap-4">
             <div>
-              <h2 className={`mb-4 text-xs uppercase flex leading-[20px] text-gray-400 ${!showLabel ? "lg:justify-center" : "justify-start"}`}>
+              <h2
+                className={`mb-4 text-xs uppercase flex leading-[20px] text-gray-400 ${!showLabel ? "lg:justify-center" : "justify-start"}`}
+              >
                 {showLabel ? "Menu" : <HorizontaLDots className="size-6" />}
               </h2>
 

@@ -27,6 +27,7 @@ import ConfiguracionGlobal from "../pages/ConfiguracionGlobal";
 import SolicitudesReservas from "../pages/SolicitudesReservas";
 import PagosMensuales from "../pages/PagosMensuales";
 import HistorialCreditos from "../pages/HistorialCreditos";
+import EmpleadosPerfil from "../pages/EmpleadosPerfil";
 import Categorias from "../pages/Categorias";
 import Departamentos from "../pages/Departamentos";
 import Roles from "../pages/Roles";
@@ -169,13 +170,7 @@ export default function AppRouter() {
           <Route
             path="solicitudes-reservas"
             element={
-              <RoleRoute
-                roles={[
-                  "Administrador",
-                  "Oficial de Crédito",
-                  "Oficial de Credito",
-                ]}
-              >
+              <RoleRoute roles={["Administrador", "Oficial de Credito"]}>
                 <SolicitudesReservas />
               </RoleRoute>
             }
@@ -183,7 +178,7 @@ export default function AppRouter() {
           <Route
             path="pagos-mensuales"
             element={
-              <RoleRoute roles={["Oficial de Crédito", "Oficial de Credito"]}>
+              <RoleRoute roles={["Oficial de Credito"]}>
                 <PagosMensuales />
               </RoleRoute>
             }
@@ -191,14 +186,16 @@ export default function AppRouter() {
           <Route
             path="historial-creditos"
             element={
-              <RoleRoute
-                roles={[
-                  "Administrador",
-                  "Oficial de Crédito",
-                  "Oficial de Credito",
-                ]}
-              >
+              <RoleRoute roles={["Administrador", "Oficial de Credito"]}>
                 <HistorialCreditos />
+              </RoleRoute>
+            }
+          />
+          <Route
+            path="empleados-perfil"
+            element={
+              <RoleRoute roles={["Oficial de Credito"]}>
+                <EmpleadosPerfil />
               </RoleRoute>
             }
           />

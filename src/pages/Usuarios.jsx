@@ -11,6 +11,7 @@ import {
 } from "firebase/firestore";
 
 import DataTable from "../components/ui/table/DataTable";
+import ExportButtons from "../layout/Exportbuttons";
 import Badge from "../components/ui/badge/Badge";
 import { useModal } from "../hooks/useModal";
 import { Modal } from "../components/ui/modal";
@@ -23,6 +24,9 @@ import {
 } from "../icons";
 import MetricCard from "../components/common/MetricCard";
 import { sileo, Toaster } from "sileo";
+import { useAuth } from "../auth/AuthProvider";
+import { useNombreEmpleadoActual } from "../hooks/useNombreEmpleadoActual";
+import { registrarBitacora } from "../services/bitacora";
 
 export default function Usuarios() {
   Toaster.position = "top-right";
@@ -49,6 +53,8 @@ export default function Usuarios() {
   const [filtroRol, setFiltroRol] = useState("");
 
   const { isOpen, openModal, closeModal } = useModal();
+  const { user } = useAuth();
+  const nombreEmpleado = useNombreEmpleadoActual();
 
   // Contadores
   const totalUsuarios = usuarios.length;
@@ -286,10 +292,7 @@ export default function Usuarios() {
 
   const usuariosFiltrados = useMemo(() => {
     return usuarios.filter((u) => {
-
-      const coincideRol = filtroRol
-        ? u.rolId === filtroRol
-        : true;
+      const coincideRol = filtroRol ? u.rolId === filtroRol : true;
 
       const coincideEstado = filtroEstado ? u.estado === filtroEstado : true;
 
@@ -297,6 +300,21 @@ export default function Usuarios() {
     });
   }, [usuarios, filtroRol, filtroEstado]);
 
+  const COLUMNAS_EXPORT_USUARIOS = [
+    { key: "nombre", header: "Nombre", type: "text" },
+    { key: "correo", header: "Correo", type: "text" },
+    { key: "rolNombre", header: "Rol", type: "text" },
+    { key: "estado", header: "Estado", type: "text" },
+  ];
+
+  const textoFiltrosPdf = [
+    filtroRol
+      ? `Rol: ${roles.find((r) => r.id === filtroRol)?.nombre ?? filtroRol}`
+      : null,
+    filtroEstado ? `Estado: ${filtroEstado}` : null,
+  ]
+    .filter(Boolean)
+    .join(" | ");
 
   // ── JSX ──────────────────────────────────────────────────
   return (
@@ -369,75 +387,78 @@ export default function Usuarios() {
             {/* Empleado */}
             <div className="md:col-span-2">
               {/* Empleado con búsqueda */}
-           <div className="md:col-span-2 relative">
-             <label className="block text-sm font-medium text-gray-700 dark:text-gray-400">
-               Empleado
-             </label>
-             <input
-               type="text"
-               value={busquedaEmpleado}
-               onChange={(e) => {
-                 setBusquedaEmpleado(e.target.value);
-                 setMostrarSugerencias(true);
-                 // Si borra el texto, limpia la selección
-                 if (!e.target.value) {
-                   setEmpleadoId("");
-                   setNombre("");
-                   setCorreoPersonal("");
-                 }
-               }}
-               onFocus={() => setMostrarSugerencias(true)}
-               onBlur={() => setTimeout(() => setMostrarSugerencias(false), 150)}
-               placeholder="Buscar empleado..."
-               className="mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm text-gray-900 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
-             />
-           
-             {/* Sugerencias */}
-             {mostrarSugerencias && busquedaEmpleado.length > 0 && (
-               <ul className="absolute z-50 w-full mt-1 max-h-52 overflow-y-auto bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg">
-                 {empleados
-                   .filter((emp) =>
-                     `${emp.nombres ?? ""} ${emp.apellidos ?? ""}`
-                       .toLowerCase()
-                       .includes(busquedaEmpleado.toLowerCase())
-                   )
-                   .map((emp) => {
-                     const nombreCompleto = `${emp.nombres ?? ""} ${emp.apellidos ?? ""}`.trim();
-                     return (
-                       <li
-                         key={emp.id}
-                         onMouseDown={() => {
-                           setEmpleadoId(emp.id);
-                           setNombre(nombreCompleto);
-                           setCorreoPersonal(emp.correo ?? "");
-                           setBusquedaEmpleado(nombreCompleto);
-                           setMostrarSugerencias(false);
-                         }}
-                         className="px-4 py-2 cursor-pointer hover:bg-blue-50 dark:hover:bg-gray-700"
-                       >
-                         <p className="text-sm font-medium text-gray-800 dark:text-white/90">
-                           {nombreCompleto}
-                         </p>
-                         <p className="text-xs text-gray-500 dark:text-gray-400">
-                           {emp.correo ?? "Sin correo"}
-                         </p>
-                       </li>
-                     );
-                   })}
-           
-                 {/* Sin resultados */}
-                 {empleados.filter((emp) =>
-                   `${emp.nombres ?? ""} ${emp.apellidos ?? ""}`
-                     .toLowerCase()
-                     .includes(busquedaEmpleado.toLowerCase())
-                 ).length === 0 && (
-                   <li className="px-4 py-3 text-sm text-gray-400 dark:text-gray-500 text-center">
-                     Sin resultados para "{busquedaEmpleado}"
-                   </li>
-                 )}
-               </ul>
-             )}
-           </div>
+              <div className="md:col-span-2 relative">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-400">
+                  Empleado
+                </label>
+                <input
+                  type="text"
+                  value={busquedaEmpleado}
+                  onChange={(e) => {
+                    setBusquedaEmpleado(e.target.value);
+                    setMostrarSugerencias(true);
+                    // Si borra el texto, limpia la selección
+                    if (!e.target.value) {
+                      setEmpleadoId("");
+                      setNombre("");
+                      setCorreoPersonal("");
+                    }
+                  }}
+                  onFocus={() => setMostrarSugerencias(true)}
+                  onBlur={() =>
+                    setTimeout(() => setMostrarSugerencias(false), 150)
+                  }
+                  placeholder="Buscar empleado..."
+                  className="mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm text-gray-900 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
+                />
+
+                {/* Sugerencias */}
+                {mostrarSugerencias && busquedaEmpleado.length > 0 && (
+                  <ul className="absolute z-50 w-full mt-1 max-h-52 overflow-y-auto bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg">
+                    {empleados
+                      .filter((emp) =>
+                        `${emp.nombres ?? ""} ${emp.apellidos ?? ""}`
+                          .toLowerCase()
+                          .includes(busquedaEmpleado.toLowerCase()),
+                      )
+                      .map((emp) => {
+                        const nombreCompleto =
+                          `${emp.nombres ?? ""} ${emp.apellidos ?? ""}`.trim();
+                        return (
+                          <li
+                            key={emp.id}
+                            onMouseDown={() => {
+                              setEmpleadoId(emp.id);
+                              setNombre(nombreCompleto);
+                              setCorreoPersonal(emp.correo ?? "");
+                              setBusquedaEmpleado(nombreCompleto);
+                              setMostrarSugerencias(false);
+                            }}
+                            className="px-4 py-2 cursor-pointer hover:bg-blue-50 dark:hover:bg-gray-700"
+                          >
+                            <p className="text-sm font-medium text-gray-800 dark:text-white/90">
+                              {nombreCompleto}
+                            </p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400">
+                              {emp.correo ?? "Sin correo"}
+                            </p>
+                          </li>
+                        );
+                      })}
+
+                    {/* Sin resultados */}
+                    {empleados.filter((emp) =>
+                      `${emp.nombres ?? ""} ${emp.apellidos ?? ""}`
+                        .toLowerCase()
+                        .includes(busquedaEmpleado.toLowerCase()),
+                    ).length === 0 && (
+                      <li className="px-4 py-3 text-sm text-gray-400 dark:text-gray-500 text-center">
+                        Sin resultados para "{busquedaEmpleado}"
+                      </li>
+                    )}
+                  </ul>
+                )}
+              </div>
             </div>
 
             {/* Correo (autocompletado, editable) */}
@@ -553,6 +574,35 @@ export default function Usuarios() {
                 Inactivo
               </option>
             </select>
+
+            <ExportButtons
+              rows={usuariosFiltrados}
+              columns={COLUMNAS_EXPORT_USUARIOS}
+              filename={"Usuarios " + new Date().toLocaleDateString("es-HN")}
+              sheetName="Lista de Usuarios"
+              meta={{
+                empresa: "Comisariato San Jose",
+                usuario: nombreEmpleado || "Sistema",
+                extra: textoFiltrosPdf || "Listado completo",
+              }}
+              pdfOptions={{
+                title: "Usuarios",
+                subtitle: new Date().toLocaleDateString("es-HN"),
+              }}
+              onExport={(formato) =>
+                registrarBitacora({
+                  usuario: user.email,
+                  nombre: nombreEmpleado,
+                  coleccion: "usuarios",
+                  accion: "exportar",
+                  metadata: {
+                    formato,
+                    totalRegistros: usuariosFiltrados.length,
+                    filtros: textoFiltrosPdf || "Sin filtros",
+                  },
+                })
+              }
+            />
           </div>
         </DataTable.Toolbar>
         <DataTable.Table />

@@ -77,6 +77,12 @@ const navItems = [
     allowedRoles: ["Oficial de Credito"],
   },
   {
+    name: "Empleados",
+    icon: <GroupIcon />,
+    path: "/empleados-perfil",
+    allowedRoles: ["Oficial de Credito"],
+  },
+  {
     name: "Configuración",
     icon: <PlugInIcon />,
     path: "/configuracion",

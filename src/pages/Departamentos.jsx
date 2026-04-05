@@ -11,10 +11,14 @@ import {
 } from "firebase/firestore";
 
 import DataTable from "../components/ui/table/DataTable";
+import ExportButtons from "../layout/Exportbuttons";
+import { useAuth } from "../auth/AuthProvider";
+import { useNombreEmpleadoActual } from "../hooks/useNombreEmpleadoActual";
 import { useModal } from "../hooks/useModal";
 import { Modal } from "../components/ui/modal";
 import { PencilIcon, TrashBinIcon } from "../icons";
 import { sileo, Toaster } from "sileo";
+import { registrarBitacora } from "../services/bitacora";
 
 export default function Departamentos() {
   Toaster.position = "top-right";
@@ -25,6 +29,12 @@ export default function Departamentos() {
   const [enviando, setEnviando] = useState(false);
   const [nombre, setNombre] = useState("");
   const { isOpen, openModal, closeModal } = useModal();
+  const { user } = useAuth();
+  const nombreEmpleado = useNombreEmpleadoActual();
+
+  const COLUMNAS_EXPORT_DEPARTAMENTOS = [
+    { key: "nombre", header: "Nombre", type: "text" },
+  ];
 
   // ── Fetchers ─────────────────────────────────────────────
   const fetchDepartamentos = async () => {
@@ -228,7 +238,31 @@ export default function Departamentos() {
 
       {/* Tabla */}
       <DataTable columns={columns} data={departamentos} loading={loading}>
-        <DataTable.Toolbar searchPlaceholder="Buscar departamento..." />
+        <DataTable.Toolbar searchPlaceholder="Buscar departamento...">
+          <ExportButtons
+            rows={departamentos}
+            columns={COLUMNAS_EXPORT_DEPARTAMENTOS}
+            filename={"Departamentos " + new Date().toLocaleDateString("es-HN")}
+            sheetName="Lista de Departamentos"
+            meta={{ empresa: "Comisariato San Jose", usuario: "Sistema" }}
+            pdfOptions={{
+              title: "Departamentos",
+              subtitle: new Date().toLocaleDateString("es-HN"),
+            }}
+            onExport={(formato) =>
+              registrarBitacora({
+                usuario: user.email,
+                nombre: nombreEmpleado,
+                coleccion: "departamentos",
+                accion: "exportar",
+                metadata: {
+                  formato,
+                  totalRegistros: departamentos.length,
+                },
+              })
+            }
+          />
+        </DataTable.Toolbar>
         <DataTable.Table />
         <DataTable.Pagination />
       </DataTable>

@@ -18,6 +18,9 @@ import {
   SavePlusIcon,
   TrashBinIcon,
 } from "../icons";
+import { useAuth } from "../auth/AuthProvider";
+import { useNombreEmpleadoActual } from "../hooks/useNombreEmpleadoActual";
+import { registrarBitacora } from "../services/bitacora";
 
 // ─── Toggle ───────────────────────────────────────────────────────────────────
 
@@ -52,6 +55,8 @@ const CONFIG_DOC = "creditoComisariato";
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function ParametrosGlobales() {
+  const { user } = useAuth();
+  const nombreEmpleado = useNombreEmpleadoActual();
   const [config, setConfig] = useState(null);
   const [porcentajeAumento, setPorcentajeAumento] = useState("");
   const [porcentajeLimite, setPorcentajeLimite] = useState("");
@@ -131,6 +136,18 @@ export default function ParametrosGlobales() {
         { merge: true },
       );
 
+      await registrarBitacora({
+        usuario: user?.email ?? "desconocido",
+        nombre: nombreEmpleado,
+        coleccion: CONFIG_COL,
+        accion: "actualizacion",
+        docId: CONFIG_DOC,
+        metadata: {
+          porcentajeAumento: pA / 100,
+          porcentajeLimite: pL / 100,
+        },
+      });
+
       // Actualizar precios de crédito en todos los productos
       try {
         const productosSnap = await getDocs(collection(db, "productos"));
@@ -164,10 +181,24 @@ export default function ParametrosGlobales() {
 
   const handleToggleCuota = async (cuota) => {
     try {
+      const nuevoEstado = !cuota.estado;
       await updateDoc(doc(db, CONFIG_COL, CONFIG_DOC, "cuotas", cuota.id), {
-        estado: !cuota.estado,
+        estado: nuevoEstado,
         ultimaModificacion: serverTimestamp(),
       });
+
+      await registrarBitacora({
+        usuario: user?.email ?? "desconocido",
+        nombre: nombreEmpleado,
+        coleccion: `${CONFIG_COL}/cuotas`,
+        accion: "actualizacion",
+        docId: cuota.id,
+        metadata: {
+          estadoAnterior: cuota.estado ?? true,
+          estadoNuevo: nuevoEstado,
+        },
+      });
+
       fetchCuotas();
     } catch (e) {
       console.error(e);
@@ -191,6 +222,19 @@ export default function ParametrosGlobales() {
         },
         { merge: true },
       );
+
+      await registrarBitacora({
+        usuario: user?.email ?? "desconocido",
+        nombre: nombreEmpleado,
+        coleccion: `${CONFIG_COL}/cuotas`,
+        accion: "creacion",
+        docId: String(meses),
+        metadata: {
+          cuota: meses,
+          estado: cuotaEstado,
+        },
+      });
+
       await fetchCuotas();
       closeModal();
     } catch (e) {
@@ -205,6 +249,18 @@ export default function ParametrosGlobales() {
     if (!window.confirm("¿Eliminar esta cuota?")) return;
     try {
       await deleteDoc(doc(db, CONFIG_COL, CONFIG_DOC, "cuotas", id));
+
+      await registrarBitacora({
+        usuario: user?.email ?? "desconocido",
+        nombre: nombreEmpleado,
+        coleccion: `${CONFIG_COL}/cuotas`,
+        accion: "eliminacion",
+        docId: id,
+        metadata: {
+          cuota: id,
+        },
+      });
+
       fetchCuotas();
     } catch (e) {
       console.error(e);
@@ -291,10 +347,11 @@ export default function ParametrosGlobales() {
               </div>
               <div>
                 <p className="text-xs font-semibold text-gray-600 dark:text-gray-400">
-                  Límite de Crédito 
+                  Límite de Crédito
                 </p>
                 <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
-                  Porcentaje máximo del salario mensual que un empleado puede usar como crédito.
+                  Porcentaje máximo del salario mensual que un empleado puede
+                  usar como crédito.
                 </p>
               </div>
             </div>

@@ -45,7 +45,7 @@ export default function ProductModal({
     estadoBase = "Activo",
   ) => {
     if (estadoBase === "Inactivo") return "Inactivo";
-    return Number(stockValue) <= Number(stockMinimoValue)
+    return Number(stockValue) === Number(stockMinimoValue)
       ? "Agotado"
       : "Activo";
   };
@@ -410,7 +410,7 @@ export default function ProductModal({
               Estado
             </label>
             <select
-              value={estado}
+              value={estado === "Agotado" ? "Activo" : estado}
               onChange={(e) => setEstado(e.target.value)}
               className="mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm text-gray-900 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
             >
@@ -421,18 +421,13 @@ export default function ProductModal({
                 Activo
               </option>
               <option
-                value="Agotado"
-                className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-              >
-                Agotado
-              </option>
-              <option
                 value="Inactivo"
                 className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
               >
                 Inactivo
               </option>
             </select>
+          
           </div>
 
           <div className="md:col-span-2">

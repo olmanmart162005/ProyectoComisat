@@ -20,7 +20,7 @@ export function empleadoColumns({ onEdit, onEliminar, departamentos }) {
     {
       accessorFn: (row) => `${row.nombres} ${row.apellidos}`,
       id: "nombreCompleto",
-      header: "Nombre Completo",
+      header: "Nombre",
       cell: (info) => (
         <span className="block font-medium text-gray-800 text-theme-sm dark:text-white/90">
           {info.getValue()}

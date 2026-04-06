@@ -1,0 +1,255 @@
+import { useEffect, useMemo, useState } from "react";
+import { db } from "../../../firebase/firebase";
+import {
+  addDoc,
+  collection,
+  deleteDoc,
+  doc,
+  getDocs,
+  serverTimestamp,
+  updateDoc,
+} from "firebase/firestore";
+import { sileo } from "sileo";
+
+export const useUsuarios = ({ closeModal }) => {
+  const [usuarios, setUsuarios] = useState([]);
+  const [empleados, setEmpleados] = useState([]);
+  const [roles, setRoles] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [busquedaEmpleado, setBusquedaEmpleado] = useState("");
+  const [mostrarSugerencias, setMostrarSugerencias] = useState(false);
+
+  const [editandoId, setEditandoId] = useState(null);
+  const [enviando, setEnviando] = useState(false);
+
+  const [empleadoId, setEmpleadoId] = useState("");
+  const [nombre, setNombre] = useState("");
+  const [correoPersonal, setCorreoPersonal] = useState("");
+  const [correo, setCorreo] = useState("");
+  const [rolId, setRolId] = useState("");
+  const [rolNombre, setRolNombre] = useState("");
+  const [estado, setEstado] = useState("Activo");
+  const [filtroEstado, setFiltroEstado] = useState("");
+  const [filtroRol, setFiltroRol] = useState("");
+
+  const totalUsuarios = usuarios.length;
+  const usuariosActivos = usuarios.filter((u) => u.estado === "Activo").length;
+  const usuariosInactivos = usuarios.filter((u) => u.estado === "Inactivo").length;
+
+  const fetchEmpleados = async () => {
+    try {
+      const snap = await getDocs(collection(db, "empleados"));
+      const docs = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+      setEmpleados(docs);
+      if (docs.length > 0) {
+        setEmpleadoId(docs[0].id);
+        setNombre(`${docs[0].nombres ?? ""} ${docs[0].apellidos ?? ""}`.trim());
+        setCorreo(docs[0].correo ?? "");
+      }
+    } catch (error) {
+      console.error("Error al cargar empleados:", error);
+      sileo.error("No se pudieron cargar los empleados.");
+    }
+  };
+
+  const fetchRoles = async () => {
+    try {
+      const snap = await getDocs(collection(db, "roles"));
+      const docs = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+      setRoles(docs);
+      if (docs.length > 0) {
+        setRolId(docs[0].id);
+        setRolNombre(docs[0].nombre ?? "");
+      }
+    } catch (error) {
+      console.error("Error al cargar roles:", error);
+      sileo.error("No se pudieron cargar los roles.");
+    }
+  };
+
+  const fetchUsuarios = async () => {
+    setLoading(true);
+    try {
+      const snap = await getDocs(collection(db, "usuarios"));
+      const docs = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+      setUsuarios(docs);
+    } catch (error) {
+      console.error("Error al cargar usuarios:", error);
+      sileo.error("No se pudieron cargar los usuarios.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchEmpleados();
+    fetchRoles();
+    fetchUsuarios();
+  }, []);
+
+  const handleEmpleadoChange = (e) => {
+    const selectedId = e.target.value;
+    const emp = empleados.find((em) => em.id === selectedId);
+    setEmpleadoId(selectedId);
+    if (emp) {
+      setNombre(`${emp.nombres ?? ""} ${emp.apellidos ?? ""}`.trim());
+      setCorreoPersonal(emp.correo ?? "");
+    }
+  };
+
+  const handleRolChange = (e) => {
+    const selectedId = e.target.value;
+    const rol = roles.find((r) => r.id === selectedId);
+    setRolId(selectedId);
+    setRolNombre(rol ? (rol.nombre ?? "") : "");
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setEnviando(true);
+    try {
+      await addDoc(collection(db, "usuarios"), {
+        empleadoId,
+        nombre,
+        correoPersonal,
+        correo,
+        rolId,
+        rolNombre,
+        estado,
+        fechaRegistro: serverTimestamp(),
+      });
+      resetFormulario();
+      fetchUsuarios();
+      closeModal();
+      sileo.success({
+        title: "Usuario creado",
+        description: "El nuevo usuario se ha registrado correctamente.",
+      });
+    } catch (error) {
+      console.error("Error al guardar", error);
+      sileo.error("Error al guardar");
+    } finally {
+      setEnviando(false);
+    }
+  };
+
+  const handleUpdate = async (e) => {
+    e.preventDefault();
+    setEnviando(true);
+    try {
+      await updateDoc(doc(db, "usuarios", editandoId), {
+        empleadoId,
+        nombre,
+        correo,
+        rolId,
+        rolNombre,
+        estado,
+        ultima_modificacion: serverTimestamp(),
+      });
+      resetFormulario();
+      fetchUsuarios();
+      closeModal();
+      setTimeout(() => sileo.success("Usuario actualizado"), 150);
+    } catch (error) {
+      console.error("Error al actualizar", error);
+      sileo.error("Error al actualizar");
+    } finally {
+      setEnviando(false);
+    }
+  };
+
+  const handleEliminar = async (id) => {
+    if (window.confirm("¿Estás seguro de que deseas eliminar este usuario?")) {
+      try {
+        await deleteDoc(doc(db, "usuarios", id));
+        fetchUsuarios();
+        sileo.success("Usuario eliminado");
+      } catch (error) {
+        console.error("Error al eliminar", error);
+        sileo.error("Error al eliminar");
+      }
+    }
+  };
+
+  const resetFormulario = () => {
+    setEditandoId(null);
+    if (empleados.length > 0) {
+      setEmpleadoId(empleados[0].id);
+      setNombre(`${empleados[0].nombres ?? ""} ${empleados[0].apellidos ?? ""}`.trim());
+      setBusquedaEmpleado("");
+      setCorreoPersonal(empleados[0]?.correo ?? "");
+      setCorreo("");
+    } else {
+      setEmpleadoId("");
+      setNombre("");
+      setCorreo("");
+    }
+    if (roles.length > 0) {
+      setRolId(roles[0].id);
+      setRolNombre(roles[0].nombre ?? "");
+    } else {
+      setRolId("");
+      setRolNombre("");
+    }
+    setEstado("Activo");
+  };
+
+  const usuariosFiltrados = useMemo(() => {
+    return usuarios.filter((u) => {
+      const coincideRol = filtroRol ? u.rolId === filtroRol : true;
+      const coincideEstado = filtroEstado ? u.estado === filtroEstado : true;
+      return coincideRol && coincideEstado;
+    });
+  }, [usuarios, filtroRol, filtroEstado]);
+
+  const textoFiltrosPdf = [
+    filtroRol ? `Rol: ${roles.find((r) => r.id === filtroRol)?.nombre ?? filtroRol}` : null,
+    filtroEstado ? `Estado: ${filtroEstado}` : null,
+  ]
+    .filter(Boolean)
+    .join(" | ");
+
+  return {
+    usuarios,
+    empleados,
+    roles,
+    loading,
+    busquedaEmpleado,
+    setBusquedaEmpleado,
+    mostrarSugerencias,
+    setMostrarSugerencias,
+    editandoId,
+    setEditandoId,
+    enviando,
+    empleadoId,
+    setEmpleadoId,
+    nombre,
+    setNombre,
+    correoPersonal,
+    setCorreoPersonal,
+    correo,
+    setCorreo,
+    rolId,
+    setRolId,
+    rolNombre,
+    setRolNombre,
+    estado,
+    setEstado,
+    filtroEstado,
+    setFiltroEstado,
+    filtroRol,
+    setFiltroRol,
+    totalUsuarios,
+    usuariosActivos,
+    usuariosInactivos,
+    usuariosFiltrados,
+    textoFiltrosPdf,
+    handleEmpleadoChange,
+    handleRolChange,
+    handleSubmit,
+    handleUpdate,
+    handleEliminar,
+    resetFormulario,
+    fetchUsuarios,
+  };
+};

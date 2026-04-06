@@ -1,15 +1,19 @@
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-
 import {
-  GridIcon,
-  HorizontaLDots,
-  ListIcon,
-  GroupIcon,
-  PlugInIcon,
-  TableIcon,
-  UserCircleIcon,
-} from "../icons";
+  Archive,
+  BookOpen,
+  Building2,
+  Ellipsis,
+  LayoutDashboard,
+  Receipt,
+  Settings,
+  Shield,
+  ShieldCheck,
+  Tags,
+  UserSquare,
+  Users,
+} from "lucide-react";
 import { useSidebar } from "../context/SidebarContext";
 import { useAuth } from "../auth/AuthProvider";
 import supermarketLogo from "../icons/supermarket.svg";
@@ -17,7 +21,7 @@ import supermarketLogo from "../icons/supermarket.svg";
 // ── Estructura de navegación ───────────────────────────────────────
 const navItems = [
   {
-    icon: <GridIcon />,
+    icon: <LayoutDashboard />,
     name: "Dashboard",
     path: "/",
     allowedRoles: [
@@ -29,62 +33,62 @@ const navItems = [
     ],
   },
   {
-    icon: <UserCircleIcon />,
+    icon: <Users />,
     name: "Usuarios",
     path: "/usuarios",
     allowedRoles: ["Administrador"],
   },
   {
     name: "Empleados",
-    icon: <GroupIcon />,
+    icon: <UserSquare />,
     path: "/empleados",
     allowedRoles: ["Administrador", "Recursos Humanos"],
   },
   {
     name: "Departamentos",
-    icon: <ListIcon />,
+    icon: <Building2 />,
     path: "/departamentos",
     allowedRoles: ["Administrador", "Recursos Humanos"],
   },
   {
     name: "Roles",
-    icon: <ListIcon />,
+    icon: <Shield />,
     path: "/roles",
     allowedRoles: ["Administrador"],
   },
   {
     name: "Categorías",
-    icon: <TableIcon />,
+    icon: <Tags />,
     path: "/categorias",
     allowedRoles: ["Administrador", "Gestor de Inventario"],
   },
   {
     name: "Productos",
-    icon: <TableIcon />,
+    icon: <Archive />,
     path: "/productos",
     allowedRoles: ["Administrador", "Gestor de Inventario"],
   },
   {
     name: "Solicitudes Reservas",
-    icon: <TableIcon />,
+    icon: <Receipt />,
     path: "/solicitudes-reservas",
     allowedRoles: ["Administrador", "Oficial de Credito"],
   },
   {
     name: "Pagos Mensuales",
-    icon: <TableIcon />,
+    icon: <Receipt />,
     path: "/pagos-mensuales",
     allowedRoles: ["Oficial de Credito"],
   },
   {
     name: "Empleados",
-    icon: <GroupIcon />,
+    icon: <UserSquare />,
     path: "/empleados-perfil",
     allowedRoles: ["Oficial de Credito"],
   },
   {
     name: "Configuración",
-    icon: <PlugInIcon />,
+    icon: <Settings />,
     path: "/configuracion",
     allowedRoles: ["Administrador"],
   },
@@ -101,43 +105,29 @@ const navGroups = [
       "Recursos Humanos",
       "Gestor de Inventario",
     ],
-    icon: (
-      <svg
-        className="w-5 h-5"
-        fill="none"
-        stroke="currentColor"
-        viewBox="0 0 24 24"
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth={1.8}
-          d="M9 17v-2a4 4 0 014-4h4m0 0l-2-2m2 2l-2 2M3 7h4a2 2 0 012 2v6a2 2 0 01-2 2H3"
-        />
-      </svg>
-    ),
+    icon: <ShieldCheck className="w-5 h-5" />,
     children: [
       {
         name: "Bitácora",
-        icon: <ListIcon />,
+        icon: <BookOpen />,
         path: "/bitacora",
         allowedRoles: ["Administrador"],
       },
       {
         name: "Historial de Créditos",
-        icon: <TableIcon />,
+        icon: <Receipt />,
         path: "/historial-creditos",
         allowedRoles: ["Administrador", "Oficial de Credito"],
       },
       {
         name: "Historial de Empleados",
-        icon: <TableIcon />,
+        icon: <UserSquare />,
         path: "/historial-empleados",
         allowedRoles: ["Administrador", "Recursos Humanos"],
       },
       {
         name: "Historial Productos",
-        icon: <TableIcon />,
+        icon: <Archive />,
         path: "/historial-productos",
         allowedRoles: ["Administrador", "Gestor de Inventario"],
       },
@@ -271,6 +261,25 @@ const AppSidebar = () => {
     (g) => !g.allowedRoles || g.allowedRoles.includes(role),
   );
 
+  const generalItems = visibleNavItems.filter((item) => item.path === "/");
+  const inventarioItems = visibleNavItems.filter((item) =>
+    ["/productos", "/categorias"].includes(item.path),
+  );
+  const personalItems = visibleNavItems.filter((item) =>
+    ["/empleados", "/departamentos", "/empleados-perfil"].includes(item.path),
+  );
+  const accesosItems = visibleNavItems.filter((item) =>
+    ["/usuarios", "/roles"].includes(item.path),
+  );
+  const creditosItems = visibleNavItems.filter((item) =>
+    ["/solicitudes-reservas", "/pagos-mensuales"].includes(item.path),
+  );
+  const gestionItems = visibleNavItems.filter((item) =>
+    ["/configuracion"].includes(item.path),
+  );
+
+  const sectionTitleClass = `mb-4 text-xs uppercase flex leading-[20px] text-gray-400 ${!showLabel ? "lg:justify-center" : "justify-start"}`;
+
   const handleLogout = async () => {
     try {
       await logout();
@@ -316,31 +325,93 @@ const AppSidebar = () => {
       {/* Nav */}
       <div className="flex flex-col overflow-y-auto duration-300 ease-linear no-scrollbar">
         <nav className="mb-6">
-          <div className="flex flex-col gap-4">
-            <div>
-              <h2
-                className={`mb-4 text-xs uppercase flex leading-[20px] text-gray-400 ${!showLabel ? "lg:justify-center" : "justify-start"}`}
-              >
-                {showLabel ? "Menu" : <HorizontaLDots className="size-6" />}
-              </h2>
+          <div className="flex flex-col gap-6">
+            {generalItems.length > 0 && (
+              <div>
+                <h2 className={sectionTitleClass}>
+                  {showLabel ? "General" : <Ellipsis className="size-6" />}
+                </h2>
+                <ul className="flex flex-col gap-4">
+                  {generalItems.map((nav) => (
+                    <NavItem key={nav.path} nav={nav} showLabel={showLabel} />
+                  ))}
+                </ul>
+              </div>
+            )}
 
-              <ul className="flex flex-col gap-4">
-                {/* Ítems normales */}
-                {visibleNavItems.map((nav) => (
-                  <NavItem key={nav.path} nav={nav} showLabel={showLabel} />
-                ))}
+            {inventarioItems.length > 0 && (
+              <div>
+                <h2 className={sectionTitleClass}>
+                  {showLabel ? "Inventario" : <Ellipsis className="size-6" />}
+                </h2>
+                <ul className="flex flex-col gap-4">
+                  {inventarioItems.map((nav) => (
+                    <NavItem key={nav.path} nav={nav} showLabel={showLabel} />
+                  ))}
+                </ul>
+              </div>
+            )}
 
-                {/* Grupos colapsables */}
-                {visibleNavGroups.map((group) => (
-                  <NavGroup
-                    key={group.name}
-                    group={group}
-                    showLabel={showLabel}
-                    role={role}
-                  />
-                ))}
-              </ul>
-            </div>
+            {personalItems.length > 0 && (
+              <div>
+                <h2 className={sectionTitleClass}>
+                  {showLabel ? "Personal" : <Ellipsis className="size-6" />}
+                </h2>
+                <ul className="flex flex-col gap-4">
+                  {personalItems.map((nav) => (
+                    <NavItem key={nav.path} nav={nav} showLabel={showLabel} />
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {accesosItems.length > 0 && (
+              <div>
+                <h2 className={sectionTitleClass}>
+                  {showLabel ? "Accesos" : <Ellipsis className="size-6" />}
+                </h2>
+                <ul className="flex flex-col gap-4">
+                  {accesosItems.map((nav) => (
+                    <NavItem key={nav.path} nav={nav} showLabel={showLabel} />
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {creditosItems.length > 0 && (
+              <div>
+                <h2 className={sectionTitleClass}>
+                  {showLabel ? "Créditos" : <Ellipsis className="size-6" />}
+                </h2>
+                <ul className="flex flex-col gap-4">
+                  {creditosItems.map((nav) => (
+                    <NavItem key={nav.path} nav={nav} showLabel={showLabel} />
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {(gestionItems.length > 0 || visibleNavGroups.length > 0) && (
+              <div>
+                <h2 className={sectionTitleClass}>
+                  {showLabel ? "Gestión" : <Ellipsis className="size-6" />}
+                </h2>
+                <ul className="flex flex-col gap-4">
+                  {gestionItems.map((nav) => (
+                    <NavItem key={nav.path} nav={nav} showLabel={showLabel} />
+                  ))}
+
+                  {visibleNavGroups.map((group) => (
+                    <NavGroup
+                      key={group.name}
+                      group={group}
+                      showLabel={showLabel}
+                      role={role}
+                    />
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
         </nav>
       </div>

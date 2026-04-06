@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Dropdown } from "../ui/dropdown/Dropdown";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../auth/AuthProvider";
+import { ChevronDown, LogOut, User } from "lucide-react";
 
 export default function UserDropdown() {
   const [isOpen, setIsOpen] = useState(false);
@@ -35,43 +36,16 @@ export default function UserDropdown() {
         className="flex items-center text-gray-700 dropdown-toggle dark:text-gray-400"
       >
         <span className="mr-3 flex items-center justify-center rounded-full h-11 w-11 bg-gray-200 text-gray-600 dark:bg-gray-800 dark:text-gray-300">
-          <svg
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              d="M12 12C14.7614 12 17 9.76142 17 7C17 4.23858 14.7614 2 12 2C9.23858 2 7 4.23858 7 7C7 9.76142 9.23858 12 12 12Z"
-              fill="currentColor"
-            />
-            <path
-              d="M12 14C7.58172 14 4 17.134 4 21H20C20 17.134 16.4183 14 12 14Z"
-              fill="currentColor"
-            />
-          </svg>
+          <User size={20} />
         </span>
 
         <span className="block mr-1 font-medium text-theme-sm">{userName}</span>
-        <svg
+        <ChevronDown
+          size={18}
           className={`stroke-gray-500 dark:stroke-gray-400 transition-transform duration-200 ${
             isOpen ? "rotate-180" : ""
           }`}
-          width="18"
-          height="20"
-          viewBox="0 0 18 20"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path
-            d="M4.3125 8.65625L9 13.3437L13.6875 8.65625"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
+        />
       </button>
 
       <Dropdown
@@ -95,8 +69,9 @@ export default function UserDropdown() {
           <button
             type="button"
             onClick={handleLogout}
-            className="w-full flex items-center p-3 text-red-600 hover:bg-red-50 rounded-lg transition font-medium"
+            className="w-full flex items-center gap-2 p-3 text-red-600 hover:bg-red-50 rounded-lg transition font-medium"
           >
+            <LogOut size={16} />
             Cerrar sesión
           </button>
         </div>

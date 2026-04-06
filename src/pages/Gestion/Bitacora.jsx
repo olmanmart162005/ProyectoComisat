@@ -26,13 +26,20 @@ const ACCIONES = [
 
 function accionColor(accion) {
   switch (accion) {
-    case "creacion": return "primary";
-    case "actualizacion": return "success";
-    case "eliminacion": return "error";
-    case "exportar": return "gray";
-    case "aprobacion": return "success";
-    case "rechazo": return "error";
-    default: return "gray";
+    case "creacion":
+      return "primary";
+    case "actualizacion":
+      return "success";
+    case "eliminacion":
+      return "error";
+    case "exportar":
+      return "gray";
+    case "aprobacion":
+      return "success";
+    case "rechazo":
+      return "error";
+    default:
+      return "gray";
   }
 }
 
@@ -45,10 +52,22 @@ function resumirMetadata(accion, metadata = {}) {
       const partes = [];
       const base = metadata.nombre ?? metadata.nombreCompleto;
       if (base) partes.push(base);
-      if (metadata.stockAnterior !== undefined) partes.push(`Stock: ${metadata.stockAnterior} → ${metadata.stockNuevo}`);
-      if (metadata.estadoAnterior !== undefined) partes.push(`Estado: ${metadata.estadoAnterior} → ${metadata.estadoNuevo}`);
-      if (metadata.salarioAnterior !== undefined) partes.push(`Salario: L.${metadata.salarioAnterior} → L.${metadata.salarioNuevo}`);
-      if (metadata.departamentoAnterior !== undefined) partes.push(`Depto: ${metadata.departamentoAnterior} → ${metadata.departamentoNuevo}`);
+      if (metadata.stockAnterior !== undefined)
+        partes.push(
+          `Stock: ${metadata.stockAnterior} → ${metadata.stockNuevo}`,
+        );
+      if (metadata.estadoAnterior !== undefined)
+        partes.push(
+          `Estado: ${metadata.estadoAnterior} → ${metadata.estadoNuevo}`,
+        );
+      if (metadata.salarioAnterior !== undefined)
+        partes.push(
+          `Salario: L.${metadata.salarioAnterior} → L.${metadata.salarioNuevo}`,
+        );
+      if (metadata.departamentoAnterior !== undefined)
+        partes.push(
+          `Depto: ${metadata.departamentoAnterior} → ${metadata.departamentoNuevo}`,
+        );
       return partes.join(" · ") || "—";
     }
     case "eliminacion":
@@ -57,7 +76,9 @@ function resumirMetadata(accion, metadata = {}) {
       return `${(metadata.formato ?? "—").toUpperCase()} · ${metadata.totalRegistros ?? 0} registros`;
     case "aprobacion":
     case "rechazo":
-      return metadata.empleado ? `${metadata.empleado}${metadata.producto ? " — " + metadata.producto : ""}` : "—";
+      return metadata.empleado
+        ? `${metadata.empleado}${metadata.producto ? " — " + metadata.producto : ""}`
+        : "—";
     default:
       return "—";
   }
@@ -79,18 +100,34 @@ export default function Bitacora() {
   const fetchBitacora = async () => {
     setLoading(true);
     try {
-      const qCompleta = query(collection(db, "bitacora"), orderBy("fecha", "desc"));
+      const qCompleta = query(
+        collection(db, "bitacora"),
+        orderBy("fecha", "desc"),
+      );
       const snapCompleta = await getDocs(qCompleta);
       const todos = snapCompleta.docs.map((d) => ({ id: d.id, ...d.data() }));
       setTodosLosRegistros(todos);
 
       let q;
       if (filtroColeccion && filtroAccion) {
-        q = query(collection(db, "bitacora"), where("coleccion", "==", filtroColeccion), where("accion", "==", filtroAccion), orderBy("fecha", "desc"));
+        q = query(
+          collection(db, "bitacora"),
+          where("coleccion", "==", filtroColeccion),
+          where("accion", "==", filtroAccion),
+          orderBy("fecha", "desc"),
+        );
       } else if (filtroColeccion) {
-        q = query(collection(db, "bitacora"), where("coleccion", "==", filtroColeccion), orderBy("fecha", "desc"));
+        q = query(
+          collection(db, "bitacora"),
+          where("coleccion", "==", filtroColeccion),
+          orderBy("fecha", "desc"),
+        );
       } else if (filtroAccion) {
-        q = query(collection(db, "bitacora"), where("accion", "==", filtroAccion), orderBy("fecha", "desc"));
+        q = query(
+          collection(db, "bitacora"),
+          where("accion", "==", filtroAccion),
+          orderBy("fecha", "desc"),
+        );
       } else {
         setRegistros(todos);
         return;
@@ -113,23 +150,32 @@ export default function Bitacora() {
     const hoy = new Date();
     switch (rangoFecha) {
       case "hoy": {
-        const inicio = new Date(hoy); inicio.setHours(0, 0, 0, 0);
-        const fin = new Date(hoy); fin.setHours(23, 59, 59, 999);
+        const inicio = new Date(hoy);
+        inicio.setHours(0, 0, 0, 0);
+        const fin = new Date(hoy);
+        fin.setHours(23, 59, 59, 999);
         return { inicio, fin };
       }
       case "semana": {
-        const inicio = new Date(hoy); inicio.setDate(hoy.getDate() - 6); inicio.setHours(0, 0, 0, 0);
-        const fin = new Date(hoy); fin.setHours(23, 59, 59, 999);
+        const inicio = new Date(hoy);
+        inicio.setDate(hoy.getDate() - 6);
+        inicio.setHours(0, 0, 0, 0);
+        const fin = new Date(hoy);
+        fin.setHours(23, 59, 59, 999);
         return { inicio, fin };
       }
       case "mes": {
-        const inicio = new Date(hoy.getFullYear(), hoy.getMonth(), 1); inicio.setHours(0, 0, 0, 0);
-        const fin = new Date(hoy); fin.setHours(23, 59, 59, 999);
+        const inicio = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
+        inicio.setHours(0, 0, 0, 0);
+        const fin = new Date(hoy);
+        fin.setHours(23, 59, 59, 999);
         return { inicio, fin };
       }
       case "anio": {
-        const inicio = new Date(hoy.getFullYear(), 0, 1); inicio.setHours(0, 0, 0, 0);
-        const fin = new Date(hoy); fin.setHours(23, 59, 59, 999);
+        const inicio = new Date(hoy.getFullYear(), 0, 1);
+        inicio.setHours(0, 0, 0, 0);
+        const fin = new Date(hoy);
+        fin.setHours(23, 59, 59, 999);
         return { inicio, fin };
       }
       case "personalizado": {
@@ -163,10 +209,14 @@ export default function Bitacora() {
     return d;
   }, []);
 
-  const totalHoy = useMemo(() => todosLosRegistros.filter((r) => {
-    const f = r.fecha?.toDate?.();
-    return f && f >= hoyInicio;
-  }).length, [todosLosRegistros, hoyInicio]);
+  const totalHoy = useMemo(
+    () =>
+      todosLosRegistros.filter((r) => {
+        const f = r.fecha?.toDate?.();
+        return f && f >= hoyInicio;
+      }).length,
+    [todosLosRegistros, hoyInicio],
+  );
 
   const totalEliminaciones = useMemo(
     () => todosLosRegistros.filter((r) => r.accion === "eliminacion").length,
@@ -178,78 +228,140 @@ export default function Bitacora() {
     [todosLosRegistros],
   );
 
-  const columns = useMemo(() => [
-    {
-      accessorKey: "fecha",
-      header: "Fecha y Hora",
-      cell: (info) => (
-        <span className="block text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">{info.getValue()?.toDate?.()?.toLocaleString("es-HN") ?? "—"}</span>
-      ),
-    },
-    {
-      accessorKey: "usuario",
-      header: "Usuario",
-      cell: (info) => (
-        <span className="block text-xs text-gray-600 dark:text-gray-400">{info.getValue() ?? "—"}</span>
-      ),
-    },
-    {
-      accessorKey: "nombre",
-      header: "Nombre",
-      cell: (info) => (
-        <span className="block font-medium text-gray-800 text-theme-sm dark:text-white/90">{info.getValue() ?? "—"}</span>
-      ),
-    },
-    {
-      accessorKey: "coleccion",
-      header: "Colección",
-      cell: (info) => (
-        <span className="block font-medium text-gray-800 text-theme-sm dark:text-white/90 capitalize">{info.getValue() ?? "—"}</span>
-      ),
-    },
-    {
-      accessorKey: "accion",
-      header: "Acción",
-      cell: (info) => {
-        const val = info.getValue();
-        const label = val ? val.charAt(0).toUpperCase() + val.slice(1) : "";
-        return <Badge size="sm" color={accionColor(val)} rounded>{label}</Badge>;
+  const columns = useMemo(
+    () => [
+      {
+        accessorKey: "fecha",
+        header: "Fecha y Hora",
+        cell: (info) => (
+          <span className="block text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">
+            {info.getValue()?.toDate?.()?.toLocaleString("es-HN") ?? "—"}
+          </span>
+        ),
       },
-    },
-    {
-      id: "detalle",
-      header: "Detalle",
-      enableSorting: false,
-      cell: ({ row }) => (
-        <span className="block text-xs text-gray-500 dark:text-gray-400 max-w-xs truncate">{resumirMetadata(row.original.accion, row.original.metadata)}</span>
-      ),
-    },
-  ], []);
+      {
+        accessorKey: "usuario",
+        header: "Usuario",
+        cell: (info) => (
+          <span className="block text-xs text-gray-600 dark:text-gray-400">
+            {info.getValue() ?? "—"}
+          </span>
+        ),
+      },
+      {
+        accessorKey: "nombre",
+        header: "Nombre",
+        cell: (info) => (
+          <span className="block font-medium text-gray-800 text-theme-sm dark:text-white/90">
+            {info.getValue() ?? "—"}
+          </span>
+        ),
+      },
+      {
+        accessorKey: "coleccion",
+        header: "Colección",
+        cell: (info) => (
+          <span className="block font-medium text-gray-800 text-theme-sm dark:text-white/90 capitalize">
+            {info.getValue() ?? "—"}
+          </span>
+        ),
+      },
+      {
+        accessorKey: "accion",
+        header: "Acción",
+        cell: (info) => {
+          const val = info.getValue();
+          const label = val ? val.charAt(0).toUpperCase() + val.slice(1) : "";
+          return (
+            <Badge size="sm" color={accionColor(val)} rounded>
+              {label}
+            </Badge>
+          );
+        },
+      },
+      {
+        id: "detalle",
+        header: "Detalle",
+        enableSorting: false,
+        cell: ({ row }) => (
+          <span className="block text-xs text-gray-500 dark:text-gray-400 max-w-xs truncate">
+            {resumirMetadata(row.original.accion, row.original.metadata)}
+          </span>
+        ),
+      },
+    ],
+    [],
+  );
 
   return (
     <div className="space-y-6">
-      <h2 className="text-2xl font-bold text-gray-800 dark:text-white/90">Bitácora de Auditoría</h2>
+      <h2 className="text-2xl font-bold text-gray-800 dark:text-white/90">
+        Bitácora de Auditoría
+      </h2>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 md:gap-6">
-        <MetricCard title="Registros Hoy" value={totalHoy} icon={<ListIcon className="text-gray-800 size-6 dark:text-white/90" />} iconWrapperClass="bg-gray-100 dark:bg-gray-800" />
-        <MetricCard title="Eliminaciones" value={totalEliminaciones} icon={<CloseIcon className="text-red-600 size-6 dark:text-red-400" />} iconWrapperClass="bg-red-50 dark:bg-red-500/10" />
-        <MetricCard title="Exportaciones" value={totalExportaciones} icon={<CheckCircleIcon className="text-blue-600 size-6 dark:text-blue-400" />} iconWrapperClass="bg-blue-50 dark:bg-blue-500/10" />
+        <MetricCard
+          title="Registros Hoy"
+          value={totalHoy}
+          icon={
+            <ListIcon className="text-gray-800 size-6 dark:text-white/90" />
+          }
+          iconWrapperClass="bg-gray-100 dark:bg-gray-800"
+        />
+        <MetricCard
+          title="Eliminaciones"
+          value={totalEliminaciones}
+          icon={<CloseIcon className="text-red-600 size-6 dark:text-red-400" />}
+          iconWrapperClass="bg-red-50 dark:bg-red-500/10"
+        />
+        <MetricCard
+          title="Exportaciones"
+          value={totalExportaciones}
+          icon={
+            <CheckCircleIcon className="text-blue-600 size-6 dark:text-blue-400" />
+          }
+          iconWrapperClass="bg-blue-50 dark:bg-blue-500/10"
+        />
       </div>
 
       <DataTable columns={columns} data={registrosFiltrados} loading={loading}>
         <DataTable.Toolbar searchPlaceholder="Buscar por usuario o nombre...">
           <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto sm:ml-auto flex-wrap">
-            <select value={filtroColeccion} onChange={(e) => setFiltroColeccion(e.target.value)} className={`w-full sm:w-44 ${selectClass}`}>
-              <option value="" className="bg-white text-gray-900">Colección</option>
+            <select
+              value={filtroColeccion}
+              onChange={(e) => setFiltroColeccion(e.target.value)}
+              className={`w-full sm:w-44 ${selectClass}`}
+            >
+              <option value="" className="bg-white text-gray-900">
+                Colección
+              </option>
               {COLECCIONES.map((c) => (
-                <option key={c.value} value={c.value} className="bg-white text-gray-900">{c.label}</option>
+                <option
+                  key={c.value}
+                  value={c.value}
+                  className="bg-white text-gray-900"
+                >
+                  {c.label}
+                </option>
               ))}
             </select>
 
-            <select value={filtroAccion} onChange={(e) => setFiltroAccion(e.target.value)} className={`w-full sm:w-44 ${selectClass}`}>
-              <option value="" className="bg-white text-gray-900">Acción</option>
+            <select
+              value={filtroAccion}
+              onChange={(e) => setFiltroAccion(e.target.value)}
+              className={`w-full sm:w-44 ${selectClass}`}
+            >
+              <option value="" className="bg-white text-gray-900">
+                Acción
+              </option>
               {ACCIONES.map((a) => (
-                <option key={a.value} value={a.value} className="bg-white text-gray-900">{a.label}</option>
+                <option
+                  key={a.value}
+                  value={a.value}
+                  className="bg-white text-gray-900"
+                >
+                  {a.label}
+                </option>
               ))}
             </select>
 
@@ -263,12 +375,24 @@ export default function Bitacora() {
               }}
               className={`w-full sm:w-48 ${selectClass}`}
             >
-              <option value="" className="bg-white text-gray-900">Todas las fechas</option>
-              <option value="hoy" className="bg-white text-gray-900">Hoy</option>
-              <option value="semana" className="bg-white text-gray-900">Últimos 7 días</option>
-              <option value="mes" className="bg-white text-gray-900">Este mes</option>
-              <option value="anio" className="bg-white text-gray-900">Este año</option>
-              <option value="personalizado" className="bg-white text-gray-900">Personalizado</option>
+              <option value="" className="bg-white text-gray-900">
+                Todas las fechas
+              </option>
+              <option value="hoy" className="bg-white text-gray-900">
+                Hoy
+              </option>
+              <option value="semana" className="bg-white text-gray-900">
+                Últimos 7 días
+              </option>
+              <option value="mes" className="bg-white text-gray-900">
+                Este mes
+              </option>
+              <option value="anio" className="bg-white text-gray-900">
+                Este año
+              </option>
+              <option value="personalizado" className="bg-white text-gray-900">
+                Personalizado
+              </option>
             </select>
 
             {rangoFecha === "personalizado" && (

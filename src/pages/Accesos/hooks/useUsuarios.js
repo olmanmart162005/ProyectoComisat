@@ -34,7 +34,9 @@ export const useUsuarios = ({ closeModal }) => {
 
   const totalUsuarios = usuarios.length;
   const usuariosActivos = usuarios.filter((u) => u.estado === "Activo").length;
-  const usuariosInactivos = usuarios.filter((u) => u.estado === "Inactivo").length;
+  const usuariosInactivos = usuarios.filter(
+    (u) => u.estado === "Inactivo",
+  ).length;
 
   const fetchEmpleados = async () => {
     try {
@@ -175,7 +177,9 @@ export const useUsuarios = ({ closeModal }) => {
     setEditandoId(null);
     if (empleados.length > 0) {
       setEmpleadoId(empleados[0].id);
-      setNombre(`${empleados[0].nombres ?? ""} ${empleados[0].apellidos ?? ""}`.trim());
+      setNombre(
+        `${empleados[0].nombres ?? ""} ${empleados[0].apellidos ?? ""}`.trim(),
+      );
       setBusquedaEmpleado("");
       setCorreoPersonal(empleados[0]?.correo ?? "");
       setCorreo("");
@@ -203,7 +207,9 @@ export const useUsuarios = ({ closeModal }) => {
   }, [usuarios, filtroRol, filtroEstado]);
 
   const textoFiltrosPdf = [
-    filtroRol ? `Rol: ${roles.find((r) => r.id === filtroRol)?.nombre ?? filtroRol}` : null,
+    filtroRol
+      ? `Rol: ${roles.find((r) => r.id === filtroRol)?.nombre ?? filtroRol}`
+      : null,
     filtroEstado ? `Estado: ${filtroEstado}` : null,
   ]
     .filter(Boolean)

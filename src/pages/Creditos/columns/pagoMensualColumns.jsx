@@ -36,7 +36,9 @@ export function pagoMensualColumns() {
       header: "Progreso",
       cell: ({ row }) => {
         const pagadas = Number(row.original.cuotasPagadas ?? 0);
-        const total = Number(row.original.datosFinancierosHistoricos?.plazoCuotas ?? 0);
+        const total = Number(
+          row.original.datosFinancierosHistoricos?.plazoCuotas ?? 0,
+        );
         const siguiente = pagadas + 1;
         return (
           <span className="block font-medium text-gray-800 text-theme-sm dark:text-white/90">
@@ -66,7 +68,9 @@ export function pagoMensualColumns() {
       header: "Estado",
       cell: ({ row }) => {
         const pagadas = Number(row.original.cuotasPagadas ?? 0);
-        const total = Number(row.original.datosFinancierosHistoricos?.plazoCuotas ?? 0);
+        const total = Number(
+          row.original.datosFinancierosHistoricos?.plazoCuotas ?? 0,
+        );
         const esUltima = pagadas + 1 >= total;
         return (
           <Badge size="sm" color={esUltima ? "success" : "warning"}>

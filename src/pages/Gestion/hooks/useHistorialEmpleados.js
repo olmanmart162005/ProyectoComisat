@@ -10,7 +10,10 @@ export function useHistorialEmpleados() {
   const fetchHistorial = async () => {
     setLoading(true);
     try {
-      const q = query(collection(db, "historialEmpleados"), orderBy("fechaBaja", "desc"));
+      const q = query(
+        collection(db, "historialEmpleados"),
+        orderBy("fechaBaja", "desc"),
+      );
       const snap = await getDocs(q);
       setHistorial(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
     } catch (error) {
@@ -25,7 +28,9 @@ export function useHistorialEmpleados() {
   }, []);
 
   const departamentos = useMemo(() => {
-    const deps = new Set(historial.map((h) => h.departamentoNombre).filter(Boolean));
+    const deps = new Set(
+      historial.map((h) => h.departamentoNombre).filter(Boolean),
+    );
     return Array.from(deps).sort();
   }, [historial]);
 
@@ -43,7 +48,10 @@ export function useHistorialEmpleados() {
     return f && f >= mesActual;
   }).length;
 
-  const totalUsuariosEliminados = historial.reduce((acc, h) => acc + (Number(h.usuariosEliminados) || 0), 0);
+  const totalUsuariosEliminados = historial.reduce(
+    (acc, h) => acc + (Number(h.usuariosEliminados) || 0),
+    0,
+  );
 
   return {
     historial,

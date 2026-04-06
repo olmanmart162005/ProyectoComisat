@@ -51,7 +51,9 @@ export default function Gest_Departamentos() {
   return (
     <div className="space-y-6">
       <div className="flex sm:justify-between flex-col sm:flex-row gap-4 items-start sm:items-center">
-        <h2 className="text-2xl font-bold text-gray-800 dark:text-white/90">Departamentos</h2>
+        <h2 className="text-2xl font-bold text-gray-800 dark:text-white/90">
+          Departamentos
+        </h2>
         <button
           onClick={() => {
             setEditandoId(null);
@@ -60,8 +62,18 @@ export default function Gest_Departamentos() {
           }}
           className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-5 py-2.5 rounded-lg shadow-sm transition flex items-center gap-2"
         >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+          <svg
+            className="w-5 h-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+            />
           </svg>
           Nuevo Departamento
         </button>
@@ -85,7 +97,10 @@ export default function Gest_Departamentos() {
             filename={"Departamentos " + new Date().toLocaleDateString("es-HN")}
             sheetName="Lista de Departamentos"
             meta={{ empresa: "Comisariato San Jose", usuario: "Sistema" }}
-            pdfOptions={{ title: "Departamentos", subtitle: new Date().toLocaleDateString("es-HN") }}
+            pdfOptions={{
+              title: "Departamentos",
+              subtitle: new Date().toLocaleDateString("es-HN"),
+            }}
             onExport={(formato) =>
               registrarBitacora({
                 usuario: user.email,

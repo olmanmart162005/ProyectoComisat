@@ -10,7 +10,10 @@ export function useHistorialProductos() {
   const fetchHistorial = async () => {
     setLoading(true);
     try {
-      const q = query(collection(db, "historialProductos"), orderBy("fechaBaja", "desc"));
+      const q = query(
+        collection(db, "historialProductos"),
+        orderBy("fechaBaja", "desc"),
+      );
       const snap = await getDocs(q);
       setHistorial(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
     } catch (error) {
@@ -25,7 +28,9 @@ export function useHistorialProductos() {
   }, []);
 
   const categorias = useMemo(() => {
-    const cats = new Set(historial.map((h) => h.categoriaNombre).filter(Boolean));
+    const cats = new Set(
+      historial.map((h) => h.categoriaNombre).filter(Boolean),
+    );
     return Array.from(cats).sort();
   }, [historial]);
 

@@ -23,6 +23,13 @@ export function useProductos({ user, nombreEmpleado }) {
     undefined,
   ]);
 
+  const getEstadoVisualProducto = (producto) => {
+    if (producto.estado === "Inactivo") return "Inactivo";
+    return Number(producto.stock) === Number(producto.stockMinimo)
+      ? "Agotado"
+      : "Activo";
+  };
+
   const fetchConfig = async () => {
     try {
       const snap = await getDoc(doc(db, "configuracion", "creditoComisariato"));
@@ -74,7 +81,7 @@ export function useProductos({ user, nombreEmpleado }) {
 
   const totalProductos = productos.length;
   const productosActivos = productos.filter(
-    (p) => p.estado === "Activo",
+    (p) => getEstadoVisualProducto(p) === "Activo",
   ).length;
   const stockTotal = productos.reduce(
     (acc, p) => acc + (Number(p.stock) || 0),

@@ -1,0 +1,166 @@
+import DataTable from "../../components/ui/table/DataTable";
+import ExportButtons from "../../layout/Exportbuttons";
+import { useAuth } from "../../auth/AuthProvider";
+import { useNombreEmpleadoActual } from "../../hooks/useNombreEmpleadoActual";
+import { useModal } from "../../hooks/useModal";
+import { Toaster } from "sileo";
+import { registrarBitacora } from "../../services/bitacora";
+import MetricCard from "../../components/common/MetricCard";
+import { CheckCircleIcon, CloseIcon, BoxIconLine } from "../../icons";
+
+import CreditReviewModal from "../../components/Creditos/CreditReviewModal";
+import {
+  solicitudColumns,
+  COLUMNAS_EXPORT_SOLICITUDES,
+  lps,
+} from "./columns/solicitudColumns";
+import { useSolicitudesCredito } from "./hooks/useSolicitudesCredito";
+
+export default function Gest_SolicitudesCredito() {
+  Toaster.position = "top-right";
+
+  const { user } = useAuth();
+  const nombreEmpleado = useNombreEmpleadoActual();
+  const { isOpen, openModal, closeModal } = useModal();
+
+  const {
+    solicitudes,
+    loading,
+    procesando,
+    solicitudSeleccionada,
+    setSolicitudSeleccionada,
+    filtroEstadoSolicitud,
+    setFiltroEstadoSolicitud,
+    historialPrevioSeleccionado,
+    loadingHistorial,
+    resumenEmpleadoSeleccionado,
+    solicitudesFiltradas,
+    textoFiltrosPdf,
+    totalPendientes,
+    totalAprobados,
+    totalRechazados,
+    montoEnRiesgo,
+    handleDecision,
+  } = useSolicitudesCredito({ user, nombreEmpleado, isOpen });
+
+  const columns = solicitudColumns({
+    onVerDetalle: (solicitud) => {
+      setSolicitudSeleccionada(solicitud);
+      openModal();
+    },
+  });
+
+  return (
+    <div className="space-y-6">
+      <h2 className="text-2xl font-bold text-gray-800 dark:text-white/90">
+        Solicitudes de Crédito
+      </h2>
+
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-4 md:gap-6">
+        <MetricCard
+          title="Pendientes Revisión"
+          value={totalPendientes}
+          icon={
+            <BoxIconLine className="text-gray-800 size-6 dark:text-white/90" />
+          }
+          iconWrapperClass="bg-gray-100 dark:bg-gray-800"
+        />
+        <MetricCard
+          title="Monto por Aprobar"
+          value={lps(montoEnRiesgo)}
+          icon={
+            <CheckCircleIcon className="text-green-600 size-6 dark:text-green-400" />
+          }
+          iconWrapperClass="bg-green-50 dark:bg-green-500/10"
+        />
+        <MetricCard
+          title="Aprobados"
+          value={totalAprobados}
+          icon={
+            <CloseIcon className="text-blue-600 size-6 dark:text-blue-400" />
+          }
+          iconWrapperClass="bg-blue-50 dark:bg-blue-500/10"
+        />
+        <MetricCard
+          title="Rechazados"
+          value={totalRechazados}
+          icon={<CloseIcon className="text-red-600 size-6 dark:text-red-400" />}
+          iconWrapperClass="bg-red-50 dark:bg-red-500/10"
+        />
+      </div>
+
+      <DataTable
+        columns={columns}
+        data={solicitudesFiltradas}
+        loading={loading}
+      >
+        <DataTable.Toolbar searchPlaceholder="Buscar por empleado...">
+          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto sm:ml-auto">
+            <select
+              value={filtroEstadoSolicitud}
+              onChange={(e) => setFiltroEstadoSolicitud(e.target.value)}
+              className="w-full sm:w-56 p-2 border border-gray-300 rounded-md text-sm text-gray-900 focus:ring-blue-500 focus:border-blue-500 dark:bg-white/5 dark:border-white/10 dark:text-gray-100"
+            >
+              <option value="" className="bg-white text-gray-900">
+                Estado
+              </option>
+              <option value="pendiente" className="bg-white text-gray-900">
+                Pendiente
+              </option>
+              <option value="aprobado" className="bg-white text-gray-900">
+                Aprobado
+              </option>
+              <option value="rechazado" className="bg-white text-gray-900">
+                Rechazado
+              </option>
+            </select>
+
+            <ExportButtons
+              rows={solicitudesFiltradas}
+              columns={COLUMNAS_EXPORT_SOLICITUDES}
+              filename={
+                "Solicitudes Reservas " + new Date().toLocaleDateString("es-HN")
+              }
+              sheetName="Solicitudes de Crédito"
+              meta={{
+                empresa: "Comisariato San Jose",
+                usuario: nombreEmpleado || "Sistema",
+                extra: textoFiltrosPdf,
+              }}
+              pdfOptions={{
+                title: "Solicitudes de Crédito",
+                subtitle: new Date().toLocaleDateString("es-HN"),
+              }}
+              onExport={(formato) =>
+                registrarBitacora({
+                  usuario: user.email,
+                  nombre: nombreEmpleado,
+                  coleccion: "creditos",
+                  accion: "exportar",
+                  metadata: {
+                    formato,
+                    totalRegistros: solicitudesFiltradas.length,
+                    filtros: textoFiltrosPdf,
+                  },
+                })
+              }
+            />
+          </div>
+        </DataTable.Toolbar>
+        <DataTable.Table />
+        <DataTable.Pagination />
+      </DataTable>
+
+      <CreditReviewModal
+        isOpen={isOpen}
+        onClose={closeModal}
+        solicitud={solicitudSeleccionada}
+        resumenEmpleado={resumenEmpleadoSeleccionado}
+        historialPrevio={historialPrevioSeleccionado}
+        loadingHistorial={loadingHistorial}
+        onDecision={handleDecision}
+        procesando={procesando}
+      />
+    </div>
+  );
+}

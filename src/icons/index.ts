@@ -1,122 +1,113 @@
-// @ts-nocheck
-import { ReactComponent as PlusIcon } from "./plus.svg?react";
-import { ReactComponent as CloseIcon } from "./close.svg?react";
-import { ReactComponent as BoxIcon } from "./box.svg?react";
-import { ReactComponent as CheckCircleIcon } from "./check-circle.svg?react";
-import { ReactComponent as AlertIcon } from "./alert.svg?react";
-import { ReactComponent as InfoIcon } from "./info.svg?react";
-import { ReactComponent as ErrorIcon } from "./info-error.svg?react";
-import { ReactComponent as BoltIcon } from "./bolt.svg?react";
-import { ReactComponent as ArrowUpIcon } from "./arrow-up.svg?react";
-import { ReactComponent as ArrowDownIcon } from "./arrow-down.svg?react";
-import { ReactComponent as FolderIcon } from "./folder.svg?react";
-import { ReactComponent as VideoIcon } from "./videos.svg?react";
-import { ReactComponent as AudioIcon } from "./audio.svg?react";
-import { ReactComponent as GridIcon } from "./grid.svg?react";
-import { ReactComponent as FileIcon } from "./file.svg?react";
-import { ReactComponent as DownloadIcon } from "./download.svg?react";
-import { ReactComponent as ArrowRightIcon } from "./arrow-right.svg?react";
-import { ReactComponent as GroupIcon } from "./group.svg?react";
-import { ReactComponent as BoxIconLine } from "./box-line.svg?react";
-import { ReactComponent as ShootingStarIcon } from "./shooting-star.svg?react";
-import { ReactComponent as DollarLineIcon } from "./dollar-line.svg?react";
-import { ReactComponent as TrashBinIcon } from "./trash.svg?react";
-import { ReactComponent as AngleUpIcon } from "./angle-up.svg?react";
-import { ReactComponent as AngleDownIcon } from "./angle-down.svg?react";
-import { ReactComponent as AngleLeftIcon } from "./angle-left.svg?react";
-import { ReactComponent as AngleRightIcon } from "./angle-right.svg?react";
-import { ReactComponent as PencilIcon } from "./pencil.svg?react";
-import { ReactComponent as CheckLineIcon } from "./check-line.svg?react";
-import { ReactComponent as CloseLineIcon } from "./close-line.svg?react";
-import { ReactComponent as ChevronDownIcon } from "./chevron-down.svg?react";
-import { ReactComponent as ChevronUpIcon } from "./chevron-up.svg?react";
-import { ReactComponent as PaperPlaneIcon } from "./paper-plane.svg?react";
-import { ReactComponent as LockIcon } from "./lock.svg?react";
-import { ReactComponent as EnvelopeIcon } from "./envelope.svg?react";
-import { ReactComponent as UserIcon } from "./user-line.svg?react";
-import { ReactComponent as CalenderIcon } from "./calender-line.svg?react";
-import { ReactComponent as EyeIcon } from "./eye.svg?react";
-import { ReactComponent as EyeCloseIcon } from "./eye-close.svg?react";
-import { ReactComponent as TimeIcon } from "./time.svg?react";
-import { ReactComponent as CopyIcon } from "./copy.svg?react";
-import { ReactComponent as ChevronLeftIcon } from "./chevron-left.svg?react";
-import { ReactComponent as UserCircleIcon } from "./user-circle.svg?react";
-import { ReactComponent as TaskIcon } from "./task-icon.svg?react";
-import { ReactComponent as ListIcon } from "./list.svg?react";
-import { ReactComponent as TableIcon } from "./table.svg?react";
-import { ReactComponent as PageIcon } from "./page.svg?react";
-import { ReactComponent as PieChartIcon } from "./pie-chart.svg?react";
-import { ReactComponent as BoxCubeIcon } from "./box-cube.svg?react";
-import { ReactComponent as PlugInIcon } from "./plug-in.svg?react";
-import { ReactComponent as DocsIcon } from "./docs.svg?react";
-import { ReactComponent as MailIcon } from "./mail-line.svg?react";
-import { ReactComponent as HorizontaLDots } from "./horizontal-dots.svg?react";
-import { ReactComponent as ChatIcon } from "./chat.svg?react";
-import { ReactComponent as MoreDotIcon } from "./moredot.svg?react";
-import { ReactComponent as AlertHexaIcon } from "./alert-hexa.svg?react";
-import { ReactComponent as ErrorHexaIcon } from "./info-hexa.svg?react";
-import { ReactComponent as SavePlusIcon } from "./savePlus.svg?react";
-import { ReactComponent as CreditPercentIcon } from "./creditPercent.svg?react";
-import { ReactComponent as PercentIcon } from "./percent.svg?react";
+import {
+  ArrowDown,
+  ArrowRight,
+  ArrowUp,
+  AudioLines,
+  BadgeAlert,
+  Boxes,
+  Calendar,
+  Check,
+  CheckCircle2,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  ChevronUp,
+  CircleAlert,
+  CircleUserRound,
+  Clock3,
+  Copy,
+  DollarSign,
+  Download,
+  Ellipsis,
+  EllipsisVertical,
+  Eye,
+  EyeOff,
+  File,
+  FileStack,
+  FileText,
+  Folder,
+  Grid3X3,
+  Info,
+  List,
+  Lock,
+  Mail,
+  MessageCircle,
+  OctagonAlert,
+  Package,
+  Percent,
+  Pencil,
+  PieChart,
+  Plug,
+  Plus,
+  Save,
+  Send,
+  Sparkles,
+  Table,
+  Trash2,
+  TriangleAlert,
+  User,
+  Users,
+  Video,
+  X,
+  Zap,
+} from "lucide-react";
 
-export {
-  ErrorHexaIcon,
-  AlertHexaIcon,
-  MoreDotIcon,
-  SavePlusIcon,
-  CreditPercentIcon,
-  PercentIcon,
-  DownloadIcon,
-  FileIcon,
-  GridIcon,
-  AudioIcon,
-  VideoIcon,
-  BoltIcon,
-  PlusIcon,
-  BoxIcon,
-  CloseIcon,
-  CheckCircleIcon,
-  AlertIcon,
-  InfoIcon,
-  ErrorIcon,
-  ArrowUpIcon,
-  FolderIcon,
-  ArrowDownIcon,
-  ArrowRightIcon,
-  GroupIcon,
-  BoxIconLine,
-  ShootingStarIcon,
-  DollarLineIcon,
-  TrashBinIcon,
-  AngleUpIcon,
-  AngleDownIcon,
-  PencilIcon,
-  CheckLineIcon,
-  CloseLineIcon,
-  ChevronDownIcon,
-  PaperPlaneIcon,
-  EnvelopeIcon,
-  LockIcon,
-  UserIcon,
-  CalenderIcon,
-  EyeIcon,
-  EyeCloseIcon,
-  TimeIcon,
-  CopyIcon,
-  ChevronLeftIcon,
-  UserCircleIcon,
-  TaskIcon,
-  ListIcon,
-  TableIcon,
-  PageIcon,
-  PieChartIcon,
-  BoxCubeIcon,
-  PlugInIcon,
-  DocsIcon,
-  MailIcon,
-  HorizontaLDots,
-  ChevronUpIcon,
-  ChatIcon,
-  AngleLeftIcon,
-  AngleRightIcon,
-};
+export const PlusIcon = Plus;
+export const CloseIcon = X;
+export const BoxIcon = Package;
+export const CheckCircleIcon = CheckCircle2;
+export const AlertIcon = TriangleAlert;
+export const InfoIcon = Info;
+export const ErrorIcon = CircleAlert;
+export const BoltIcon = Zap;
+export const ArrowUpIcon = ArrowUp;
+export const ArrowDownIcon = ArrowDown;
+export const FolderIcon = Folder;
+export const VideoIcon = Video;
+export const AudioIcon = AudioLines;
+export const GridIcon = Grid3X3;
+export const FileIcon = File;
+export const DownloadIcon = Download;
+export const ArrowRightIcon = ArrowRight;
+export const GroupIcon = Users;
+export const BoxIconLine = Package;
+export const ShootingStarIcon = Sparkles;
+export const DollarLineIcon = DollarSign;
+export const TrashBinIcon = Trash2;
+export const AngleUpIcon = ChevronUp;
+export const AngleDownIcon = ChevronDown;
+export const AngleLeftIcon = ChevronLeft;
+export const AngleRightIcon = ChevronRight;
+export const PencilIcon = Pencil;
+export const CheckLineIcon = Check;
+export const CloseLineIcon = X;
+export const ChevronDownIcon = ChevronDown;
+export const ChevronUpIcon = ChevronUp;
+export const PaperPlaneIcon = Send;
+export const LockIcon = Lock;
+export const EnvelopeIcon = Mail;
+export const UserIcon = User;
+export const CalenderIcon = Calendar;
+export const EyeIcon = Eye;
+export const EyeCloseIcon = EyeOff;
+export const TimeIcon = Clock3;
+export const CopyIcon = Copy;
+export const ChevronLeftIcon = ChevronLeft;
+export const UserCircleIcon = CircleUserRound;
+export const TaskIcon = CheckCircle2;
+export const ListIcon = List;
+export const TableIcon = Table;
+export const PageIcon = FileText;
+export const PieChartIcon = PieChart;
+export const BoxCubeIcon = Boxes;
+export const PlugInIcon = Plug;
+export const DocsIcon = FileStack;
+export const MailIcon = Mail;
+export const HorizontaLDots = Ellipsis;
+export const ChatIcon = MessageCircle;
+export const MoreDotIcon = EllipsisVertical;
+export const AlertHexaIcon = OctagonAlert;
+export const ErrorHexaIcon = BadgeAlert;
+export const SavePlusIcon = Save;
+export const CreditPercentIcon = DollarSign;
+export const PercentIcon = Percent;

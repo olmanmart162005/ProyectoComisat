@@ -8,6 +8,7 @@ import { RoleRoute } from "../auth/RoleRoute";
 
 import AppLayout from "../layout/AppLayout";
 import Login from "../pages/Login";
+import MetodosAcceso from "../pages/MetodosAcceso";
 import { RoleRedirect } from "../auth/RoleRedirect";
 import NoEncontrado from "../pages/NoEncontrado";
 import AccesoDenegado from "../pages/AccesoDenegado";
@@ -34,6 +35,7 @@ import Bitacora from "../pages/Bitacora";
 import HistorialProductos from "../pages/HistorialProductos";
 import HistorialEmpleados from "../pages/HistorialEmpleados";
 
+
 export default function AppRouter() {
   const { user } = useAuth();
 
@@ -45,6 +47,10 @@ export default function AppRouter() {
         <Route
           path="/login"
           element={user ? <Navigate to="/" replace /> : <Login />}
+        />
+        <Route
+          path="/login/metodos"
+          element={user ? <Navigate to="/" replace /> : <MetodosAcceso />}
         />
 
         {/* Páginas de error — públicas */}

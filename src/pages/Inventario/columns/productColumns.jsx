@@ -63,7 +63,13 @@ export function productColumns({ onEdit, onEliminar, categorias }) {
       accessorKey: "estado",
       header: "Estado",
       cell: (info) => {
-        const val = info.getValue();
+        const row = info.row.original;
+        const val =
+          row.estado === "Inactivo"
+            ? "Inactivo"
+            : Number(row.stock) === Number(row.stockMinimo)
+              ? "Agotado"
+              : info.getValue();
         const color =
           val === "Activo"
             ? "success"

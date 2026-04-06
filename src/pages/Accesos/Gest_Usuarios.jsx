@@ -10,7 +10,7 @@ import { useNombreEmpleadoActual } from "../../hooks/useNombreEmpleadoActual";
 import { registrarBitacora } from "../../services/bitacora";
 import { GroupIcon, CheckCircleIcon, CloseIcon } from "../../icons";
 
-import UsuarioModal from "../../components/Acceso/UsuarioModal";
+import UsuarioModal from "../../components/Accesos/UsuarioModal";
 import { useUsuarios } from "./hooks/useUsuarios";
 import {
   usuarioColumns,

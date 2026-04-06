@@ -9,8 +9,8 @@ import { RoleRoute } from "../auth/RoleRoute";
 import AppLayout from "../layout/AppLayout";
 import Login from "../pages/Login";
 import { RoleRedirect } from "../auth/RoleRedirect";
-import NoEncontrado from "../pages/NoEncontrado";
-import AccesoDenegado from "../pages/AccesoDenegado";
+import NotFound from "../pages/Errors/NotFound";
+import AccesoDenegado from "../pages/Errors/AccesoDenegado";
 
 // Dashboards por rol
 import Dashboard from "../pages/Dashboards/Dashboard";
@@ -50,7 +50,7 @@ export default function AppRouter() {
 
         {/* Páginas de error — públicas */}
         <Route path="/acceso-denegado" element={<AccesoDenegado />} />
-        <Route path="/noencontrado" element={<NoEncontrado />} />
+        <Route path="/noencontrado" element={<NotFound />} />
 
         {/* Panel principal: autenticado + activo */}
         <Route

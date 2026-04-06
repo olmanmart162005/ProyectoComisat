@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   Archive,
+  BanknoteArrowUp,
   BookOpen,
   Building2,
   Ellipsis,
@@ -76,7 +77,7 @@ const navItems = [
   },
   {
     name: "Pagos Mensuales",
-    icon: <Receipt />,
+    icon: <BanknoteArrowUp />,
     path: "/pagos-mensuales",
     allowedRoles: ["Oficial de Credito"],
   },

@@ -118,6 +118,7 @@ export const useUsuarios = ({ closeModal }) => {
         rolId,
         rolNombre,
         estado,
+        primerLoginHecho: false,
         fechaRegistro: serverTimestamp(),
       });
       resetFormulario();

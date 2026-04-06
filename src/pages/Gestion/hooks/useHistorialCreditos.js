@@ -40,7 +40,9 @@ export function useHistorialCreditos({ openModal }) {
   const [creditos, setCreditos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [anioFiltro, setAnioFiltro] = useState(String(now.getFullYear()));
-  const [mesFiltro, setMesFiltro] = useState(String(now.getMonth() + 1).padStart(2, "0"));
+  const [mesFiltro, setMesFiltro] = useState(
+    String(now.getMonth() + 1).padStart(2, "0"),
+  );
 
   const [creditoSeleccionado, setCreditoSeleccionado] = useState(null);
   const [cuotasDelCredito, setCuotasDelCredito] = useState([]);
@@ -54,7 +56,9 @@ export function useHistorialCreditos({ openModal }) {
     try {
       const [snapCuotas, snapCreditos] = await Promise.all([
         getDocs(query(collection(db, "cuotas"), where("mesCobro", "==", key))),
-        getDocs(query(collection(db, "creditos"), where("mesCobro", "==", key))),
+        getDocs(
+          query(collection(db, "creditos"), where("mesCobro", "==", key)),
+        ),
       ]);
       setCuotas(snapCuotas.docs.map((d) => ({ id: d.id, ...d.data() })));
       setCreditos(snapCreditos.docs.map((d) => ({ id: d.id, ...d.data() })));
@@ -75,11 +79,16 @@ export function useHistorialCreditos({ openModal }) {
     setLoadingCuotas(true);
     openModal();
     try {
-      const q = query(collection(db, "cuotas"), where("creditoId", "==", credito.id));
+      const q = query(
+        collection(db, "cuotas"),
+        where("creditoId", "==", credito.id),
+      );
       const snap = await getDocs(q);
       const docs = snap.docs
         .map((d) => ({ id: d.id, ...d.data() }))
-        .sort((a, b) => Number(a.numeroCuota ?? 0) - Number(b.numeroCuota ?? 0));
+        .sort(
+          (a, b) => Number(a.numeroCuota ?? 0) - Number(b.numeroCuota ?? 0),
+        );
       setCuotasDelCredito(docs);
     } catch (err) {
       console.error("Error al cargar cuotas del crédito:", err);
@@ -88,12 +97,23 @@ export function useHistorialCreditos({ openModal }) {
     }
   };
 
-  const { totalCuotas, montoTotal, empleadosUnicos, creditosPagados } = useMemo(() => {
-    const monto = cuotas.reduce((acc, c) => acc + Number(c.montoCuota ?? 0), 0);
-    const empleados = new Set(cuotas.map((c) => c.empleadoId));
-    const pagados = creditos.filter((c) => String(c.estadoCredito ?? "").toLowerCase() === "pagado").length;
-    return { totalCuotas: cuotas.length, montoTotal: monto, empleadosUnicos: empleados.size, creditosPagados: pagados };
-  }, [cuotas, creditos]);
+  const { totalCuotas, montoTotal, empleadosUnicos, creditosPagados } =
+    useMemo(() => {
+      const monto = cuotas.reduce(
+        (acc, c) => acc + Number(c.montoCuota ?? 0),
+        0,
+      );
+      const empleados = new Set(cuotas.map((c) => c.empleadoId));
+      const pagados = creditos.filter(
+        (c) => String(c.estadoCredito ?? "").toLowerCase() === "pagado",
+      ).length;
+      return {
+        totalCuotas: cuotas.length,
+        montoTotal: monto,
+        empleadosUnicos: empleados.size,
+        creditosPagados: pagados,
+      };
+    }, [cuotas, creditos]);
 
   return {
     cuotas,

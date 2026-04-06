@@ -2,9 +2,18 @@ import { useMemo } from "react";
 import DataTable from "../ui/table/DataTable";
 import Badge from "../ui/badge/Badge";
 import { Modal } from "../ui/modal";
-import { lps, estadoCreditoColor } from "../../pages/Gestion/columns/historialCreditoColumns";
+import {
+  lps,
+  estadoCreditoColor,
+} from "../../pages/Gestion/columns/historialCreditoColumns";
 
-export default function CuotasModal({ isOpen, onClose, credito, cuotas, loading }) {
+export default function CuotasModal({
+  isOpen,
+  onClose,
+  credito,
+  cuotas,
+  loading,
+}) {
   if (!credito) return null;
 
   const fin = credito.datosFinancierosHistoricos ?? {};
@@ -88,8 +97,15 @@ export default function CuotasModal({ isOpen, onClose, credito, cuotas, loading 
               {`${credito.empleadoNombres ?? ""} ${credito.empleadoApellidos ?? ""}`.trim()}
             </h2>
             <div className="flex items-center gap-2 mt-1">
-              <p className="text-sm text-gray-500 dark:text-gray-400">{credito.productoNombre ?? "---"}</p>
-              <Badge size="sm" color={estadoCreditoColor[estadoCredito] ?? "warning"}>{estadoCredito}</Badge>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                {credito.productoNombre ?? "---"}
+              </p>
+              <Badge
+                size="sm"
+                color={estadoCreditoColor[estadoCredito] ?? "warning"}
+              >
+                {estadoCredito}
+              </Badge>
             </div>
           </div>
         </div>
@@ -97,37 +113,64 @@ export default function CuotasModal({ isOpen, onClose, credito, cuotas, loading 
         <div className="flex-1 overflow-y-auto px-6 py-5 space-y-5">
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 p-4 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-gray-900/50">
             <div className="flex flex-col gap-1">
-              <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Total Crédito</p>
-              <p className="text-base font-bold text-gray-800 dark:text-white/90">{lps(fin.totalCredito)}</p>
+              <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                Total Crédito
+              </p>
+              <p className="text-base font-bold text-gray-800 dark:text-white/90">
+                {lps(fin.totalCredito)}
+              </p>
             </div>
             <div className="flex flex-col gap-1">
-              <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Cuota Mensual</p>
-              <p className="text-base font-bold text-gray-800 dark:text-white/90">{lps(fin.cuotaMensual)}</p>
+              <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                Cuota Mensual
+              </p>
+              <p className="text-base font-bold text-gray-800 dark:text-white/90">
+                {lps(fin.cuotaMensual)}
+              </p>
             </div>
             <div className="flex flex-col gap-1">
-              <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Saldo Pendiente</p>
-              <p className="text-base font-bold text-gray-800 dark:text-white/90">{lps(credito.saldoPendiente)}</p>
+              <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                Saldo Pendiente
+              </p>
+              <p className="text-base font-bold text-gray-800 dark:text-white/90">
+                {lps(credito.saldoPendiente)}
+              </p>
             </div>
             <div className="flex flex-col gap-1">
-              <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Progreso</p>
-              <p className="text-base font-bold text-gray-800 dark:text-white/90">{cuotasPagadas} / {plazoCuotas} cuotas</p>
+              <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                Progreso
+              </p>
+              <p className="text-base font-bold text-gray-800 dark:text-white/90">
+                {cuotasPagadas} / {plazoCuotas} cuotas
+              </p>
             </div>
           </div>
 
           {plazoCuotas > 0 && (
             <div className="space-y-1.5">
               <div className="flex justify-between items-center">
-                <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Avance</span>
-                <span className="text-xs font-bold text-gray-700 dark:text-gray-300">{Math.round((cuotasPagadas / plazoCuotas) * 100)}%</span>
+                <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                  Avance
+                </span>
+                <span className="text-xs font-bold text-gray-700 dark:text-gray-300">
+                  {Math.round((cuotasPagadas / plazoCuotas) * 100)}%
+                </span>
               </div>
               <div className="h-2 rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden">
-                <div className="h-full rounded-full bg-blue-500 dark:bg-blue-400 transition-all" style={{ width: `${Math.min(100, (cuotasPagadas / plazoCuotas) * 100)}%` }} />
+                <div
+                  className="h-full rounded-full bg-blue-500 dark:bg-blue-400 transition-all"
+                  style={{
+                    width: `${Math.min(100, (cuotasPagadas / plazoCuotas) * 100)}%`,
+                  }}
+                />
               </div>
             </div>
           )}
 
           <div className="space-y-2">
-            <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide">Cuotas Cobradas</h3>
+            <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide">
+              Cuotas Cobradas
+            </h3>
             <DataTable columns={columnasCuotas} data={cuotas} loading={loading}>
               <DataTable.Table emptyMessage="Este crédito aún no tiene cuotas cobradas." />
               <DataTable.Pagination />

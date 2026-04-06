@@ -28,7 +28,10 @@ export default function UsuarioModal({
         <h2 className="text-xl font-bold mb-6 text-gray-800 dark:text-white/90">
           {editandoId ? "Editando Usuario" : "Registrar Nuevo Usuario"}
         </h2>
-        <form onSubmit={onSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <form
+          onSubmit={onSubmit}
+          className="grid grid-cols-1 md:grid-cols-2 gap-5"
+        >
           <div className="md:col-span-2">
             <div className="md:col-span-2 relative">
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-400">
@@ -47,7 +50,9 @@ export default function UsuarioModal({
                   }
                 }}
                 onFocus={() => setMostrarSugerencias(true)}
-                onBlur={() => setTimeout(() => setMostrarSugerencias(false), 150)}
+                onBlur={() =>
+                  setTimeout(() => setMostrarSugerencias(false), 150)
+                }
                 placeholder="Buscar empleado..."
                 className="mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm text-gray-900 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
               />
@@ -61,7 +66,8 @@ export default function UsuarioModal({
                         .includes(busquedaEmpleado.toLowerCase()),
                     )
                     .map((emp) => {
-                      const nombreCompleto = `${emp.nombres ?? ""} ${emp.apellidos ?? ""}`.trim();
+                      const nombreCompleto =
+                        `${emp.nombres ?? ""} ${emp.apellidos ?? ""}`.trim();
                       return (
                         <li
                           key={emp.id}
@@ -113,7 +119,9 @@ export default function UsuarioModal({
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-400">Rol</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-400">
+              Rol
+            </label>
             <select
               value={rolId}
               onChange={handleRolChange}
@@ -132,7 +140,9 @@ export default function UsuarioModal({
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-400">Estado</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-400">
+              Estado
+            </label>
             <select
               value={estado}
               onChange={(e) => setEstado(e.target.value)}
@@ -155,7 +165,11 @@ export default function UsuarioModal({
                     : "bg-green-600 hover:bg-green-700"
               }`}
             >
-              {enviando ? "Procesando..." : editandoId ? "Actualizar" : "Guardar"}
+              {enviando
+                ? "Procesando..."
+                : editandoId
+                  ? "Actualizar"
+                  : "Guardar"}
             </button>
           </div>
         </form>

@@ -61,7 +61,8 @@ export const usePagosMensuales = ({ user, nombreEmpleado, closeModal }) => {
         }
 
         const emp = snapEmpleado.docs[0].data();
-        const nombreCompleto = `${emp.nombres ?? ""} ${emp.apellidos ?? ""}`.trim();
+        const nombreCompleto =
+          `${emp.nombres ?? ""} ${emp.apellidos ?? ""}`.trim();
         setRegistradoPor(nombreCompleto || user.email);
       } catch (err) {
         console.error("Error resolviendo nombre del oficial:", err);
@@ -132,10 +133,14 @@ export const usePagosMensuales = ({ user, nombreEmpleado, closeModal }) => {
         const cuotaMensual = Number(fin.cuotaMensual ?? 0);
         const totalCredito = Number(fin.totalCredito ?? 0);
         const numeroCuota = cuotasPagadas + 1;
-        const saldoPendiente = Math.max(0, totalCredito - cuotaMensual * numeroCuota);
+        const saldoPendiente = Math.max(
+          0,
+          totalCredito - cuotaMensual * numeroCuota,
+        );
         const esUltimaCuota = numeroCuota >= plazoCuotas;
 
-        const nombreEmpleado = `${credito.empleadoNombres ?? ""} ${credito.empleadoApellidos ?? ""}`.trim();
+        const nombreEmpleado =
+          `${credito.empleadoNombres ?? ""} ${credito.empleadoApellidos ?? ""}`.trim();
 
         const cuotaRef = doc(collection(db, "cuotas"));
         batch.set(cuotaRef, {

@@ -13,7 +13,9 @@ export default function DepartamentoModal({
     <Modal isOpen={isOpen} onClose={onClose} className="max-w-xl">
       <div className="p-6">
         <h2 className="text-xl font-bold mb-6 text-gray-800 dark:text-white/90">
-          {editandoId ? "Editando Departamento" : "Registrar Nuevo Departamento"}
+          {editandoId
+            ? "Editando Departamento"
+            : "Registrar Nuevo Departamento"}
         </h2>
         <form onSubmit={onSubmit} className="grid grid-cols-1 gap-5">
           <div>
@@ -41,7 +43,11 @@ export default function DepartamentoModal({
                     : "bg-green-600 hover:bg-green-700"
               }`}
             >
-              {enviando ? "Procesando..." : editandoId ? "Actualizar" : "Guardar"}
+              {enviando
+                ? "Procesando..."
+                : editandoId
+                  ? "Actualizar"
+                  : "Guardar"}
             </button>
           </div>
         </form>

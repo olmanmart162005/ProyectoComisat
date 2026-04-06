@@ -13,27 +13,27 @@ import NoEncontrado from "../pages/NoEncontrado";
 import AccesoDenegado from "../pages/AccesoDenegado";
 
 // Dashboards por rol
-import Dashboard from "../pages/Dashboard";
-import DashboardGestor from "../pages/DashboardGestor";
-import DashboardOficial from "../pages/DashboardOficial";
-import DashboardRRHH from "../pages/DashboardRRHH";
+import Dashboard from "../pages/Dashboards/Dashboard";
+import DashboardGestor from "../pages/Dashboards/DashboardGestor";
+import DashboardOficial from "../pages/Dashboards/DashboardOficial";
+import DashboardRRHH from "../pages/Dashboards/DashboardRRHH";
 import DescargaApp from "../pages/DescargaApp";
 
 // Pantallas generales
-import Empleados from "../pages/Empleados";
-import Productos from "../pages/Productos";
-import Usuarios from "../pages/Usuarios";
-import ConfiguracionGlobal from "../pages/ConfiguracionGlobal";
-import SolicitudesReservas from "../pages/SolicitudesReservas";
-import PagosMensuales from "../pages/PagosMensuales";
-import HistorialCreditos from "../pages/HistorialCreditos";
-import EmpleadosPerfil from "../pages/EmpleadosPerfil";
-import Categorias from "../pages/Categorias";
-import Departamentos from "../pages/Departamentos";
-import Roles from "../pages/Roles";
-import Bitacora from "../pages/Bitacora";
-import HistorialProductos from "../pages/HistorialProductos";
-import HistorialEmpleados from "../pages/HistorialEmpleados";
+import Gest_Empleados from "../pages/Personal/Gest_Empleados";
+import Gest_Roles from "../pages/Accesos/Gest_Roles";
+import Gest_Productos from "../pages/Inventario/Gest_Productos";
+import Usuarios from "../pages/Accesos/Gest_Usuarios";
+import ConfiguracionGlobal from "../pages/Gestion/Gest_ConfiguracionGlobal";
+import Gest_SolicitudesCredito from "../pages/Creditos/Gest_SolicitudesCredito";
+import PagosMensuales from "../pages/Creditos/PagosMensuales";
+import HistorialCreditos from "../pages/Gestion/HistorialCreditos";
+import EmpleadosPerfil from "../pages/Creditos/EmpleadosPerfil";
+import Gest_Categorias from "../pages/Inventario/Gest_Categorias";
+import Departamentos from "../pages/Personal/Gest_Departamentos";
+import Bitacora from "../pages/Gestion/Bitacora";
+import HistorialProductos from "../pages/Gestion/HistorialProductos";
+import HistorialEmpleados from "../pages/Gestion/HistorialEmpleados";
 
 export default function AppRouter() {
   const { user } = useAuth();
@@ -123,7 +123,7 @@ export default function AppRouter() {
             path="empleados"
             element={
               <RoleRoute roles={["Administrador", "Recursos Humanos"]}>
-                <Empleados />
+                <Gest_Empleados />
               </RoleRoute>
             }
           />
@@ -139,7 +139,7 @@ export default function AppRouter() {
             path="roles"
             element={
               <RoleRoute roles={["Administrador"]}>
-                <Roles />
+                <Gest_Roles />
               </RoleRoute>
             }
           />
@@ -147,7 +147,7 @@ export default function AppRouter() {
             path="categorias"
             element={
               <RoleRoute roles={["Administrador", "Gestor de Inventario"]}>
-                <Categorias />
+                <Gest_Categorias />
               </RoleRoute>
             }
           />
@@ -163,7 +163,7 @@ export default function AppRouter() {
             path="productos"
             element={
               <RoleRoute roles={["Administrador", "Gestor de Inventario"]}>
-                <Productos />
+                <Gest_Productos />
               </RoleRoute>
             }
           />
@@ -171,7 +171,7 @@ export default function AppRouter() {
             path="solicitudes-reservas"
             element={
               <RoleRoute roles={["Administrador", "Oficial de Credito"]}>
-                <SolicitudesReservas />
+                <Gest_SolicitudesCredito />
               </RoleRoute>
             }
           />

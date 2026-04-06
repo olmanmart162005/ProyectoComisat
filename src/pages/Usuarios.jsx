@@ -140,7 +140,7 @@ export default function Usuarios() {
         rolId,
         rolNombre,
         estado,
-        primerLoginHecho: false,
+        
         fechaRegistro: serverTimestamp(),
       });
       resetFormulario();

@@ -21,6 +21,17 @@ import {
   enviarCorreoCredenciales,
 } from "../../services/credencialesEmail";
 
+// ── Función helper para formatear fechas para el input type="date" ──
+const formatDateForInput = (dateValue) => {
+  if (!dateValue) return "";
+  try {
+    const date = dateValue.toDate ? dateValue.toDate() : new Date(dateValue);
+    return date.toISOString().split("T")[0];
+  } catch {
+    return "";
+  }
+};
+
 // ── 1. Primero siempre getRolEmpleadoId ──
 const getRolEmpleadoId = async () => {
   try {
@@ -94,7 +105,8 @@ const syncUsuarioConEmpleado = async ({
     console.error("Usuario creado pero falló el correo:", emailErr);
     sileo.warning({
       title: "Empleado creado",
-      description: "El usuario se generó, pero no se pudo enviar el correo de credenciales.",
+      description:
+        "El usuario se generó, pero no se pudo enviar el correo de credenciales.",
     });
   }
 };
@@ -122,6 +134,7 @@ export default function EmpleadoModal({
   const [departamentoId, setDepartamentoId] = useState("");
   const [departamentoNombre, setDepartamentoNombre] = useState("");
   const [salario, setSalario] = useState("");
+  const [fechaInicio, setFechaInicio] = useState("");
   const [estado, setEstado] = useState("Activo");
 
   const resetFormulario = () => {
@@ -137,6 +150,7 @@ export default function EmpleadoModal({
       setDepartamentoNombre(departamentos[0].nombre || "");
     }
     setSalario("");
+    setFechaInicio("");
     setEstado("Activo");
   };
 
@@ -154,6 +168,11 @@ export default function EmpleadoModal({
       setDepartamentoId(editandoData.departamentoId || "");
       setDepartamentoNombre(editandoData.departamentoNombre || "");
       setSalario(String(editandoData.salario || ""));
+      setFechaInicio(
+        editandoData.fechaInicio
+          ? formatDateForInput(editandoData.fechaInicio)
+          : "",
+      );
       setEstado(editandoData.estado || "Activo");
       return;
     }
@@ -183,6 +202,7 @@ export default function EmpleadoModal({
         departamentoId,
         departamentoNombre,
         salario: parseFloat(salario),
+        fechaInicio: new Date(fechaInicio),
         estado,
         fechaRegistro: serverTimestamp(),
       });
@@ -238,6 +258,7 @@ export default function EmpleadoModal({
         departamentoId,
         departamentoNombre,
         salario: parseFloat(salario),
+        fechaInicio: new Date(fechaInicio),
         estado,
         ultimaModificacion: serverTimestamp(),
       });
@@ -269,6 +290,13 @@ export default function EmpleadoModal({
           ...(empleadoAnterior?.departamentoNombre !== departamentoNombre && {
             departamentoAnterior: empleadoAnterior?.departamentoNombre,
             departamentoNuevo: departamentoNombre,
+          }),
+          ...(formatDateForInput(empleadoAnterior?.fechaInicio) !==
+            fechaInicio && {
+            fechaInicioAnterior:
+              formatDateForInput(empleadoAnterior?.fechaInicio) ||
+              "Sin registro",
+            fechaInicioNueva: fechaInicio,
           }),
         },
       });
@@ -429,6 +457,18 @@ export default function EmpleadoModal({
                 }
               }}
               placeholder="19000"
+              className="mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-400">
+              Fecha Inicio <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="date"
+              required
+              value={fechaInicio}
+              onChange={(e) => setFechaInicio(e.target.value)}
               className="mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white"
             />
           </div>

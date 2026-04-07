@@ -62,20 +62,20 @@ export default function PerfilEmpleadoDetalle() {
 
       {empleado && (
         <div className="space-y-5 border border-gray-200 dark:border-white/10 rounded-xl p-4 sm:p-6 bg-white dark:bg-gray-800">
-          <div>
-            <h2 className="text-xl font-bold text-gray-800 dark:text-white/90">
-              {empleado.nombres} {empleado.apellidos}
-            </h2>
-            <div className="flex items-center gap-2 mt-1">
-              <Badge
-                size="sm"
-                color={
-                  estadoEmpleadoColor[getEstadoEmpleado(empleado)] ?? "warning"
-                }
-              >
-                {getEstadoEmpleado(empleado)}
-              </Badge>
+          <div className="flex items-center gap-3">
+            <div>
+              <h2 className="text-xl font-bold text-gray-800 dark:text-white/90">
+                {empleado.nombres} {empleado.apellidos}
+              </h2>
             </div>
+            <Badge
+              size="sm"
+              color={
+                estadoEmpleadoColor[getEstadoEmpleado(empleado)] ?? "warning"
+              }
+            >
+              {getEstadoEmpleado(empleado)}
+            </Badge>
           </div>
 
           <div className="rounded-xl border border-gray-200 dark:border-white/10 overflow-hidden">
@@ -96,10 +96,8 @@ export default function PerfilEmpleadoDetalle() {
                   { label: "Teléfono", value: empleado.telefono ?? "---" },
                   { label: "Correo", value: empleado.correo ?? "---" },
                   {
-                    label: "Fecha Registro",
-                    value: formatFecha(
-                      empleado.fechaRegistro ?? empleado.FechaRegistro,
-                    ),
+                    label: "Fecha Inicio",
+                    value: formatFecha(empleado.fechaInicio),
                   },
                 ].map((item) => (
                   <div key={item.label} className="flex flex-col gap-0.5">

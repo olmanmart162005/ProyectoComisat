@@ -9,6 +9,7 @@ export const COLUMNAS_EXPORT_EMPLEADOS = [
   { key: "correo", header: "Correo", type: "text" },
   { key: "telefono", header: "Teléfono", type: "text" },
   { key: "salario", header: "Salario", type: "currency" },
+  { key: "fechaInicio", header: "Fecha Inicio", type: "date" },
   { key: "estado", header: "Estado", type: "text" },
 ];
 
@@ -16,15 +17,19 @@ export function empleadoColumns({ onEdit, onEliminar, departamentos }) {
   void departamentos;
 
   return [
-    { accessorKey: "codigoEmpleado", header: "Código" },
     {
       accessorFn: (row) => `${row.nombres} ${row.apellidos}`,
       id: "nombreCompleto",
-      header: "Nombre",
+      header: "Empleado",
       cell: (info) => (
-        <span className="block font-medium text-gray-800 text-theme-sm dark:text-white/90">
-          {info.getValue()}
-        </span>
+        <div className="flex flex-col gap-1">
+          <span className="block font-medium text-gray-800 text-theme-sm dark:text-white/90">
+            {info.getValue()}
+          </span>
+          <span className="block text-xs text-gray-500 dark:text-gray-400 font-mono">
+            {info.row.original.codigoEmpleado}
+          </span>
+        </div>
       ),
     },
     { accessorKey: "correo", header: "Correo" },
@@ -39,6 +44,20 @@ export function empleadoColumns({ onEdit, onEliminar, departamentos }) {
       accessorKey: "salario",
       header: "Salario",
       cell: (info) => `L.${Number(info.getValue()).toLocaleString("es-HN")}`,
+    },
+    {
+      accessorKey: "fechaInicio",
+      header: "Fecha Inicio",
+      cell: (info) => {
+        const fecha = info.getValue();
+        if (!fecha) return "-";
+        try {
+          const date = fecha.toDate ? fecha.toDate() : new Date(fecha);
+          return date.toLocaleDateString("es-HN");
+        } catch {
+          return "-";
+        }
+      },
     },
     {
       accessorKey: "estado",

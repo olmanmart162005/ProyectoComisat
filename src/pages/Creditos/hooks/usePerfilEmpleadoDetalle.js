@@ -14,6 +14,7 @@ const normalizarEmpleado = (empleado) => {
   if (!empleado) return null;
   return {
     ...empleado,
+    fechaInicio: empleado.fechaInicio ?? null,
     fechaRegistro: empleado.fechaRegistro ?? empleado.FechaRegistro ?? null,
   };
 };

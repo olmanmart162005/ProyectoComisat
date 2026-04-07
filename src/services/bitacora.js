@@ -16,6 +16,7 @@ export async function registrarBitacora({
       nombre,
       coleccion,
       accion,
+      
       fecha: serverTimestamp(),
       docId,
       metadata,

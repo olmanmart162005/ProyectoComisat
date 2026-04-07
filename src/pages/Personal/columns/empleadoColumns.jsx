@@ -23,10 +23,13 @@ export function empleadoColumns({ onEdit, onEliminar, departamentos }) {
       header: "Empleado",
       cell: (info) => (
         <div className="flex flex-col gap-1">
-          <span className="block font-medium text-gray-800 text-theme-sm dark:text-white/90">
+          <span
+            title={info.getValue()}
+            className="block max-w-[220px] truncate font-medium text-gray-800 text-theme-sm dark:text-white/90"
+          >
             {info.getValue()}
           </span>
-          <span className="block text-xs text-gray-500 dark:text-gray-400 font-mono">
+          <span className="block whitespace-nowrap text-xs text-gray-500 dark:text-gray-400 font-mono">
             {info.row.original.codigoEmpleado}
           </span>
         </div>

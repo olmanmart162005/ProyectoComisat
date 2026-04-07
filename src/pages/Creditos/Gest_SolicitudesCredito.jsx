@@ -119,7 +119,8 @@ export default function Gest_SolicitudesCredito() {
               rows={solicitudesFiltradas}
               columns={COLUMNAS_EXPORT_SOLICITUDES}
               filename={
-                "Solicitudes Reservas " + new Date().toLocaleDateString("es-HN")
+                "Solicitudes de Crédito " +
+                new Date().toLocaleDateString("es-HN")
               }
               sheetName="Solicitudes de Crédito"
               meta={{
@@ -133,8 +134,8 @@ export default function Gest_SolicitudesCredito() {
               }}
               onExport={(formato) =>
                 registrarBitacora({
-                  usuario: user.email,
-                  nombre: nombreEmpleado,
+                  usuario: user?.email ?? "desconocido",
+                  nombre: nombreEmpleado || user?.email || "desconocido",
                   coleccion: "creditos",
                   accion: "exportar",
                   metadata: {

@@ -355,7 +355,6 @@ export function exportToPDF(rows, columns, filename, options = {}) {
   // Fondo gris muy claro
   const metaItems = [
     ["Fecha de generación:", `${fechaGen}  ${horaGen}`],
-    ...(subtitle ? [["Período / Detalle:", subtitle]] : []),
     ...(extra    ? [["Detalle:",           extra]]     : []),
     ...(usuario  ? [["Generado por:",      usuario]]   : []),
   ];

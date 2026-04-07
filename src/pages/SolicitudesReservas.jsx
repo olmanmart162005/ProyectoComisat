@@ -1,3 +1,29 @@
+// Columnas para exportar (formato plano, sin celdas personalizadas)
+const COLUMNAS_EXPORT_SOLICITUDES = [
+  { key: "empleadoNombres", header: "Empleado", type: "text" },
+  { key: "empleadoApellidos", header: "Apellidos", type: "text" },
+  { key: "productoNombre", header: "Artículo", type: "text" },
+  {
+    key: "totalCredito",
+    header: "Total Crédito (L.)",
+    type: "currency",
+    getValue: (row) => row.datosFinancierosHistoricos?.totalCredito ?? 0,
+  },
+  {
+    key: "plazoCuotas",
+    header: "Plazo (meses)",
+    type: "number",
+    getValue: (row) => row.datosFinancierosHistoricos?.plazoCuotas ?? 0,
+  },
+  {
+    key: "cuotaMensual",
+    header: "Cuota Mensual (L.)",
+    type: "currency",
+    getValue: (row) => row.datosFinancierosHistoricos?.cuotaMensual ?? 0,
+  },
+  { key: "fechaRegistro", header: "Solicitado", type: "date" },
+  { key: "estado", header: "Estado", type: "text" },
+];
 import { useEffect, useMemo, useState } from "react";
 import { db } from "../firebase/firebase";
 import {
@@ -12,7 +38,11 @@ import {
   where,
 } from "firebase/firestore";
 
+
 import { useAuth } from "../auth/AuthProvider";
+import { useNombreEmpleadoActual } from "../hooks/useNombreEmpleadoActual";
+import { registrarBitacora } from "../services/bitacora";
+import ExportButtons from "../layout/Exportbuttons";
 
 import DataTable from "../components/ui/table/DataTable";
 import Badge from "../components/ui/badge/Badge";
@@ -96,7 +126,7 @@ function CreditReviewModal({
     <Modal isOpen={isOpen} onClose={onClose} className="max-w-4xl">
       <div className="flex h-full max-h-[90vh] overflow-hidden rounded-xl">
         {/* ── Panel izquierdo — Historial placeholder ── */}
-        <aside className="hidden md:flex flex-col w-[380px] shrink-0 border-r border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-gray-900 rounded-l-xl overflow-hidden">
+        <aside className="hidden md:flex flex-col w-95 shrink-0 border-r border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-gray-900 rounded-l-xl overflow-hidden">
           <div className="px-4 pt-5 pb-3 border-b border-gray-200 dark:border-white/10">
             <p className="text-xs font-semibold uppercase tracking-widest text-gray-400 dark:text-gray-500">
               Perfil del Empleado
@@ -221,7 +251,7 @@ function CreditReviewModal({
                     },
                   ].map((item) => (
                     <div key={item.label} className="flex flex-col gap-1">
-                      <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 min-h-[16px]">
+                      <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 min-h-4">
                         {item.label}
                       </p>
                       <p
@@ -350,6 +380,7 @@ function CreditReviewModal({
 
 // ── Página principal ───────────────────────────────────────────────
 export default function SolicitudesCredito() {
+  const nombreEmpleado = useNombreEmpleadoActual();
   const [solicitudes, setSolicitudes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [procesando, setProcesando] = useState(false);
@@ -526,7 +557,6 @@ export default function SolicitudesCredito() {
           fechaAutoriza: serverTimestamp(),
           empleadoAutoriza: user?.email ?? "desconocido",
         }),
-        // ── Nuevos campos al aprobar ──────────────────────────────
         ...(nuevoEstado === "Aprobado" && {
           cuotasPagadas: 0,
           saldoPendiente:
@@ -545,12 +575,10 @@ export default function SolicitudesCredito() {
                   fechaAutoriza: fechaLocal,
                   empleadoAutoriza: user?.email ?? "desconocido",
                 }),
-                // ── Nuevos campos al aprobar ──────────────────────
                 ...(nuevoEstado === "Aprobado" && {
                   cuotasPagadas: 0,
                   saldoPendiente:
-                    solicitudSeleccionada.datosFinancierosHistoricos
-                      ?.totalCredito ?? 0,
+                    solicitudSeleccionada.datosFinancierosHistoricos?.totalCredito ?? 0,
                   estadoCredito: "Activo",
                 }),
               }
@@ -567,7 +595,6 @@ export default function SolicitudesCredito() {
                 fechaAutoriza: fechaLocal,
                 empleadoAutoriza: user?.email ?? "desconocido",
               }),
-              // ── Nuevos campos al aprobar ────────────────────────
               ...(nuevoEstado === "Aprobado" && {
                 cuotasPagadas: 0,
                 saldoPendiente:
@@ -577,6 +604,21 @@ export default function SolicitudesCredito() {
             }
           : prev,
       );
+
+      // ── Bitácora: registrar acción de aprobación/rechazo ──
+      await registrarBitacora({
+        usuario: user?.email ?? "desconocido",
+        nombre: nombreEmpleado || user?.email || "desconocido",
+        coleccion: "creditos",
+        accion: nuevoEstado === "Aprobado" ? "Aprobación" : "Rechazo",
+        docId: solicitudSeleccionada.id,
+        metadata: {
+          detalle:
+            nuevoEstado === "Aprobado"
+              ? `Aprobó la solicitud de crédito para ${solicitudSeleccionada.empleadoNombres} ${solicitudSeleccionada.empleadoApellidos} por L. ${Number(solicitudSeleccionada.datosFinancierosHistoricos?.totalCredito ?? 0).toLocaleString("es-HN")}`
+              : `Rechazó la solicitud de crédito para ${solicitudSeleccionada.empleadoNombres} ${solicitudSeleccionada.empleadoApellidos} por L. ${Number(solicitudSeleccionada.datosFinancierosHistoricos?.totalCredito ?? 0).toLocaleString("es-HN")}`,
+        },
+      });
 
       alert(`Solicitud ${nuevoEstado} con éxito`);
       fetchSolicitudes();
@@ -774,6 +816,32 @@ export default function SolicitudesCredito() {
               </option>
             </select>
           </div>
+          <ExportButtons
+          rows={solicitudesFiltradas}
+          columns={COLUMNAS_EXPORT_SOLICITUDES}
+          filename={"Solicitudes de Crédito " + new Date().toLocaleDateString("es-HN")}
+          meta={{
+            empresa: "Comisariato San Jose",
+            usuario: nombreEmpleado || "Sistema",
+            extra: filtroEstadoSolicitud
+              ? `Estado: ${filtroEstadoSolicitud}`
+              : "Listado Completo",
+          }}
+          pdfOptions={{ title: "Solicitudes de Crédito", subtitle: new Date().toLocaleDateString("es-HN") }}
+          onExport={async (formato) => {
+            await registrarBitacora({
+              usuario: user?.email ?? "desconocido",
+              nombre: nombreEmpleado || user?.email || "desconocido",
+              coleccion: "creditos",
+              accion: "exportar",
+              metadata: {
+                formato,
+                totalRegistros: solicitudesFiltradas.length,
+                filtros: filtroEstadoSolicitud ? `Estado: ${filtroEstadoSolicitud}` : "",
+              },
+            });
+          }}
+        />
         </DataTable.Toolbar>
         <DataTable.Table />
         <DataTable.Pagination />

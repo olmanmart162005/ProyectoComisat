@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthProvider";
 import { sileo, Toaster } from "sileo";
@@ -7,9 +7,11 @@ import emailjs from "@emailjs/browser";
 import { encryptPassword, decryptPassword } from "../services/crypto";
 import { registrarBitacora } from "../services/bitacora";
 import { useNombreEmpleadoActual } from "../hooks/useNombreEmpleadoActual";
+import { collection, getDocs, query, where } from "firebase/firestore";
+import { db } from "../firebase/firebase";
 
 export default function MetodosAcceso() {
-  const nombreEmpleado = useNombreEmpleadoActual();
+  // No usar hook para nombre, sino obtenerlo directo de Firestore antes de registrar bitácora
   Toaster.position = "top-right";
   const { state } = useLocation();
   const navigate = useNavigate();
@@ -43,21 +45,46 @@ export default function MetodosAcceso() {
       const encrypted = await encryptPassword(password, email);
       localStorage.setItem(`cred_${email}`, encrypted);
 
-      // Bitácora: Primer ingreso o Ingreso
+      // Obtener nombre del empleado desde Firestore
+      let nombreParaBitacora = email;
+      try {
+        const qUsuario = query(collection(db, "usuarios"), where("correo", "==", email));
+        const snapUsuario = await getDocs(qUsuario);
+        if (!snapUsuario.empty) {
+          const datosUsuario = snapUsuario.docs[0].data();
+          if (datosUsuario.empleadoId) {
+            const qEmpleado = query(collection(db, "empleados"), where("__name__", "==", datosUsuario.empleadoId));
+            const snapEmpleado = await getDocs(qEmpleado);
+            if (!snapEmpleado.empty) {
+              const emp = snapEmpleado.docs[0].data();
+              nombreParaBitacora = `${emp.nombres ?? ""} ${emp.apellidos ?? ""}`.trim() || email;
+            } else {
+              nombreParaBitacora = datosUsuario.nombre ?? email;
+            }
+          } else {
+            nombreParaBitacora = datosUsuario.nombre ?? email;
+          }
+        }
+      } catch (err) {
+        nombreParaBitacora = email;
+      }
+
       await registrarBitacora({
         usuario: email,
-        nombre: nombreEmpleado,
+        nombre: nombreParaBitacora,
         coleccion: "usuarios",
         accion: esPrimerLogin ? "Primer ingreso" : "Ingreso",
         docId: userData.id,
         metadata: {
           primerLogin: esPrimerLogin,
+          detalle: esPrimerLogin
+            ? "Ingresó por primera vez al portal"
+            : "Inició sesión en el portal",
         },
       });
 
-      // Solo marca si era el primer login
       if (esPrimerLogin) {
-        await marcarPrimerLogin(userData.id);  // ← aquí el campo cambia a true en Firestore
+        await marcarPrimerLogin(userData.id);
       }
 
       navigate("/");
@@ -155,14 +182,38 @@ export default function MetodosAcceso() {
         await login(email, password);
 
         // Bitácora: Ingreso (no es primer login, porque OTP solo aplica después)
+        // Obtener nombre del empleado desde Firestore
+        let nombreParaBitacora = email;
+        try {
+          const qUsuario = query(collection(db, "usuarios"), where("correo", "==", email));
+          const snapUsuario = await getDocs(qUsuario);
+          if (!snapUsuario.empty) {
+            const datosUsuario = snapUsuario.docs[0].data();
+            if (datosUsuario.empleadoId) {
+              const qEmpleado = query(collection(db, "empleados"), where("__name__", "==", datosUsuario.empleadoId));
+              const snapEmpleado = await getDocs(qEmpleado);
+              if (!snapEmpleado.empty) {
+                const emp = snapEmpleado.docs[0].data();
+                nombreParaBitacora = `${emp.nombres ?? ""} ${emp.apellidos ?? ""}`.trim() || email;
+              } else {
+                nombreParaBitacora = datosUsuario.nombre ?? email;
+              }
+            } else {
+              nombreParaBitacora = datosUsuario.nombre ?? email;
+            }
+          }
+        } catch (err) {
+          nombreParaBitacora = email;
+        }
         await registrarBitacora({
           usuario: email,
-          nombre: nombreEmpleado,
+          nombre: nombreParaBitacora,
           coleccion: "usuarios",
           accion: "Ingreso",
           docId: userData.id,
           metadata: {
             primerLogin: false,
+            detalle: "Inició sesión en el portal",
           },
         });
 

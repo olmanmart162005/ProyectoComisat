@@ -9,36 +9,41 @@ import { ListIcon, CheckCircleIcon, CloseIcon } from "../icons";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 
-// ── Constantes ─────────────────────────────────────────────────────
-const COLECCIONES = [
-  { value: "productos", label: "Productos"  },
-  { value: "empleados", label: "Empleados"  },
-  { value: "creditos",  label: "Créditos"   },
-];
 
-const ACCIONES = [
-  { value: "creacion",      label: "Creación"      },
-  { value: "actualizacion", label: "Actualización" },
-  { value: "eliminacion",   label: "Eliminación"   },
-  { value: "exportar",      label: "Exportar"      },
-  { value: "aprobacion",    label: "Aprobación"    },
-  { value: "rechazo",       label: "Rechazo"       },
-];
+// Helpers para capitalizar
+function capitalize(str) {
+  if (!str) return "";
+  return str.charAt(0).toUpperCase() + str.slice(1);
+}
 
 function accionColor(accion) {
-  switch (accion) {
+  if (!accion) return "gray";
+  const a = accion.toLowerCase();
+  switch (a) {
     case "creacion":      return "primary"; // azul
     case "actualizacion": return "success"; // verde
     case "eliminacion":   return "error";   // rojo
-    case "exportar":      return "gray";    // gris o blanco
-    case "aprobacion":    return "success";
-    case "rechazo":       return "error";
-    default:               return "gray";
+    case "exportar":      return "dark";    // gris oscuro, serio
+    case "aprobacion":    return "teal";    // teal
+    case "rechazo":       return "pink";    // rosa
+    case "primer ingreso":return "indigo";  // morado intenso
+    case "ingreso":       return "purple";  // morado claro
+    case "cobro mensual": return "success"; // verde intenso
+    // Agrega más casos según tus acciones frecuentes
+    default: {
+      // Fallback: asigna un color consistente basado en hash
+      const palette = ["primary", "success", "error", "info", "warning", "purple", "teal", "pink", "indigo", "light", "dark"];
+      let hash = 0;
+      for (let i = 0; i < a.length; i++) hash = a.charCodeAt(i) + ((hash << 5) - hash);
+      const idx = Math.abs(hash) % palette.length;
+      return palette[idx];
+    }
   }
 }
 
 function resumirMetadata(accion, metadata = {}) {
   if (!metadata || Object.keys(metadata).length === 0) return "—";
+  if (metadata.detalle) return metadata.detalle;
   switch (accion) {
     case "creacion":
       return metadata.nombre ?? metadata.nombreCompleto ?? "—";
@@ -84,6 +89,29 @@ export default function Bitacora() {
   const [rangoPersonalizado, setRangoPersonalizado] = useState([null, null]);
   const [fechaInicioDP, fechaFinDP] = rangoPersonalizado;
 
+  // Extraer colecciones y acciones únicas de todosLosRegistros
+  const coleccionesDinamicas = useMemo(() => {
+    const set = new Set();
+    todosLosRegistros.forEach(r => {
+      if (r.coleccion) set.add(r.coleccion);
+    });
+    return Array.from(set).map(val => ({ value: val, label: capitalize(val) }));
+  }, [todosLosRegistros]);
+
+  const accionesDinamicas = useMemo(() => {
+    const set = new Set();
+    todosLosRegistros.forEach(r => {
+      if (r.accion) set.add(r.accion.toLowerCase());
+      if (r.accion) set.add(capitalize(r.accion));
+    });
+    // Elimina duplicados ignorando mayúsculas/minúsculas
+    const unique = Array.from(set).reduce((acc, val) => {
+      if (!acc.some(v => v.toLowerCase() === val.toLowerCase())) acc.push(val);
+      return acc;
+    }, []);
+    return unique.map(val => ({ value: val, label: capitalize(val) }));
+  }, [todosLosRegistros]);
+
   // Re-fetch cuando cambian los filtros que van a Firestore
   const fetchBitacora = async () => {
       setLoading(true);
@@ -99,11 +127,15 @@ export default function Bitacora() {
 
         // ── Query filtrada — para la tabla ──
         let q;
+        // Normalizar filtroAccion a minúsculas y capitalizada para la consulta
+        const filtroAccionLower = filtroAccion ? filtroAccion.toLowerCase() : "";
+        const filtroAccionCap = filtroAccion ? capitalize(filtroAccionLower) : "";
         if (filtroColeccion && filtroAccion) {
+          // Buscar ambos variantes
           q = query(
             collection(db, "bitacora"),
             where("coleccion", "==", filtroColeccion),
-            where("accion",    "==", filtroAccion),
+            where("accion",    "in", [filtroAccionLower, filtroAccionCap]),
             orderBy("fecha", "desc"),
           );
         } else if (filtroColeccion) {
@@ -115,7 +147,7 @@ export default function Bitacora() {
         } else if (filtroAccion) {
           q = query(
             collection(db, "bitacora"),
-            where("accion", "==", filtroAccion),
+            where("accion", "in", [filtroAccionLower, filtroAccionCap]),
             orderBy("fecha", "desc"),
           );
         } else {
@@ -308,7 +340,7 @@ export default function Bitacora() {
               className={`w-full sm:w-44 ${selectClass}`}
             >
               <option value="" className="bg-white text-gray-900">Colección</option>
-              {COLECCIONES.map((c) => (
+              {coleccionesDinamicas.map((c) => (
                 <option key={c.value} value={c.value} className="bg-white text-gray-900">
                   {c.label}
                 </option>
@@ -321,7 +353,7 @@ export default function Bitacora() {
               className={`w-full sm:w-44 ${selectClass}`}
             >
               <option value="" className="bg-white text-gray-900">Acción</option>
-              {ACCIONES.map((a) => (
+              {accionesDinamicas.map((a) => (
                 <option key={a.value} value={a.value} className="bg-white text-gray-900">
                   {a.label}
                 </option>

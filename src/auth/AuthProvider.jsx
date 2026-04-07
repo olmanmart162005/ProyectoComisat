@@ -12,6 +12,7 @@ import {
   getDocs,
   doc,
   getDoc,
+  updateDoc,
 } from "firebase/firestore";
 import { sileo, Toaster } from "sileo";
 
@@ -22,6 +23,9 @@ export const AuthProvider = ({ children }) => {
   const [role, setRole] = useState(null);
   const [estado, setEstado] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [primerLoginHecho, setPrimerLoginHecho] = useState(null);
+  const [correoPersonal, setCorreoPersonal] = useState("");
+  const [usuarioDocId, setUsuarioDocId] = useState(null);
 
   // Unificamos en una sola función que devuelve todos los datos necesarios
   const getUserData = async (email) => {
@@ -47,14 +51,17 @@ export const AuthProvider = ({ children }) => {
         return {
           rolNombre,
           estado: userData.estado ?? "Inactivo",
+          primerLoginHecho: userData.primerLoginHecho ?? false,
+          correoPersonal: userData.correoPersonal ?? "",
+          usuarioDocId: querySnapshot.docs[0].id,
         };
       }
 
       // Si no existe en Firestore, lo tratamos como inactivo
-      return { rolNombre: "Usuario", estado: "Inactivo" };
+      return { rolNombre: "Usuario", estado: "Inactivo", primerLoginHecho: false, correoPersonal: "", usuarioDocId: null };
     } catch (error) {
       console.error("Error obteniendo datos del usuario:", error);
-      return { rolNombre: "Usuario", estado: "Inactivo" };
+      return { rolNombre: "Usuario", estado: "Inactivo", primerLoginHecho: false, correoPersonal: "", usuarioDocId: null };
     }
   };
 
@@ -73,12 +80,18 @@ export const AuthProvider = ({ children }) => {
           setUser(currentUser);
           setRole(data.rolNombre);
           setEstado(data.estado);
+          setPrimerLoginHecho(data.primerLoginHecho);
+          setCorreoPersonal(data.correoPersonal);
+          setUsuarioDocId(data.usuarioDocId);
         } else {
           // Inactivo o no encontrado: cerramos sesión
           await signOut(auth);
           setUser(null);
           setRole(null);
           setEstado(null);
+          setPrimerLoginHecho(null);
+          setCorreoPersonal(null);
+          setUsuarioDocId(null);
 
           if (estadoActual === "inactivo") {
             sileo.error({
@@ -100,6 +113,14 @@ export const AuthProvider = ({ children }) => {
     return () => unsubscribe();
   }, []);
 
+  // En AuthProvider.jsx — actualizar la función para aceptar el parámetro
+   const marcarPrimerLogin = async (docId) => {
+     const id = docId || usuarioDocId; // usa el que llegue, o el del estado si ya existe
+     if (!id) return;
+     await updateDoc(doc(db, "usuarios", id), { primerLoginHecho: true });
+     setPrimerLoginHecho(true);
+   };
+   
   const login = async (email, password) => {
     const userCredential = await signInWithEmailAndPassword(
       auth,
@@ -121,7 +142,7 @@ export const AuthProvider = ({ children }) => {
 
   return (
     <AuthContext.Provider
-      value={{ user, role, estado, login, logout, loading }}
+      value={{ user, role, estado, login, logout, loading, primerLoginHecho, marcarPrimerLogin, correoPersonal }}
     >
       {!loading && children}
     </AuthContext.Provider>

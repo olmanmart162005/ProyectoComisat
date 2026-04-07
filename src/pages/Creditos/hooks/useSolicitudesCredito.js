@@ -13,6 +13,8 @@ import {
 } from "firebase/firestore";
 import { registrarBitacora } from "../../../services/bitacora";
 
+
+
 const getEmpleadoKey = (s) => {
   if (!s) return "";
   return String(
@@ -25,6 +27,8 @@ const getEmpleadoKey = (s) => {
     .toLowerCase();
 };
 
+
+// este hook maneja toda la lógica relacionada con solicitudes de crédito: carga, filtrado, selección, etc.
 export function useSolicitudesCredito({ user, nombreEmpleado, isOpen }) {
   const [solicitudes, setSolicitudes] = useState([]);
   const [loading, setLoading] = useState(true);

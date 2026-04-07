@@ -3,6 +3,9 @@ import { db } from "../../../firebase/firebase";
 import { collection, deleteDoc, doc, getDocs } from "firebase/firestore";
 import { sileo } from "sileo";
 
+
+// Este hook maneja toda la lógica relacionada con categorías: carga, eliminación, etc.
+
 export function useCategorias() {
   const [categorias, setCategorias] = useState([]);
   const [loading, setLoading] = useState(true);

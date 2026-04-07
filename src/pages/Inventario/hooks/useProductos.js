@@ -12,12 +12,15 @@ import {
 import { sileo } from "sileo";
 import { registrarBitacora } from "../../../services/bitacora";
 
+// Este hook maneja toda la lógica relacionada con productos: carga, filtrado, eliminación, etc.
+
 export function useProductos({ user, nombreEmpleado }) {
   const [productos, setProductos] = useState([]);
   const [categorias, setCategorias] = useState([]);
   const [loading, setLoading] = useState(true);
   const [porcentajeAumento, setPorcentajeAumento] = useState(0);
   const [filtroCategoria, setFiltroCategoria] = useState("");
+  const [filtroEstadoProducto, setFiltroEstadoProducto] = useState("");
   const [filtroStockRange, setFiltroStockRange] = useState([
     undefined,
     undefined,
@@ -88,8 +91,14 @@ export function useProductos({ user, nombreEmpleado }) {
     0,
   );
 
+  // Lógica de filtrado
   const productosFiltrados = useMemo(() => {
     return productos.filter((p) => {
+      const estadoVisual = getEstadoVisualProducto(p);
+      const coincideEstado = filtroEstadoProducto
+        ? estadoVisual === filtroEstadoProducto
+        : true;
+
       const coincideCategoria = filtroCategoria
         ? p.categoriaId === filtroCategoria
         : true;
@@ -101,9 +110,14 @@ export function useProductos({ user, nombreEmpleado }) {
       const coincideStockMax =
         stockMax === undefined ? true : stockNum <= stockMax;
 
-      return coincideCategoria && coincideStockMin && coincideStockMax;
+      return (
+        coincideEstado &&
+        coincideCategoria &&
+        coincideStockMin &&
+        coincideStockMax
+      );
     });
-  }, [productos, filtroCategoria, filtroStockRange]);
+  }, [productos, filtroCategoria, filtroEstadoProducto, filtroStockRange]);
 
   const textoFiltrosPdf = useMemo(() => {
     const partes = [];
@@ -111,6 +125,10 @@ export function useProductos({ user, nombreEmpleado }) {
     if (filtroCategoria) {
       const cat = categorias.find((c) => c.id === filtroCategoria);
       partes.push(`Categoría: ${cat ? cat.nombre : filtroCategoria}`);
+    }
+
+    if (filtroEstadoProducto) {
+      partes.push(`Estado: ${filtroEstadoProducto}`);
     }
 
     const [stockMin, stockMax] = filtroStockRange;
@@ -123,8 +141,8 @@ export function useProductos({ user, nombreEmpleado }) {
     return partes.length > 0
       ? `Filtros activos: ${partes.join(" | ")}`
       : "Catálogo Completo";
-  }, [filtroCategoria, categorias, filtroStockRange]);
-
+  }, [filtroCategoria, categorias, filtroEstadoProducto, filtroStockRange]);
+// ------------------------------------------------------------
   const handleEliminar = async (id) => {
     if (window.confirm("¿Estás seguro de que deseas eliminar este producto?")) {
       try {
@@ -183,6 +201,8 @@ export function useProductos({ user, nombreEmpleado }) {
     textoFiltrosPdf,
     filtroCategoria,
     setFiltroCategoria,
+    filtroEstadoProducto,
+    setFiltroEstadoProducto,
     filtroStockRange,
     setFiltroStockRange,
     fetchProductos,

@@ -26,9 +26,14 @@ export default function CreditReviewModal({
   const creditoUtilizado = resumenEmpleado?.cuotaMensualActiva ?? 0;
   const disponible = Math.max(0, limite - creditoUtilizado);
   const excedeLimite = (fin.cuotaMensual ?? 0) > disponible;
+  const porcentajeUsado =
+    limite > 0
+      ? Math.min(100, Math.round((creditoUtilizado / limite) * 100))
+      : 0;
   const limiteConsumido = creditoUtilizado >= limite;
   const isPendiente = solicitud.estado === "Pendiente";
   const mostrarAuditoria = ["Aprobado", "Rechazado"].includes(solicitud.estado);
+  const cantidadSolicitada = solicitud.cantidad ?? "---";
 
   const historialColumns = useMemo(
     () => [
@@ -156,6 +161,13 @@ export default function CreditReviewModal({
                   {solicitud.productoNombre}
                 </h3>
 
+                <p className="text-sm font-semibold text-gray-600 dark:text-gray-300 mb-1">
+                  Cantidad solicitada:{" "}
+                  <span className="text-gray-900 dark:text-white">
+                    {cantidadSolicitada}
+                  </span>
+                </p>
+
                 <p className="text-xl font-black text-gray-800 dark:text-gray-100 tracking-tight">
                   <span className="text-sm font-medium mr-1 text-gray-500"></span>
                   {lps(fin.totalCredito)}
@@ -178,7 +190,7 @@ export default function CreditReviewModal({
                       color: "text-gray-800 dark:text-white/90",
                     },
                     {
-                      label: "Límite Aplicado",
+                      label: `Límite (${Math.round((fin.porcentajeLimiteAplicado ?? 0) * 100)}%)`,
                       value: lps(limite),
                       color: "text-gray-800 dark:text-white/90",
                     },
@@ -190,11 +202,13 @@ export default function CreditReviewModal({
                     {
                       label: "Disponible",
                       value: lps(disponible),
-                      color: "text-green-700 dark:text-green-400",
+                      color: excedeLimite
+                        ? "text-red-600 dark:text-red-400"
+                        : "text-green-700 dark:text-green-400",
                     },
                   ].map((item) => (
                     <div key={item.label} className="flex flex-col gap-1">
-                      <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 min-h-[16px]">
+                      <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
                         {item.label}
                       </p>
                       <p

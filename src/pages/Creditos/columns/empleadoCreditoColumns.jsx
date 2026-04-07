@@ -1,6 +1,21 @@
 import Badge from "../../../components/ui/badge/Badge";
 import { EyeIcon } from "../../../icons";
-import { getEstadoEmpleado } from "../hooks/useEmpleadosCredito";
+import { getEstadoEmpleado } from "../hooks/useEmpleadosPerfil";
+
+const formatFecha = (valor) => {
+  if (!valor) return "---";
+  if (typeof valor?.toDate === "function") {
+    return valor.toDate()?.toLocaleDateString("es-HN") ?? "---";
+  }
+  if (valor instanceof Date) {
+    return valor.toLocaleDateString("es-HN");
+  }
+  const seconds = valor?.seconds ?? valor?._seconds;
+  if (typeof seconds === "number") {
+    return new Date(seconds * 1000).toLocaleDateString("es-HN");
+  }
+  return "---";
+};
 
 export const lps = (n) => `L. ${Number(n ?? 0).toLocaleString("es-HN")}`;
 
@@ -57,11 +72,11 @@ export function empleadoCreditoColumns({
     {
       accessorKey: "fechaRegistro",
       header: "Fecha Registro",
-      cell: (info) => {
-        const val = info.getValue();
+      cell: ({ row, getValue }) => {
+        const val = getValue() ?? row.original?.FechaRegistro;
         return (
           <span className="block text-gray-700 text-theme-sm dark:text-gray-300">
-            {val?.toDate?.()?.toLocaleDateString("es-HN") ?? "---"}
+            {formatFecha(val)}
           </span>
         );
       },

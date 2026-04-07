@@ -16,7 +16,12 @@ import { sileo } from "sileo";
 import { Modal } from "../ui/modal";
 import { registrarBitacora } from "../../services/bitacora";
 import PhoneInput from "../form/group-input/PhoneInput";
+import {
+  generarPasswordTemporal,
+  enviarCorreoCredenciales,
+} from "../../services/credencialesEmail";
 
+// ── 1. Primero siempre getRolEmpleadoId ──
 const getRolEmpleadoId = async () => {
   try {
     const q = query(collection(db, "roles"), where("nombre", "==", "Empleado"));
@@ -29,12 +34,14 @@ const getRolEmpleadoId = async () => {
   }
 };
 
+// ── 2. Después syncUsuarioConEmpleado (que ya puede usar getRolEmpleadoId) ──
 const syncUsuarioConEmpleado = async ({
   empleadoIdDoc,
   empleadoNombres,
   empleadoApellidos,
   empleadoCorreo,
   empleadoEstado,
+  empleadoDni,
 }) => {
   const q = query(
     collection(db, "usuarios"),
@@ -44,13 +51,13 @@ const syncUsuarioConEmpleado = async ({
 
   const payloadBase = {
     empleadoId: empleadoIdDoc,
-    empleadoNombres,
-    empleadoApellidos,
     nombre: `${empleadoNombres} ${empleadoApellidos}`.trim(),
     correo: empleadoCorreo,
+    correoPersonal: empleadoCorreo,
     estado: empleadoEstado,
   };
 
+  // Caso edición: solo sincronizar, sin correo
   if (!snap.empty) {
     await Promise.all(
       snap.docs.map((d) =>
@@ -63,14 +70,33 @@ const syncUsuarioConEmpleado = async ({
     return;
   }
 
+  // Caso creación: generar contraseña, guardar y enviar correo
   const rolEmpleadoId = await getRolEmpleadoId();
+  const password = generarPasswordTemporal(empleadoApellidos, empleadoDni);
 
   await addDoc(collection(db, "usuarios"), {
     ...payloadBase,
     rolId: rolEmpleadoId,
     rolNombre: "Empleado",
+    primerLoginHecho: false,
+    passwordTemporal: password,
     fechaRegistro: serverTimestamp(),
   });
+
+  try {
+    await enviarCorreoCredenciales({
+      nombre: `${empleadoNombres} ${empleadoApellidos}`.trim(),
+      correoInstitucional: empleadoCorreo,
+      passwordGenerada: password,
+      correoDestino: empleadoCorreo,
+    });
+  } catch (emailErr) {
+    console.error("Usuario creado pero falló el correo:", emailErr);
+    sileo.warning({
+      title: "Empleado creado",
+      description: "El usuario se generó, pero no se pudo enviar el correo de credenciales.",
+    });
+  }
 };
 
 export default function EmpleadoModal({
@@ -167,6 +193,7 @@ export default function EmpleadoModal({
         empleadoApellidos: apellidos,
         empleadoCorreo: correo,
         empleadoEstado: estado,
+        empleadoDni: dni,
       });
 
       await registrarBitacora({

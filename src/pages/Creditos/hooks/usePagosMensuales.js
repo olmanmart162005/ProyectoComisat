@@ -25,6 +25,8 @@ export const usePagosMensuales = ({ user, nombreEmpleado, closeModal }) => {
   const [loading, setLoading] = useState(true);
   const [procesando, setProcesando] = useState(false);
   const [registradoPor, setRegistradoPor] = useState("");
+  const [cuotasCobradasParaExport, setCuotasCobradasParaExport] = useState([]);
+  const [ultimoCobro, setUltimoCobro] = useState(null);
 
   const mesActual = getMesActual();
 
@@ -76,19 +78,49 @@ export const usePagosMensuales = ({ user, nombreEmpleado, closeModal }) => {
   const fetchCreditosPendientes = async () => {
     setLoading(true);
     try {
-      const snap = await getDocs(collection(db, "creditos"));
-      const todos = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+      const snapCreditos = await getDocs(collection(db, "creditos"));
+      const todos = snapCreditos.docs.map((d) => ({ id: d.id, ...d.data() }));
 
-      const cobrables = todos.filter((c) => {
-        if (c.estado !== "Aprobado") return false;
+      const snapCuotas = await getDocs(collection(db, "cuotas"));
+      const pagosPorCredito = {};
 
-        const estadoCredito = String(c.estadoCredito ?? "").toLowerCase();
-        if (ESTADOS_CERRADOS.includes(estadoCredito)) return false;
-
-        if (c.mesCobro === mesActual) return false;
-
-        return true;
+      snapCuotas.docs.forEach((d) => {
+        const { creditoId, montoCuota } = d.data();
+        if (!creditoId) return;
+        if (!pagosPorCredito[creditoId]) {
+          pagosPorCredito[creditoId] = { total: 0, count: 0 };
+        }
+        pagosPorCredito[creditoId].total += Number(montoCuota ?? 0);
+        pagosPorCredito[creditoId].count += 1;
       });
+
+      const cobrables = todos
+        .map((c) => ({
+          ...c,
+          _totalPagado: pagosPorCredito[c.id]?.total ?? 0,
+          _cuotasPagadasReal: pagosPorCredito[c.id]?.count ?? 0,
+        }))
+        .filter((c) => {
+          if (c.estado !== "Aprobado") return false;
+
+          const estadoCredito = String(c.estadoCredito ?? "").toLowerCase();
+          if (ESTADOS_CERRADOS.includes(estadoCredito)) return false;
+
+          if (c.mesCobro === mesActual) return false;
+
+          const totalCredito = Number(
+            c.datosFinancierosHistoricos?.totalCredito ?? 0,
+          );
+          const plazoCuotas = Number(
+            c.datosFinancierosHistoricos?.plazoCuotas ?? 0,
+          );
+
+          if (c._cuotasPagadasReal >= plazoCuotas && plazoCuotas > 0)
+            return false;
+          if (c._totalPagado >= totalCredito && totalCredito > 0) return false;
+
+          return true;
+        });
 
       setCreditosPendientes(cobrables);
     } catch (err) {
@@ -126,18 +158,50 @@ export const usePagosMensuales = ({ user, nombreEmpleado, closeModal }) => {
       const batch = writeBatch(db);
       const fechaCobro = serverTimestamp();
 
-      for (const credito of creditosPendientes) {
+      const snapshotParaExport = creditosPendientes.map((credito) => {
         const fin = credito.datosFinancierosHistoricos ?? {};
-        const cuotasPagadas = Number(credito.cuotasPagadas ?? 0);
-        const plazoCuotas = Number(fin.plazoCuotas ?? 0);
         const cuotaMensual = Number(fin.cuotaMensual ?? 0);
         const totalCredito = Number(fin.totalCredito ?? 0);
-        const numeroCuota = cuotasPagadas + 1;
-        const saldoPendiente = Math.max(
+        const totalPagadoReal = credito._totalPagado ?? 0;
+        const numeroCuota = (credito._cuotasPagadasReal ?? 0) + 1;
+        const saldoTrasPago = Math.max(
           0,
-          totalCredito - cuotaMensual * numeroCuota,
+          totalCredito - totalPagadoReal - cuotaMensual,
         );
-        const esUltimaCuota = numeroCuota >= plazoCuotas;
+        return {
+          empleado:
+            `${credito.empleadoNombres ?? ""} ${credito.empleadoApellidos ?? ""}`.trim(),
+          productoNombre: credito.productoNombre ?? "---",
+          numeroCuota: `${numeroCuota} de ${fin.plazoCuotas ?? "?"}`,
+          montoCuota: cuotaMensual,
+          saldoTrasPago,
+          mesCobro: mesActual,
+        };
+      });
+
+      const montoTotalCobrado = snapshotParaExport.reduce(
+        (acc, r) => acc + r.montoCuota,
+        0,
+      );
+
+      for (const credito of creditosPendientes) {
+        const fin = credito.datosFinancierosHistoricos ?? {};
+        const cuotaMensual = Number(fin.cuotaMensual ?? 0);
+        const totalCredito = Number(fin.totalCredito ?? 0);
+        const plazoCuotas = Number(fin.plazoCuotas ?? 0);
+
+        const cuotasPagadasReal = credito._cuotasPagadasReal ?? 0;
+        const totalPagadoReal = credito._totalPagado ?? 0;
+
+        if (cuotasPagadasReal >= plazoCuotas && plazoCuotas > 0) {
+          continue;
+        }
+
+        const numeroCuota = cuotasPagadasReal + 1;
+        const nuevoTotalPagado = totalPagadoReal + cuotaMensual;
+        const saldoPendiente = Math.max(0, totalCredito - nuevoTotalPagado);
+        const esUltimaCuota =
+          saldoPendiente <= 0 || numeroCuota === plazoCuotas;
 
         const nombreEmpleado =
           `${credito.empleadoNombres ?? ""} ${credito.empleadoApellidos ?? ""}`.trim();
@@ -170,15 +234,24 @@ export const usePagosMensuales = ({ user, nombreEmpleado, closeModal }) => {
 
       await registrarBitacora({
         usuario: user?.email ?? "desconocido",
-        nombre: nombreEmpleado,
+        nombre: registradoPor,
         coleccion: "cuotas",
-        accion: "creacion",
+        accion: "cobro_mensual",
         metadata: {
           mesCobro: mesActual,
-          totalCuotasProcesadas: creditosPendientes.length,
-          montoTotalProcesado: montoTotal,
-          empleadosAfectados: empleadosUnicos,
+          totalCuotasRegistradas: snapshotParaExport.length,
+          montoTotalCobrado,
+          empleadosAfectados: new Set(
+            creditosPendientes.map((c) => c.empleadoId ?? c.empleadoNombres),
+          ).size,
         },
+      });
+
+      setCuotasCobradasParaExport(snapshotParaExport);
+      setUltimoCobro({
+        fecha: new Date().toLocaleDateString("es-HN"),
+        totalCuotas: snapshotParaExport.length,
+        montoTotal: montoTotalCobrado,
       });
 
       await fetchCreditosPendientes();
@@ -196,6 +269,8 @@ export const usePagosMensuales = ({ user, nombreEmpleado, closeModal }) => {
     loading,
     procesando,
     registradoPor,
+    cuotasCobradasParaExport,
+    ultimoCobro,
     totalCuotas,
     montoTotal,
     empleadosUnicos,

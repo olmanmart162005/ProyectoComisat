@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthProvider";
 import { sileo, Toaster } from "sileo";
@@ -7,9 +7,18 @@ import emailjs from "@emailjs/browser";
 import { encryptPassword, decryptPassword } from "../services/crypto";
 import { registrarBitacora } from "../services/bitacora";
 import { useNombreEmpleadoActual } from "../hooks/useNombreEmpleadoActual";
+import {
+  collection,
+  doc,
+  getDocs,
+  query,
+  updateDoc,
+  where,
+} from "firebase/firestore";
+import { db } from "../firebase/firebase";
 
 export default function MetodosAcceso() {
-  const nombreEmpleado = useNombreEmpleadoActual();
+  // No usar hook para nombre, sino obtenerlo directo de Firestore antes de registrar bitácora
   Toaster.position = "top-right";
   const { state } = useLocation();
   const navigate = useNavigate();
@@ -43,31 +52,72 @@ export default function MetodosAcceso() {
       const encrypted = await encryptPassword(password, email);
       localStorage.setItem(`cred_${email}`, encrypted);
 
-      // Bitácora: Primer ingreso o Ingreso
+      // Obtener nombre del empleado desde Firestore
+      let nombreParaBitacora = email;
+      try {
+        const qUsuario = query(
+          collection(db, "usuarios"),
+          where("correo", "==", email),
+        );
+        const snapUsuario = await getDocs(qUsuario);
+        if (!snapUsuario.empty) {
+          const datosUsuario = snapUsuario.docs[0].data();
+          if (datosUsuario.empleadoId) {
+            const qEmpleado = query(
+              collection(db, "empleados"),
+              where("_name_", "==", datosUsuario.empleadoId),
+            );
+            const snapEmpleado = await getDocs(qEmpleado);
+            if (!snapEmpleado.empty) {
+              const emp = snapEmpleado.docs[0].data();
+              nombreParaBitacora =
+                `${emp.nombres ?? ""} ${emp.apellidos ?? ""}`.trim() || email;
+            } else {
+              nombreParaBitacora = datosUsuario.nombre ?? email;
+            }
+          } else {
+            nombreParaBitacora = datosUsuario.nombre ?? email;
+          }
+        }
+      } catch (err) {
+        nombreParaBitacora = email;
+      }
+
       await registrarBitacora({
         usuario: email,
-        nombre: nombreEmpleado,
+        nombre: nombreParaBitacora,
         coleccion: "usuarios",
         accion: esPrimerLogin ? "Primer ingreso" : "Ingreso",
         docId: userData.id,
         metadata: {
           primerLogin: esPrimerLogin,
+          detalle: esPrimerLogin
+            ? "Ingresó por primera vez al portal"
+            : "Inició sesión en el portal",
         },
       });
 
-      // Solo marca si era el primer login
       if (esPrimerLogin) {
-        await marcarPrimerLogin(userData.id);  // ← aquí el campo cambia a true en Firestore
+        await marcarPrimerLogin(userData.id);
       }
 
       navigate("/");
     } catch (err) {
       if (err.message === "Cuenta inactiva") {
-        sileo.error({ title: "Acceso denegado", description: "Tu cuenta está inactiva." });
+        sileo.error({
+          title: "Acceso denegado",
+          description: "Tu cuenta está inactiva.",
+        });
       } else if (err.code === "auth/invalid-credential") {
-        sileo.error({ title: "Contraseña incorrecta", description: "Verifica tu contraseña e intenta de nuevo." });
+        sileo.error({
+          title: "Contraseña incorrecta",
+          description: "Verifica tu contraseña e intenta de nuevo.",
+        });
       } else {
-        sileo.error({ title: "Error", description: "Ocurrió un error inesperado." });
+        sileo.error({
+          title: "Error",
+          description: "Ocurrió un error inesperado.",
+        });
       }
     } finally {
       setEnviando(false);
@@ -75,105 +125,138 @@ export default function MetodosAcceso() {
   };
 
   const generarOtp = () =>
-  Math.floor(100000 + Math.random() * 900000).toString();
+    Math.floor(100000 + Math.random() * 900000).toString();
 
   const handleEnviarCodigo = async () => {
-  setEnviandoOtp(true);
-  const codigo = generarOtp();
-  const expira = Date.now() + 5 * 60 * 1000; // 5 minutos
+    setEnviandoOtp(true);
+    const codigo = generarOtp();
+    const expira = Date.now() + 5 * 60 * 1000; // 5 minutos
 
-      try {
-        await emailjs.send(
-          import.meta.env.VITE_EMAILJS_SERVICE_ID,
-          import.meta.env.VITE_EMAILJS_TEMPLATE_ID,
-          {
-            nombre: userData.nombre,
-            codigo,
-            correo_destino: userData.correoPersonal,
-          },
-          import.meta.env.VITE_EMAILJS_PUBLIC_KEY
-        );
+    try {
+      await emailjs.send(
+        import.meta.env.VITE_EMAILJS_SERVICE_ID,
+        import.meta.env.VITE_EMAILJS_TEMPLATE_ID,
+        {
+          nombre: userData.nombre,
+          codigo,
+          correo_destino: userData.correoPersonal,
+        },
+        import.meta.env.VITE_EMAILJS_PUBLIC_KEY,
+      );
 
-        setOtpGenerado(codigo);
-        setOtpExpira(expira);
-        setOtpEnviado(true);
+      setOtpGenerado(codigo);
+      setOtpExpira(expira);
+      setOtpEnviado(true);
 
-        sileo.success({
-          title: "Código enviado",
-          description: `Revisa ${userData.correoPersonal}`,
-        });
-      } catch (err) {
-        console.error(err);
-        sileo.error({
-          title: "Error al enviar",
-          description: "No se pudo enviar el código. Intenta de nuevo.",
-        });
-      } finally {
-        setEnviandoOtp(false);
-      }
-    };
+      sileo.success({
+        title: "Código enviado",
+        description: `Revisa ${userData.correoPersonal}`,
+      });
+    } catch (err) {
+      console.error(err);
+      sileo.error({
+        title: "Error al enviar",
+        description: "No se pudo enviar el código. Intenta de nuevo.",
+      });
+    } finally {
+      setEnviandoOtp(false);
+    }
+  };
 
-    const handleVerificarCodigo = async () => {
-      if (Date.now() > otpExpira) {
-        sileo.error({
-          title: "Código expirado",
-          description: "El código venció. Solicita uno nuevo.",
-        });
-        setOtpEnviado(false);
-        return;
+  const handleVerificarCodigo = async () => {
+    if (Date.now() > otpExpira) {
+      sileo.error({
+        title: "Código expirado",
+        description: "El código venció. Solicita uno nuevo.",
+      });
+      setOtpEnviado(false);
+      return;
     }
 
     if (codigoIngresado.trim() !== otpGenerado) {
-        sileo.error({
-          title: "Código incorrecto",
-          description: "Verifica el código e intenta de nuevo.",
-        });
-        return;
+      sileo.error({
+        title: "Código incorrecto",
+        description: "Verifica el código e intenta de nuevo.",
+      });
+      return;
     }
 
     const encryptedPass = localStorage.getItem(`cred_${email}`);
 
     if (!encryptedPass) {
-        // El usuario limpió caché o entró desde otro navegador
-        sileo.error({
-          title: "Sesión no encontrada",
-          description: "Por seguridad necesitas ingresar tu contraseña una vez más.",
-        });
-        // Resetea primerLoginHecho en Firestore para forzar flujo de contraseña
-        await updateDoc(doc(db, "usuarios", userData.id), {
-          primerLoginHecho: false,
-        });
-        navigate("/login");
-        return;
+      // El usuario limpió caché o entró desde otro navegador
+      sileo.error({
+        title: "Sesión no encontrada",
+        description:
+          "Por seguridad necesitas ingresar tu contraseña una vez más.",
+      });
+      // Resetea primerLoginHecho en Firestore para forzar flujo de contraseña
+      await updateDoc(doc(db, "usuarios", userData.id), {
+        primerLoginHecho: false,
+      });
+      navigate("/login");
+      return;
     }
 
-
     // Código válido — hacer login silencioso con Firebase
-      setEnviando(true);
+    setEnviando(true);
+    try {
+      const password = await decryptPassword(encryptedPass, email);
+      await login(email, password);
+
+      // Bitácora: Ingreso (no es primer login, porque OTP solo aplica después)
+      // Obtener nombre del empleado desde Firestore
+      let nombreParaBitacora = email;
       try {
-        const password = await decryptPassword(encryptedPass, email);
-        await login(email, password);
-
-        // Bitácora: Ingreso (no es primer login, porque OTP solo aplica después)
-        await registrarBitacora({
-          usuario: email,
-          nombre: nombreEmpleado,
-          coleccion: "usuarios",
-          accion: "Ingreso",
-          docId: userData.id,
-          metadata: {
-            primerLogin: false,
-          },
-        });
-
-        navigate("/");
+        const qUsuario = query(
+          collection(db, "usuarios"),
+          where("correo", "==", email),
+        );
+        const snapUsuario = await getDocs(qUsuario);
+        if (!snapUsuario.empty) {
+          const datosUsuario = snapUsuario.docs[0].data();
+          if (datosUsuario.empleadoId) {
+            const qEmpleado = query(
+              collection(db, "empleados"),
+              where("_name_", "==", datosUsuario.empleadoId),
+            );
+            const snapEmpleado = await getDocs(qEmpleado);
+            if (!snapEmpleado.empty) {
+              const emp = snapEmpleado.docs[0].data();
+              nombreParaBitacora =
+                `${emp.nombres ?? ""} ${emp.apellidos ?? ""}`.trim() || email;
+            } else {
+              nombreParaBitacora = datosUsuario.nombre ?? email;
+            }
+          } else {
+            nombreParaBitacora = datosUsuario.nombre ?? email;
+          }
+        }
       } catch (err) {
-        sileo.error({ title: "Error", description: "No se pudo iniciar sesión." });
-      } finally {
-        setEnviando(false);
+        nombreParaBitacora = email;
       }
-    };
+      await registrarBitacora({
+        usuario: email,
+        nombre: nombreParaBitacora,
+        coleccion: "usuarios",
+        accion: "Ingreso",
+        docId: userData.id,
+        metadata: {
+          primerLogin: false,
+          detalle: "Inició sesión en el portal",
+        },
+      });
 
+      navigate("/");
+    } catch (err) {
+      sileo.error({
+        title: "Error",
+        description: "No se pudo iniciar sesión.",
+      });
+    } finally {
+      setEnviando(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col items-center justify-center px-4">
@@ -183,7 +266,6 @@ export default function MetodosAcceso() {
       </div>
 
       <div className="w-full max-w-sm bg-white rounded-2xl shadow-md px-8 py-10 space-y-4">
-
         {esPrimerLogin ? (
           // ── Primer login: formulario de contraseña ──
           <form onSubmit={handleLoginConPassword} className="space-y-4">
@@ -191,7 +273,7 @@ export default function MetodosAcceso() {
               Es tu primer ingreso. Usa tu contraseña para continuar.
             </p>
             <div className="relative">
-              <input 
+              <input
                 type={showPassword ? "text" : "password"}
                 required
                 value={password}
@@ -201,7 +283,7 @@ export default function MetodosAcceso() {
               />
               <button
                 type="button"
-                onClick={() => setShowPassword(v => !v)}
+                onClick={() => setShowPassword((v) => !v)}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
               >
                 {/* mismo SVG de ojo que tenías */}
@@ -242,7 +324,9 @@ export default function MetodosAcceso() {
                   type="text"
                   maxLength={6}
                   value={codigoIngresado}
-                  onChange={(e) => setCodigoIngresado(e.target.value.replace(/\D/, ""))}
+                  onChange={(e) =>
+                    setCodigoIngresado(e.target.value.replace(/\D/, ""))
+                  }
                   placeholder="000000"
                   className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-center text-2xl text-gray-800 font-mono tracking-widest focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />

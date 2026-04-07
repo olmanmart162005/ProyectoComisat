@@ -35,7 +35,7 @@ export function pagoMensualColumns() {
       id: "progreso",
       header: "Progreso",
       cell: ({ row }) => {
-        const pagadas = Number(row.original.cuotasPagadas ?? 0);
+        const pagadas = Number(row.original._cuotasPagadasReal ?? 0);
         const total = Number(
           row.original.datosFinancierosHistoricos?.plazoCuotas ?? 0,
         );
@@ -52,10 +52,10 @@ export function pagoMensualColumns() {
       header: "Saldo Tras Pago",
       cell: ({ row }) => {
         const fin = row.original.datosFinancierosHistoricos ?? {};
-        const pagadas = Number(row.original.cuotasPagadas ?? 0);
         const cuota = Number(fin.cuotaMensual ?? 0);
         const total = Number(fin.totalCredito ?? 0);
-        const saldo = Math.max(0, total - cuota * (pagadas + 1));
+        const totalPagadoReal = Number(row.original._totalPagado ?? 0);
+        const saldo = Math.max(0, total - totalPagadoReal - cuota);
         return (
           <span className="block font-medium text-gray-800 text-theme-sm dark:text-white/90">
             {lps(saldo)}
@@ -67,11 +67,11 @@ export function pagoMensualColumns() {
       id: "esUltima",
       header: "Estado",
       cell: ({ row }) => {
-        const pagadas = Number(row.original.cuotasPagadas ?? 0);
-        const total = Number(
-          row.original.datosFinancierosHistoricos?.plazoCuotas ?? 0,
-        );
-        const esUltima = pagadas + 1 >= total;
+        const fin = row.original.datosFinancierosHistoricos ?? {};
+        const cuota = Number(fin.cuotaMensual ?? 0);
+        const total = Number(fin.totalCredito ?? 0);
+        const totalPagadoReal = Number(row.original._totalPagado ?? 0);
+        const esUltima = totalPagadoReal + cuota >= total;
         return (
           <Badge size="sm" color={esUltima ? "success" : "warning"}>
             {esUltima ? "Última cuota" : "Al corriente"}

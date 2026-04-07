@@ -6,21 +6,35 @@ import DataTable from "../../components/ui/table/DataTable";
 import MetricCard from "../../components/common/MetricCard";
 import { useModal } from "../../hooks/useModal";
 import { CheckCircleIcon, BoxIconLine, GroupIcon } from "../../icons";
+import ExportButtons from "../../layout/Exportbuttons";
+import { registrarBitacora } from "../../services/bitacora";
 
 import PagoMensualConfirmModal from "../../components/Creditos/PagoMensualConfirmModal";
 import { pagoMensualColumns, lps } from "./columns/pagoMensualColumns";
 import { usePagosMensuales } from "./hooks/usePagosMensuales";
 
+const COLUMNAS_EXPORT_CUOTAS = [
+  { key: "empleado", header: "Empleado", type: "text" },
+  { key: "productoNombre", header: "Artículo", type: "text" },
+  { key: "numeroCuota", header: "Cuota", type: "text" },
+  { key: "montoCuota", header: "Monto Cobrado (L.)", type: "currency" },
+  { key: "saldoTrasPago", header: "Saldo Restante (L.)", type: "currency" },
+  { key: "mesCobro", header: "Mes de Cobro", type: "text" },
+];
+
 export default function PagosMensuales() {
   const { user } = useAuth();
   const nombreEmpleado = useNombreEmpleadoActual();
   const { isOpen, openModal, closeModal } = useModal();
+  const mesActual = new Date().toISOString().slice(0, 7);
 
   const {
     creditosPendientes,
     loading,
     procesando,
     registradoPor,
+    cuotasCobradasParaExport,
+    ultimoCobro,
     totalCuotas,
     montoTotal,
     empleadosUnicos,
@@ -117,6 +131,50 @@ export default function PagosMensuales() {
               Todos los créditos activos ya fueron cobrados este mes o no hay
               créditos pendientes.
             </p>
+          </div>
+        </div>
+      )}
+
+      {cuotasCobradasParaExport.length > 0 && ultimoCobro && (
+        <div className="rounded-xl border border-blue-200 dark:border-blue-500/30 bg-blue-50 dark:bg-blue-500/10 p-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-widest text-blue-700 dark:text-blue-400">
+                Reporte listo para descargar
+              </p>
+              <p className="text-xs font-medium text-blue-700 dark:text-blue-400 mt-0.5">
+                {ultimoCobro.totalCuotas} cuotas cobradas ·{" "}
+                {lps(ultimoCobro.montoTotal)} · {ultimoCobro.fecha}
+              </p>
+            </div>
+
+            <ExportButtons
+              rows={cuotasCobradasParaExport}
+              columns={COLUMNAS_EXPORT_CUOTAS}
+              filename={`Cuotas Cobradas ${mesActual}`}
+              meta={{
+                empresa: "Comisariato San Jose",
+                usuario: registradoPor || user?.email || "Sistema",
+                extra: `Período: ${mesActual} · Total cobrado: ${lps(ultimoCobro.montoTotal)}`,
+              }}
+              pdfOptions={{
+                title: "Reporte de Cuotas Cobradas",
+                subtitle: mesActual,
+              }}
+              onExport={(formato) =>
+                registrarBitacora({
+                  usuario: user?.email ?? "desconocido",
+                  nombre: registradoPor || user?.email || "desconocido",
+                  coleccion: "cuotas",
+                  accion: "exportar",
+                  metadata: {
+                    formato,
+                    mesCobro: mesActual,
+                    totalRegistros: cuotasCobradasParaExport.length,
+                  },
+                })
+              }
+            />
           </div>
         </div>
       )}

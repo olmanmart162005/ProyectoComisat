@@ -8,6 +8,7 @@ import { RoleRoute } from "../auth/RoleRoute";
 
 import AppLayout from "../layout/AppLayout";
 import Login from "../pages/Login";
+import MetodosAcceso from "../pages/MetodosAcceso";
 import { RoleRedirect } from "../auth/RoleRedirect";
 import NotFound from "../pages/Errors/NotFound";
 import AccesoDenegado from "../pages/Errors/AccesoDenegado";
@@ -46,6 +47,10 @@ export default function AppRouter() {
         <Route
           path="/login"
           element={user ? <Navigate to="/" replace /> : <Login />}
+        />
+        <Route
+          path="/login/metodos"
+          element={user ? <Navigate to="/" replace /> : <MetodosAcceso />}
         />
 
         {/* Páginas de error — públicas */}

@@ -33,11 +33,10 @@ export default function CreditReviewModal({
   const historialColumns = useMemo(
     () => [
       {
-        id: "fecha",
+        accessorKey: "fechaAutoriza",
         header: "Fecha",
-        cell: ({ row }) => {
-          const fecha =
-            row.original.fechaAutoriza ?? row.original.fechaRegistro;
+        cell: (info) => {
+          const fecha = info.getValue();
           return (
             <span className="block font-medium text-gray-800 text-theme-sm dark:text-white/90">
               {fecha?.toDate?.()?.toLocaleDateString("es-HN") ?? "---"}
@@ -66,18 +65,6 @@ export default function CreditReviewModal({
           );
         },
       },
-      {
-        id: "estadoCredito",
-        header: "Estado Crédito",
-        cell: ({ row }) => {
-          const val = row.original.estadoCredito ?? row.original.estado;
-          return (
-            <Badge size="sm" color={estadoColor[val] ?? "warning"}>
-              {val ?? "---"}
-            </Badge>
-          );
-        },
-      },
     ],
     [],
   );
@@ -85,7 +72,7 @@ export default function CreditReviewModal({
   return (
     <Modal isOpen={isOpen} onClose={onClose} className="max-w-4xl">
       <div className="flex h-full max-h-[90vh] overflow-hidden rounded-xl">
-        <aside className="hidden md:flex flex-col w-[450px] shrink-0 border-r border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-gray-900 rounded-l-xl overflow-hidden">
+        <aside className="hidden md:flex flex-col w-95 shrink-0 border-r border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-gray-900 rounded-l-xl overflow-hidden">
           <div className="px-4 pt-5 pb-3 border-b border-gray-200 dark:border-white/10">
             <p className="text-xs font-semibold uppercase tracking-widest text-gray-400 dark:text-gray-500">
               Perfil del Empleado

@@ -5,48 +5,35 @@ export const estadoColor = {
   Aprobado: "success",
   Activo: "success",
   Rechazado: "error",
-  Pagado: "primary",
-  Cancelado: "error",
-  Finalizado: "primary",
-  Mora: "warning",
   Pendiente: "warning",
 };
 
 export const lps = (n) => `L. ${Number(n ?? 0).toLocaleString("es-HN")}`;
 
 export const COLUMNAS_EXPORT_SOLICITUDES = [
-  {
-    key: "empleadoNombreCompleto",
-    header: "Empleado",
-    type: "text",
-    getValue: (row) =>
-      `${row.empleadoNombres ?? ""} ${row.empleadoApellidos ?? ""}`.trim(),
-  },
+  { key: "empleadoNombres", header: "Empleado", type: "text" },
+  { key: "empleadoApellidos", header: "Apellidos", type: "text" },
   { key: "productoNombre", header: "Artículo", type: "text" },
   {
     key: "totalCredito",
-    header: "Total Crédito",
+    header: "Total Crédito (L.)",
     type: "currency",
     getValue: (row) => row.datosFinancierosHistoricos?.totalCredito ?? 0,
   },
   {
-    key: "cuotaMensual",
-    header: "Cuota Mensual",
-    type: "currency",
-    getValue: (row) =>
-      row.datosFinancierosHistoricos?.cuotaMensual ?? row.cuotaMensual ?? 0,
+    key: "plazoCuotas",
+    header: "Plazo (meses)",
+    type: "number",
+    getValue: (row) => row.datosFinancierosHistoricos?.plazoCuotas ?? 0,
   },
   {
-    key: "plazo",
-    header: "Plazo",
-    type: "text",
-    getValue: (row) =>
-      row.datosFinancierosHistoricos?.plazo ?? row.plazo ?? "---",
+    key: "cuotaMensual",
+    header: "Cuota Mensual (L.)",
+    type: "currency",
+    getValue: (row) => row.datosFinancierosHistoricos?.cuotaMensual ?? 0,
   },
   { key: "estado", header: "Estado", type: "text" },
-  { key: "fechaRegistro", header: "Fecha Solicitud", type: "date" },
-  { key: "fechaAutoriza", header: "Fecha Autorización", type: "date" },
-  { key: "empleadoAutoriza", header: "Autorizado por", type: "text" },
+  { key: "fechaRegistro", header: "Solicitado", type: "date" },
 ];
 
 export function solicitudColumns({ onVerDetalle }) {

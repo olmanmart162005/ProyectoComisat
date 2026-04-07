@@ -11,6 +11,7 @@ import {
   updateDoc,
   where,
 } from "firebase/firestore";
+import { registrarBitacora } from "../../../services/bitacora";
 
 const getEmpleadoKey = (s) => {
   if (!s) return "";
@@ -99,12 +100,7 @@ export function useSolicitudesCredito({ user, nombreEmpleado, isOpen }) {
         return Number.isNaN(parsed) ? 0 : parsed;
       };
 
-      const estadosHistorial = [
-        "Aprobado",
-        "Aceptado",
-        "Rechazado",
-        "Cancelado",
-      ];
+      const estadosHistorial = ["Aprobado", "Rechazado"];
 
       setLoadingHistorial(true);
       try {
@@ -223,6 +219,20 @@ export function useSolicitudesCredito({ user, nombreEmpleado, isOpen }) {
           : prev,
       );
 
+      await registrarBitacora({
+        usuario: user?.email ?? "desconocido",
+        nombre: nombreEmpleado || user?.email || "desconocido",
+        coleccion: "creditos",
+        accion: nuevoEstado === "Aprobado" ? "Aprobación" : "Rechazo",
+        docId: solicitudSeleccionada.id,
+        metadata: {
+          detalle:
+            nuevoEstado === "Aprobado"
+              ? `Aprobó la solicitud de crédito para ${solicitudSeleccionada.empleadoNombres} ${solicitudSeleccionada.empleadoApellidos} por L. ${Number(solicitudSeleccionada.datosFinancierosHistoricos?.totalCredito ?? 0).toLocaleString("es-HN")}`
+              : `Rechazó la solicitud de crédito para ${solicitudSeleccionada.empleadoNombres} ${solicitudSeleccionada.empleadoApellidos} por L. ${Number(solicitudSeleccionada.datosFinancierosHistoricos?.totalCredito ?? 0).toLocaleString("es-HN")}`,
+        },
+      });
+
       alert(`Solicitud ${nuevoEstado} con éxito`);
       fetchSolicitudes();
     } catch (err) {
@@ -260,7 +270,7 @@ export function useSolicitudesCredito({ user, nombreEmpleado, isOpen }) {
 
   const textoFiltrosPdf = filtroEstadoSolicitud
     ? `Estado: ${filtroEstadoSolicitud}`
-    : "Listado completo";
+    : "Listado Completo";
 
   return {
     solicitudes,

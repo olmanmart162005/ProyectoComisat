@@ -157,6 +157,7 @@ export function useEmpleados({ user, nombreEmpleado }) {
             departamentoId: empleadoAEliminar.departamentoId,
             departamentoNombre: empleadoAEliminar.departamentoNombre,
             salario: empleadoAEliminar.salario,
+            fechaInicio: empleadoAEliminar.fechaInicio,
             fechaRegistro: empleadoAEliminar.fechaRegistro,
             empleadoId: id,
             fechaBaja: serverTimestamp(),

@@ -70,10 +70,10 @@ export function empleadoCreditoColumns({
       ),
     },
     {
-      accessorKey: "fechaRegistro",
-      header: "Fecha Registro",
+      accessorKey: "fechaInicio",
+      header: "Fecha Inicio",
       cell: ({ row, getValue }) => {
-        const val = getValue() ?? row.original?.FechaRegistro;
+        const val = getValue();
         return (
           <span className="block text-gray-700 text-theme-sm dark:text-gray-300">
             {formatFecha(val)}

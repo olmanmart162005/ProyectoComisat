@@ -14,6 +14,7 @@ import {
 } from "./columns/productColumns";
 import { useProductos } from "./hooks/useProductos";
 import { registrarBitacora } from "../../services/bitacora";
+import ProductosFiltersDropdown from "../../components/inventario/ProductosFiltersDropdown";
 
 export default function Gest_Productos() {
   const { user } = useAuth();
@@ -30,6 +31,8 @@ export default function Gest_Productos() {
     textoFiltrosPdf,
     filtroCategoria,
     setFiltroCategoria,
+    filtroEstadoProducto,
+    setFiltroEstadoProducto,
     filtroStockRange,
     setFiltroStockRange,
     fetchProductos,
@@ -106,29 +109,15 @@ export default function Gest_Productos() {
 
       <DataTable columns={columns} data={productosFiltrados} loading={loading}>
         <DataTable.Toolbar searchPlaceholder="Buscar producto...">
-          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto sm:ml-auto">
-            <select
-              value={filtroCategoria}
-              onChange={(e) => setFiltroCategoria(e.target.value)}
-              className="w-full sm:w-48 p-2 border border-gray-300 rounded-md text-sm text-gray-900 focus:ring-blue-500 focus:border-blue-500 dark:bg-white/5 dark:border-white/10 dark:text-gray-100"
-            >
-              <option value="" className="bg-white text-gray-900">
-                Categoría
-              </option>
-              {categorias.map((cat) => (
-                <option
-                  key={cat.id}
-                  value={cat.id}
-                  className="bg-white text-gray-900"
-                >
-                  {cat.nombre}
-                </option>
-              ))}
-            </select>
-            <DataTable.NumberRangeFilter
-              columnId="stock"
-              label="Stock:"
-              onChange={setFiltroStockRange}
+          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto sm:ml-auto items-stretch sm:items-center">
+            <ProductosFiltersDropdown
+              categorias={categorias}
+              filtroCategoria={filtroCategoria}
+              setFiltroCategoria={setFiltroCategoria}
+              filtroEstadoProducto={filtroEstadoProducto}
+              setFiltroEstadoProducto={setFiltroEstadoProducto}
+              filtroStockRange={filtroStockRange}
+              setFiltroStockRange={setFiltroStockRange}
             />
           </div>
 

@@ -202,7 +202,7 @@ DataTable.Table = function TableView({
                     {row.getVisibleCells().map((cell) => (
                       <TableCell
                         key={cell.id}
-                        className="px-5 py-4 sm:px-6 text-gray-500 text-start text-theme-sm dark:text-gray-400"
+                        className="px-5 py-4 sm:px-6 text-gray-500 text-start text-theme-sm dark:text-gray-400 align-top"
                       >
                         {flexRender(
                           cell.column.columnDef.cell,

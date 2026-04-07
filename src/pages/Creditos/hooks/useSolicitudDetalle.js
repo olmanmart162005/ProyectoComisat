@@ -14,8 +14,12 @@ import {
 import { db } from "../../../firebase/firebase";
 import { registrarBitacora } from "../../../services/bitacora";
 
+
+// Este hook maneja toda la lógica relacionada con el detalle de una solicitud de crédito: carga, aprobación/rechazo, historial, etc. 
+
 const estadosHistorial = ["aprobado", "aceptado", "rechazado", "cancelado"];
 
+// Convierte un campo de fecha (que puede ser Timestamp, objeto con seconds, Date o string) a milisegundos para facilitar comparaciones y ordenamientos.
 const toMillis = (fecha) => {
   if (!fecha) return 0;
   if (typeof fecha?.toMillis === "function") return fecha.toMillis();
@@ -25,6 +29,7 @@ const toMillis = (fecha) => {
   const parsed = new Date(fecha).getTime();
   return Number.isNaN(parsed) ? 0 : parsed;
 };
+
 
 export function useSolicitudDetalle({
   solicitudId,

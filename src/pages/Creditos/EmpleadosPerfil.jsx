@@ -1,6 +1,6 @@
 import MetricCard from "../../components/common/MetricCard";
 import DataTable from "../../components/ui/table/DataTable";
-import { useModal } from "../../hooks/useModal";
+import { useNavigate } from "react-router-dom";
 import {
   BoxIconLine,
   CheckCircleIcon,
@@ -8,7 +8,6 @@ import {
   CloseIcon,
 } from "../../icons";
 
-import PerfilEmpleadoModal from "../../components/Creditos/PerfilEmpleadoModal";
 import {
   empleadoCreditoColumns,
   getEstadoEmpleado,
@@ -16,15 +15,12 @@ import {
 import { useEmpleadosPerfil } from "./hooks/useEmpleadosPerfil";
 
 export default function EmpleadosPerfil() {
-  const { isOpen, openModal, closeModal } = useModal();
+  const navigate = useNavigate();
   const {
     empleados,
     departamentos,
     porcentajeLimite,
     loading,
-    empleadoSeleccionado,
-    creditosEmpleado,
-    loadingCreditos,
     filtroDepartamento,
     setFiltroDepartamento,
     filtroEstado,
@@ -32,11 +28,13 @@ export default function EmpleadosPerfil() {
     totalActivos,
     totalInactivos,
     empleadosFiltrados,
-    handleVerPerfil,
-  } = useEmpleadosPerfil({ openModal });
+  } = useEmpleadosPerfil();
 
   const columns = empleadoCreditoColumns({
-    onVerPerfil: handleVerPerfil,
+    onVerPerfil: (empleado) =>
+      navigate("/empleados-perfil/detalle", {
+        state: { empleado, porcentajeLimite },
+      }),
     getEstadoEmpleado,
   });
 
@@ -113,15 +111,6 @@ export default function EmpleadosPerfil() {
         <DataTable.Table />
         <DataTable.Pagination />
       </DataTable>
-
-      <PerfilEmpleadoModal
-        isOpen={isOpen}
-        onClose={closeModal}
-        empleado={empleadoSeleccionado}
-        creditos={creditosEmpleado}
-        loading={loadingCreditos}
-        porcentajeLimite={porcentajeLimite}
-      />
     </div>
   );
 }

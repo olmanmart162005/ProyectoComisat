@@ -105,7 +105,8 @@ const syncUsuarioConEmpleado = async ({
     console.error("Usuario creado pero falló el correo:", emailErr);
     sileo.warning({
       title: "Empleado creado",
-      description: "El usuario se generó, pero no se pudo enviar el correo de credenciales.",
+      description:
+        "El usuario se generó, pero no se pudo enviar el correo de credenciales.",
     });
   }
 };
@@ -167,7 +168,11 @@ export default function EmpleadoModal({
       setDepartamentoId(editandoData.departamentoId || "");
       setDepartamentoNombre(editandoData.departamentoNombre || "");
       setSalario(String(editandoData.salario || ""));
-      setFechaInicio(editandoData.fechaInicio ? formatDateForInput(editandoData.fechaInicio) : "");
+      setFechaInicio(
+        editandoData.fechaInicio
+          ? formatDateForInput(editandoData.fechaInicio)
+          : "",
+      );
       setEstado(editandoData.estado || "Activo");
       return;
     }
@@ -286,8 +291,11 @@ export default function EmpleadoModal({
             departamentoAnterior: empleadoAnterior?.departamentoNombre,
             departamentoNuevo: departamentoNombre,
           }),
-          ...(formatDateForInput(empleadoAnterior?.fechaInicio) !== fechaInicio && {
-            fechaInicioAnterior: formatDateForInput(empleadoAnterior?.fechaInicio) || "Sin registro",
+          ...(formatDateForInput(empleadoAnterior?.fechaInicio) !==
+            fechaInicio && {
+            fechaInicioAnterior:
+              formatDateForInput(empleadoAnterior?.fechaInicio) ||
+              "Sin registro",
             fechaInicioNueva: fechaInicio,
           }),
         },

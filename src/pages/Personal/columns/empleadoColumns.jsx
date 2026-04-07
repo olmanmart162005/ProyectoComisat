@@ -1,0 +1,86 @@
+import Badge from "../../../components/ui/badge/Badge";
+import { PencilIcon, TrashBinIcon } from "../../../icons";
+
+export const COLUMNAS_EXPORT_EMPLEADOS = [
+  { key: "codigoEmpleado", header: "Código", type: "text" },
+  { key: "dni", header: "DNI", type: "text" },
+  { key: "nombres", header: "Nombres", type: "text" },
+  { key: "apellidos", header: "Apellidos", type: "text" },
+  { key: "correo", header: "Correo", type: "text" },
+  { key: "telefono", header: "Teléfono", type: "text" },
+  { key: "salario", header: "Salario", type: "currency" },
+  { key: "estado", header: "Estado", type: "text" },
+];
+
+export function empleadoColumns({ onEdit, onEliminar, departamentos }) {
+  void departamentos;
+
+  return [
+    { accessorKey: "codigoEmpleado", header: "Código" },
+    {
+      accessorFn: (row) => `${row.nombres} ${row.apellidos}`,
+      id: "nombreCompleto",
+      header: "Nombre",
+      cell: (info) => (
+        <span className="block font-medium text-gray-800 text-theme-sm dark:text-white/90">
+          {info.getValue()}
+        </span>
+      ),
+    },
+    { accessorKey: "correo", header: "Correo" },
+    { accessorKey: "dni", header: "DNI" },
+    {
+      accessorKey: "telefono",
+      header: "Teléfono",
+      cell: (info) => info.getValue() || "-",
+    },
+    { accessorKey: "departamentoNombre", header: "Departamento" },
+    {
+      accessorKey: "salario",
+      header: "Salario",
+      cell: (info) => `L.${Number(info.getValue()).toLocaleString("es-HN")}`,
+    },
+    {
+      accessorKey: "estado",
+      header: "Estado",
+      cell: (info) => {
+        const val = info.getValue();
+        const color =
+          val === "Activo"
+            ? "success"
+            : val === "Inactivo"
+              ? "error"
+              : "warning";
+        return (
+          <Badge size="sm" color={color}>
+            {val}
+          </Badge>
+        );
+      },
+    },
+    {
+      id: "acciones",
+      header: "Acciones",
+      enableSorting: false,
+      cell: ({ row }) => {
+        const u = row.original;
+        return (
+          <div className="flex justify-center gap-3">
+            <button
+              onClick={() => onEdit(u)}
+              className="text-blue-600 hover:text-blue-800 transition"
+            >
+              <PencilIcon className="w-5 h-5 mx-auto" />
+            </button>
+            <button
+              onClick={() => onEliminar(u.id)}
+              className="text-red-500 hover:text-red-700 transition"
+            >
+              <TrashBinIcon className="w-5 h-5 mx-auto" />
+            </button>
+          </div>
+        );
+      },
+    },
+  ];
+}

@@ -10,6 +10,10 @@ import {
   updateDoc,
 } from "firebase/firestore";
 import { sileo } from "sileo";
+import {
+  generarPasswordTemporal,
+  enviarCorreoCredenciales,
+} from "../../../services/credencialesEmail";
 
 export const useUsuarios = ({ closeModal }) => {
   const [usuarios, setUsuarios] = useState([]);
@@ -106,10 +110,21 @@ export const useUsuarios = ({ closeModal }) => {
     setRolNombre(rol ? (rol.nombre ?? "") : "");
   };
 
+  // Reemplaza handleSubmit completo
   const handleSubmit = async (e) => {
     e.preventDefault();
     setEnviando(true);
     try {
+      // Obtener DNI del empleado seleccionado
+      const empSeleccionado = empleados.find((em) => em.id === empleadoId);
+      const apellidosEmpleado = empSeleccionado?.apellidos ?? "";
+      const dniEmpleado = empSeleccionado?.dni ?? "";
+    
+      const passwordTemporal = generarPasswordTemporal(
+        apellidosEmpleado,
+        dniEmpleado,
+      );
+    
       await addDoc(collection(db, "usuarios"), {
         empleadoId,
         nombre,
@@ -119,14 +134,37 @@ export const useUsuarios = ({ closeModal }) => {
         rolNombre,
         estado,
         primerLoginHecho: false,
+        passwordTemporal, // para que el DB manager la use al registrar en Firebase Auth
         fechaRegistro: serverTimestamp(),
       });
+    
+      // Enviar correo con credenciales al correo personal del empleado
+      try {
+        await enviarCorreoCredenciales({
+          nombre,
+          correoInstitucional: correo,
+          passwordGenerada: passwordTemporal,
+          correoDestino: correoPersonal,
+        });
+      } catch (emailErr) {
+        console.error("Usuario creado pero falló el correo:", emailErr);
+        sileo.warning({
+          title: "Usuario creado",
+          description:
+            "El usuario se registró, pero no se pudo enviar el correo de credenciales.",
+        });
+        resetFormulario();
+        fetchUsuarios();
+        closeModal();
+        return;
+      }
+    
       resetFormulario();
       fetchUsuarios();
       closeModal();
       sileo.success({
         title: "Usuario creado",
-        description: "El nuevo usuario se ha registrado correctamente.",
+        description: "Credenciales enviadas al correo personal del empleado.",
       });
     } catch (error) {
       console.error("Error al guardar", error);

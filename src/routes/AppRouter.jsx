@@ -27,9 +27,11 @@ import Gest_Productos from "../pages/Inventario/Gest_Productos";
 import Usuarios from "../pages/Accesos/Gest_Usuarios";
 import ConfiguracionGlobal from "../pages/Gestion/Gest_ConfiguracionGlobal";
 import Gest_SolicitudesCredito from "../pages/Creditos/Gest_SolicitudesCredito";
+import SolicitudDetalle from "../pages/Creditos/SolicitudDetalle";
 import PagosMensuales from "../pages/Creditos/PagosMensuales";
 import HistorialCreditos from "../pages/Gestion/HistorialCreditos";
 import EmpleadosPerfil from "../pages/Creditos/EmpleadosPerfil";
+import PerfilEmpleadoDetalle from "../pages/Creditos/PerfilEmpleadoDetalle";
 import Gest_Categorias from "../pages/Inventario/Gest_Categorias";
 import Departamentos from "../pages/Personal/Gest_Departamentos";
 import Bitacora from "../pages/Gestion/Bitacora";
@@ -181,6 +183,14 @@ export default function AppRouter() {
             }
           />
           <Route
+            path="solicitudes-reservas/detalle"
+            element={
+              <RoleRoute roles={["Administrador", "Oficial de Credito"]}>
+                <SolicitudDetalle />
+              </RoleRoute>
+            }
+          />
+          <Route
             path="pagos-mensuales"
             element={
               <RoleRoute roles={["Oficial de Credito"]}>
@@ -201,6 +211,14 @@ export default function AppRouter() {
             element={
               <RoleRoute roles={["Oficial de Credito"]}>
                 <EmpleadosPerfil />
+              </RoleRoute>
+            }
+          />
+          <Route
+            path="empleados-perfil/detalle"
+            element={
+              <RoleRoute roles={["Oficial de Credito"]}>
+                <PerfilEmpleadoDetalle />
               </RoleRoute>
             }
           />

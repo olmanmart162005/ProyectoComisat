@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
-import { db } from "../firebase/firebase";
+import { db } from "../../firebase/firebase";
 import { collection, getDocs, orderBy, query, where } from "firebase/firestore";
 
-import DataTable from "../components/ui/table/DataTable";
-import Badge from "../components/ui/badge/Badge";
-import MetricCard from "../components/common/MetricCard";
-import { ListIcon, CheckCircleIcon, CloseIcon } from "../icons";
+import DataTable from "../../components/ui/table/DataTable";
+import Badge from "../../components/ui/badge/Badge";
+import MetricCard from "../../components/common/MetricCard";
+import { ListIcon, CheckCircleIcon, CloseIcon } from "../../icons";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 

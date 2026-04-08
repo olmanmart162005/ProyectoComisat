@@ -8,6 +8,7 @@ import MetricCard from "../../components/common/MetricCard";
 import { ListIcon, CheckCircleIcon, CloseIcon } from "../../icons";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import { safeFormatDateTime } from "../../utils/formatters";
 
 // Helpers para capitalizar
 function capitalize(str) {
@@ -291,7 +292,7 @@ export default function Bitacora() {
         header: "Fecha y Hora",
         cell: (info) => (
           <span className="block text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">
-            {info.getValue()?.toDate?.()?.toLocaleString("es-HN") ?? "—"}
+            {safeFormatDateTime(info.getValue())}
           </span>
         ),
       },

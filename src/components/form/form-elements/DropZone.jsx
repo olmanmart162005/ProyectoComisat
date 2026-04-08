@@ -2,8 +2,8 @@ import ComponentCard from "../../common/ComponentCard";
 import { useDropzone } from "react-dropzone";
 // import Dropzone from "react-dropzone";
 
-const DropzoneComponent: React.FC = () => {
-  const onDrop = (acceptedFiles: File[]) => {
+const DropzoneComponent = () => {
+  const onDrop = (acceptedFiles) => {
     console.log("Files dropped:", acceptedFiles);
     // Handle file uploads here
   };

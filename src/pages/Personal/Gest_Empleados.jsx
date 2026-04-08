@@ -10,6 +10,8 @@ import ExportButtons from "../../layout/Exportbuttons";
 import { useAuth } from "../../auth/AuthProvider";
 import { useNombreEmpleadoActual } from "../../hooks/useNombreEmpleadoActual";
 import { registrarBitacora } from "../../services/bitacora";
+import { formatDateForFilename } from "../../utils/formatters";
+import EmpleadosFiltersDropdown from "../../components/Personal/EmpleadosFiltersDropdown";
 
 import EmpleadoModal from "../../components/Personal/EmpleadoModal";
 import {
@@ -44,12 +46,29 @@ export default function Gest_Empleados() {
   const { isOpen, openModal, closeModal } = useModal();
   const [editandoData, setEditandoData] = useState(null);
   const [codigoNuevo, setCodigoNuevo] = useState("");
+  const [soloVista, setSoloVista] = useState(false);
+
+  const abrirDetalle = (emp) => {
+    setEditandoData(emp);
+    setSoloVista(true);
+    openModal();
+  };
+
+  const abrirEdicion = (emp) => {
+    setEditandoData(emp);
+    setSoloVista(false);
+    openModal();
+  };
+
+  const cerrarModalEmpleado = () => {
+    setEditandoData(null);
+    setSoloVista(false);
+    closeModal();
+  };
 
   const columns = empleadoColumns({
-    onEdit: (emp) => {
-      setEditandoData(emp);
-      openModal();
-    },
+    onView: abrirDetalle,
+    onEdit: abrirEdicion,
     onEliminar: handleEliminar,
     departamentos,
   });
@@ -63,6 +82,7 @@ export default function Gest_Empleados() {
         <button
           onClick={() => {
             setEditandoData(null);
+            setSoloVista(false);
             const nuevoCod = generarNuevoCodigo(empleados, historialEmpleados);
             setCodigoNuevo(nuevoCod);
             openModal();
@@ -114,7 +134,7 @@ export default function Gest_Empleados() {
 
       <EmpleadoModal
         isOpen={isOpen}
-        onClose={closeModal}
+        onClose={cerrarModalEmpleado}
         editandoData={editandoData}
         departamentos={departamentos}
         user={user}
@@ -122,49 +142,23 @@ export default function Gest_Empleados() {
         onSuccess={fetchEmpleados}
         codigoNuevo={codigoNuevo}
         empleados={empleados}
+        soloVista={soloVista}
       />
 
       <DataTable columns={columns} data={empleadosFiltrados} loading={loading}>
         <DataTable.Toolbar searchPlaceholder="Buscar empleado...">
-          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto sm:ml-auto">
-            <select
-              value={filtroDepartamento}
-              onChange={(e) => setFiltroDepartamento(e.target.value)}
-              className="w-full sm:w-52 p-2 border border-gray-300 rounded-md text-sm text-gray-900 focus:ring-blue-500 focus:border-blue-500 dark:bg-white/5 dark:border-white/10 dark:text-gray-100"
-            >
-              <option value="" className="bg-white text-gray-900">
-                Departamento
-              </option>
-              {departamentos.map((dep) => (
-                <option
-                  key={dep.id}
-                  value={dep.id}
-                  className="bg-white text-gray-900"
-                >
-                  {dep.nombre}
-                </option>
-              ))}
-            </select>
-
-            <select
-              value={filtroEstado}
-              onChange={(e) => setFiltroEstado(e.target.value)}
-              className="w-full sm:w-40 p-2 border border-gray-300 rounded-md text-sm text-gray-900 focus:ring-blue-500 focus:border-blue-500 dark:bg-white/5 dark:border-white/10 dark:text-gray-100"
-            >
-              <option value="" className="bg-white text-gray-900">
-                Estado
-              </option>
-              <option value="Activo" className="bg-white text-gray-900">
-                Activo
-              </option>
-              <option value="Inactivo" className="bg-white text-gray-900">
-                Inactivo
-              </option>
-            </select>
+          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto sm:ml-auto items-stretch sm:items-center">
+            <EmpleadosFiltersDropdown
+              departamentos={departamentos}
+              filtroDepartamento={filtroDepartamento}
+              setFiltroDepartamento={setFiltroDepartamento}
+              filtroEstado={filtroEstado}
+              setFiltroEstado={setFiltroEstado}
+            />
             <ExportButtons
               rows={empleadosFiltrados}
               columns={COLUMNAS_EXPORT_EMPLEADOS}
-              filename={"Empleados " + new Date().toLocaleDateString("es-HN")}
+              filename={"Empleados " + formatDateForFilename()}
               sheetName="Lista de Empleados"
               meta={{
                 empresa: "Comisariato San Jose",
@@ -173,7 +167,7 @@ export default function Gest_Empleados() {
               }}
               pdfOptions={{
                 title: "Empleados",
-                subtitle: new Date().toLocaleDateString("es-HN"),
+                subtitle: formatDateForFilename(),
               }}
               onExport={(formato) =>
                 registrarBitacora({

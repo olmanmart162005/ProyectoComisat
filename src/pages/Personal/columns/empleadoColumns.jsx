@@ -1,5 +1,9 @@
+import { useState } from "react";
+
 import Badge from "../../../components/ui/badge/Badge";
-import { PencilIcon, TrashBinIcon } from "../../../icons";
+import { Dropdown } from "../../../components/ui/dropdown/Dropdown";
+import { DropdownItem } from "../../../components/ui/dropdown/DropdownItem";
+import { EyeIcon, MoreDotIcon, PencilIcon, TrashBinIcon } from "../../../icons";
 
 export const COLUMNAS_EXPORT_EMPLEADOS = [
   { key: "codigoEmpleado", header: "Código", type: "text" },
@@ -9,22 +13,86 @@ export const COLUMNAS_EXPORT_EMPLEADOS = [
   { key: "correo", header: "Correo", type: "text" },
   { key: "telefono", header: "Teléfono", type: "text" },
   { key: "salario", header: "Salario", type: "currency" },
+  { key: "fechaInicio", header: "Fecha Inicio", type: "date" },
   { key: "estado", header: "Estado", type: "text" },
 ];
 
-export function empleadoColumns({ onEdit, onEliminar, departamentos }) {
+function EmpleadoAcciones({ empleado, onView, onEdit, onEliminar }) {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return (
+    <div className="relative flex justify-center">
+      <button
+        type="button"
+        onClick={() => setIsOpen((value) => !value)}
+        className="dropdown-toggle inline-flex h-9 w-9 items-center justify-center rounded-full text-gray-500 transition hover:bg-gray-100 hover:text-gray-800 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-white"
+        aria-label="Abrir acciones"
+      >
+        <MoreDotIcon className="h-5 w-5" />
+      </button>
+
+      <Dropdown
+        isOpen={isOpen}
+        onClose={() => setIsOpen(false)}
+        className="min-w-40 overflow-hidden"
+      >
+        <div className="py-1">
+          <DropdownItem
+            onItemClick={() => {
+              setIsOpen(false);
+              onView(empleado);
+            }}
+            className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-200 dark:hover:bg-white/5"
+          >
+            <EyeIcon className="h-4 w-4" />
+            Ver
+          </DropdownItem>
+          <DropdownItem
+            onItemClick={() => {
+              setIsOpen(false);
+              onEdit(empleado);
+            }}
+            className="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-200 dark:hover:bg-white/5"
+          >
+            <PencilIcon className="h-4 w-4" />
+            Editar
+          </DropdownItem>
+          <DropdownItem
+            onItemClick={() => {
+              setIsOpen(false);
+              onEliminar(empleado.id);
+            }}
+            className="flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 hover:text-red-700 dark:text-red-400 dark:hover:bg-red-500/10"
+          >
+            <TrashBinIcon className="h-4 w-4" />
+            Eliminar
+          </DropdownItem>
+        </div>
+      </Dropdown>
+    </div>
+  );
+}
+
+export function empleadoColumns({ onView, onEdit, onEliminar, departamentos }) {
   void departamentos;
 
   return [
-    { accessorKey: "codigoEmpleado", header: "Código" },
     {
       accessorFn: (row) => `${row.nombres} ${row.apellidos}`,
       id: "nombreCompleto",
-      header: "Nombre",
+      header: "Empleado",
       cell: (info) => (
-        <span className="block font-medium text-gray-800 text-theme-sm dark:text-white/90">
-          {info.getValue()}
-        </span>
+        <div className="flex flex-col gap-1">
+          <span
+            title={info.getValue()}
+            className="block max-w-[220px] truncate font-medium text-gray-800 text-theme-sm dark:text-white/90"
+          >
+            {info.getValue()}
+          </span>
+          <span className="block whitespace-nowrap text-xs text-gray-500 dark:text-gray-400 font-mono">
+            {info.row.original.codigoEmpleado}
+          </span>
+        </div>
       ),
     },
     { accessorKey: "correo", header: "Correo" },
@@ -39,6 +107,20 @@ export function empleadoColumns({ onEdit, onEliminar, departamentos }) {
       accessorKey: "salario",
       header: "Salario",
       cell: (info) => `L.${Number(info.getValue()).toLocaleString("es-HN")}`,
+    },
+    {
+      accessorKey: "fechaInicio",
+      header: "Fecha Inicio",
+      cell: (info) => {
+        const fecha = info.getValue();
+        if (!fecha) return "-";
+        try {
+          const date = fecha.toDate ? fecha.toDate() : new Date(fecha);
+          return date.toLocaleDateString("es-HN");
+        } catch {
+          return "-";
+        }
+      },
     },
     {
       accessorKey: "estado",
@@ -62,25 +144,14 @@ export function empleadoColumns({ onEdit, onEliminar, departamentos }) {
       id: "acciones",
       header: "Acciones",
       enableSorting: false,
-      cell: ({ row }) => {
-        const u = row.original;
-        return (
-          <div className="flex justify-center gap-3">
-            <button
-              onClick={() => onEdit(u)}
-              className="text-blue-600 hover:text-blue-800 transition"
-            >
-              <PencilIcon className="w-5 h-5 mx-auto" />
-            </button>
-            <button
-              onClick={() => onEliminar(u.id)}
-              className="text-red-500 hover:text-red-700 transition"
-            >
-              <TrashBinIcon className="w-5 h-5 mx-auto" />
-            </button>
-          </div>
-        );
-      },
+      cell: ({ row }) => (
+        <EmpleadoAcciones
+          empleado={row.original}
+          onView={onView}
+          onEdit={onEdit}
+          onEliminar={onEliminar}
+        />
+      ),
     },
   ];
 }

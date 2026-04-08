@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useState } from "react";
 
 import DataTable from "../../components/ui/table/DataTable";
 import ExportButtons from "../../layout/Exportbuttons";
@@ -9,8 +9,10 @@ import { useAuth } from "../../auth/AuthProvider";
 import { useNombreEmpleadoActual } from "../../hooks/useNombreEmpleadoActual";
 import { registrarBitacora } from "../../services/bitacora";
 import { GroupIcon, CheckCircleIcon, CloseIcon } from "../../icons";
+import { formatDateForFilename } from "../../utils/formatters";
 
 import UsuarioModal from "../../components/Accesos/UsuarioModal";
+import UsuariosFiltersDropdown from "../../components/Accesos/UsuariosFiltersDropdown";
 import { useUsuarios } from "./hooks/useUsuarios";
 import {
   usuarioColumns,
@@ -23,6 +25,7 @@ export default function Gest_Usuarios() {
   const { isOpen, openModal, closeModal } = useModal();
   const { user } = useAuth();
   const nombreEmpleado = useNombreEmpleadoActual();
+  const [soloVista, setSoloVista] = useState(false);
 
   const {
     empleados,
@@ -57,35 +60,44 @@ export default function Gest_Usuarios() {
     handleUpdate,
     handleEliminar,
     resetFormulario,
-  } = useUsuarios({ closeModal });
+  } = useUsuarios({ closeModal, user, nombreEmpleado });
 
-  const columns = useMemo(
-    () =>
-      usuarioColumns({
-        onEdit: (u) => {
-          setEditandoId(u.id);
-          setEmpleadoId(u.empleadoId || "");
-          setNombre(u.nombre || "");
-          setBusquedaEmpleado(u.nombre || "");
-          setCorreo(u.correo || "");
-          handleRolChange({ target: { value: u.rolId || "" } });
-          setEstado(u.estado || "Activo");
-          openModal();
-        },
-        onEliminar: handleEliminar,
-      }),
-    [
-      setEditandoId,
-      setEmpleadoId,
-      setNombre,
-      setBusquedaEmpleado,
-      setCorreo,
-      handleRolChange,
-      setEstado,
-      openModal,
-      handleEliminar,
-    ],
-  );
+  const abrirDetalle = (u) => {
+    setEditandoId(u.id);
+    setEmpleadoId(u.empleadoId || "");
+    setNombre(u.nombre || "");
+    setBusquedaEmpleado(u.nombre || "");
+    setCorreoPersonal(u.correoPersonal || "");
+    setCorreo(u.correo || "");
+    handleRolChange({ target: { value: u.rolId || "" } });
+    setEstado(u.estado || "Activo");
+    setSoloVista(true);
+    openModal();
+  };
+
+  const abrirEdicion = (u) => {
+    setEditandoId(u.id);
+    setEmpleadoId(u.empleadoId || "");
+    setNombre(u.nombre || "");
+    setBusquedaEmpleado(u.nombre || "");
+    setCorreoPersonal(u.correoPersonal || "");
+    setCorreo(u.correo || "");
+    handleRolChange({ target: { value: u.rolId || "" } });
+    setEstado(u.estado || "Activo");
+    setSoloVista(false);
+    openModal();
+  };
+
+  const cerrarModalUsuario = () => {
+    setSoloVista(false);
+    closeModal();
+  };
+
+  const columns = usuarioColumns({
+    onView: abrirDetalle,
+    onEdit: abrirEdicion,
+    onEliminar: handleEliminar,
+  });
 
   return (
     <div className="space-y-6">
@@ -96,6 +108,7 @@ export default function Gest_Usuarios() {
         <button
           onClick={() => {
             resetFormulario();
+            setSoloVista(false);
             openModal();
           }}
           className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-5 py-2.5 rounded-lg shadow-sm transition flex items-center gap-2"
@@ -144,7 +157,7 @@ export default function Gest_Usuarios() {
 
       <UsuarioModal
         isOpen={isOpen}
-        onClose={closeModal}
+        onClose={cerrarModalUsuario}
         editandoId={editandoId}
         enviando={enviando}
         onSubmit={editandoId ? handleUpdate : handleSubmit}
@@ -163,49 +176,24 @@ export default function Gest_Usuarios() {
         roles={roles}
         estado={estado}
         setEstado={setEstado}
+        soloVista={soloVista}
       />
 
       <DataTable columns={columns} data={usuariosFiltrados} loading={loading}>
         <DataTable.Toolbar searchPlaceholder="Buscar usuario...">
-          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto sm:ml-auto">
-            <select
-              value={filtroRol}
-              onChange={(e) => setFiltroRol(e.target.value)}
-              className="w-full sm:w-52 p-2 border border-gray-300 rounded-md text-sm text-gray-900 focus:ring-blue-500 focus:border-blue-500 dark:bg-white/5 dark:border-white/10 dark:text-gray-100"
-            >
-              <option value="" className="bg-white text-gray-900">
-                Rol
-              </option>
-              {roles.map((r) => (
-                <option
-                  key={r.id}
-                  value={r.id}
-                  className="bg-white text-gray-900"
-                >
-                  {r.nombre}
-                </option>
-              ))}
-            </select>
-            <select
-              value={filtroEstado}
-              onChange={(e) => setFiltroEstado(e.target.value)}
-              className="w-full sm:w-40 p-2 border border-gray-300 rounded-md text-sm text-gray-900 focus:ring-blue-500 focus:border-blue-500 dark:bg-white/5 dark:border-white/10 dark:text-gray-100"
-            >
-              <option value="" className="bg-white text-gray-900">
-                Estado
-              </option>
-              <option value="Activo" className="bg-white text-gray-900">
-                Activo
-              </option>
-              <option value="Inactivo" className="bg-white text-gray-900">
-                Inactivo
-              </option>
-            </select>
+          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto sm:ml-auto items-stretch sm:items-center">
+            <UsuariosFiltersDropdown
+              roles={roles}
+              filtroRol={filtroRol}
+              setFiltroRol={setFiltroRol}
+              filtroEstado={filtroEstado}
+              setFiltroEstado={setFiltroEstado}
+            />
 
             <ExportButtons
               rows={usuariosFiltrados}
               columns={COLUMNAS_EXPORT_USUARIOS}
-              filename={"Usuarios " + new Date().toLocaleDateString("es-HN")}
+              filename={"Usuarios " + formatDateForFilename()}
               sheetName="Lista de Usuarios"
               meta={{
                 empresa: "Comisariato San Jose",
@@ -214,7 +202,7 @@ export default function Gest_Usuarios() {
               }}
               pdfOptions={{
                 title: "Usuarios",
-                subtitle: new Date().toLocaleDateString("es-HN"),
+                subtitle: formatDateForFilename(),
               }}
               onExport={(formato) =>
                 registrarBitacora({

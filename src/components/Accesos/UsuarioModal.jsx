@@ -1,5 +1,16 @@
 import { Modal } from "../ui/modal";
 
+const DetailItem = ({ label, value }) => (
+  <div className="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 dark:border-white/10 dark:bg-gray-900/40">
+    <p className="text-[11px] font-semibold uppercase tracking-widest text-gray-400 dark:text-gray-500">
+      {label}
+    </p>
+    <p className="mt-1 text-sm font-medium text-gray-800 dark:text-white/90 break-words">
+      {value || "—"}
+    </p>
+  </div>
+);
+
 export default function UsuarioModal({
   isOpen,
   onClose,
@@ -21,7 +32,45 @@ export default function UsuarioModal({
   roles,
   estado,
   setEstado,
+  soloVista = false,
 }) {
+  const rolActual = roles.find((r) => r.id === rolId)?.nombre || rolId || "—";
+
+  if (soloVista) {
+    return (
+      <Modal isOpen={isOpen} onClose={onClose} className="max-w-2xl">
+        <div className="p-6">
+          <div className="mb-6">
+            <div className="flex flex-col items-start gap-2">
+              <h2 className="text-xl font-bold text-gray-800 dark:text-white/90">
+                Detalle del Usuario
+              </h2>
+              <span
+                className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${
+                  estado === "Activo"
+                    ? "bg-success-50 text-success-600 dark:bg-success-500/15 dark:text-success-500"
+                    : "bg-error-50 text-error-600 dark:bg-error-500/15 dark:text-error-500"
+                }`}
+              >
+                {estado || "—"}
+              </span>
+            </div>
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+              Información general y asignación de acceso.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <DetailItem label="Empleado" value={busquedaEmpleado} />
+            <DetailItem label="Correo electrónico" value={correo} />
+            <DetailItem label="Rol" value={rolActual} />
+            <DetailItem label="Estado" value={estado} />
+          </div>
+        </div>
+      </Modal>
+    );
+  }
+
   return (
     <Modal isOpen={isOpen} onClose={onClose} className="max-w-xl">
       <div className="p-6">
@@ -153,25 +202,27 @@ export default function UsuarioModal({
             </select>
           </div>
 
-          <div className="flex gap-3 md:col-span-2 mt-4">
-            <button
-              type="submit"
-              disabled={enviando}
-              className={`flex-1 p-2 rounded-md text-white font-bold transition ${
-                enviando
-                  ? "bg-gray-400"
+          {!soloVista && (
+            <div className="flex gap-3 md:col-span-2 mt-4">
+              <button
+                type="submit"
+                disabled={enviando}
+                className={`flex-1 p-2 rounded-md text-white font-bold transition ${
+                  enviando
+                    ? "bg-gray-400"
+                    : editandoId
+                      ? "bg-blue-600 hover:bg-blue-700"
+                      : "bg-green-600 hover:bg-green-700"
+                }`}
+              >
+                {enviando
+                  ? "Procesando..."
                   : editandoId
-                    ? "bg-blue-600 hover:bg-blue-700"
-                    : "bg-green-600 hover:bg-green-700"
-              }`}
-            >
-              {enviando
-                ? "Procesando..."
-                : editandoId
-                  ? "Actualizar"
-                  : "Guardar"}
-            </button>
-          </div>
+                    ? "Actualizar"
+                    : "Guardar"}
+              </button>
+            </div>
+          )}
         </form>
       </div>
     </Modal>

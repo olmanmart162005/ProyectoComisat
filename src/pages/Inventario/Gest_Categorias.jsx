@@ -8,6 +8,7 @@ import { useModal } from "../../hooks/useModal";
 import { Toaster } from "sileo";
 import { PlusIcon } from "../../icons";
 import { registrarBitacora } from "../../services/bitacora";
+import { formatDateForFilename } from "../../utils/formatters";
 
 import CategoryModal from "../../components/inventario/CategoryModal";
 import {
@@ -66,12 +67,12 @@ export default function Gest_Categorias() {
           <ExportButtons
             rows={categorias}
             columns={COLUMNAS_EXPORT_CATEGORIAS}
-            filename={"Categorías " + new Date().toLocaleDateString("es-HN")}
+            filename={"Categorías " + formatDateForFilename()}
             sheetName="Lista de Categorías"
             meta={{ empresa: "Comisariato San Jose", usuario: "Sistema" }}
             pdfOptions={{
               title: "Categorías",
-              subtitle: new Date().toLocaleDateString("es-HN"),
+              subtitle: formatDateForFilename(),
             }}
             onExport={(formato) =>
               registrarBitacora({

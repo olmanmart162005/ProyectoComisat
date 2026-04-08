@@ -9,6 +9,7 @@ const PhoneInput = ({
   minLength,
   required,
   value = "",
+  disabled = false,
 }) => {
   const [selectedCountry, setSelectedCountry] = useState("HN");
   // If the parent passes a value, we can use it, but since PhoneInput manages its own state for phoneNumber, we should probably just sync it or use value directly.
@@ -25,7 +26,7 @@ const PhoneInput = ({
 
   const countryCodes = countries.reduce(
     (acc, { code, label }) => ({ ...acc, [code]: label }),
-    {}
+    {},
   );
 
   const handleCountryChange = (e) => {
@@ -38,7 +39,7 @@ const PhoneInput = ({
   const handlePhoneNumberChange = (e) => {
     // Solo permitir dígitos
     const newPhoneNumber = e.target.value.replace(/\D/g, "");
-    
+
     // Respetar la longitud máxima si se proporciona
     if (maxLength && newPhoneNumber.length > maxLength) {
       return;
@@ -58,6 +59,7 @@ const PhoneInput = ({
           <select
             value={selectedCountry}
             onChange={handleCountryChange}
+            disabled={disabled}
             className="appearance-none bg-none rounded-l-lg border-0 border-r border-gray-200 bg-transparent py-3 pl-3.5 pr-8 leading-tight text-gray-700 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-800 dark:text-gray-400"
           >
             {countries.map((country) => (
@@ -99,6 +101,7 @@ const PhoneInput = ({
         maxLength={maxLength}
         value={phoneNumber}
         onChange={handlePhoneNumberChange}
+        disabled={disabled}
         placeholder={placeholder}
         className={`dark:bg-dark-900 h-11 w-full ${
           selectPosition === "start" ? "pl-[84px]" : "pr-[84px]"
@@ -111,6 +114,7 @@ const PhoneInput = ({
           <select
             value={selectedCountry}
             onChange={handleCountryChange}
+            disabled={disabled}
             className="appearance-none bg-none rounded-r-lg border-0 border-l border-gray-200 bg-transparent py-3 pl-3.5 pr-8 leading-tight text-gray-700 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-800 dark:text-gray-400"
           >
             {countries.map((country) => (

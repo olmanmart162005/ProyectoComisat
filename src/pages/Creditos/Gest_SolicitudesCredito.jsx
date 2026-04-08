@@ -1,14 +1,14 @@
 import DataTable from "../../components/ui/table/DataTable";
+import { useNavigate } from "react-router-dom";
 import ExportButtons from "../../layout/Exportbuttons";
 import { useAuth } from "../../auth/AuthProvider";
 import { useNombreEmpleadoActual } from "../../hooks/useNombreEmpleadoActual";
-import { useModal } from "../../hooks/useModal";
 import { Toaster } from "sileo";
 import { registrarBitacora } from "../../services/bitacora";
 import MetricCard from "../../components/common/MetricCard";
 import { CheckCircleIcon, CloseIcon, BoxIconLine } from "../../icons";
+import { formatDateForFilename } from "../../utils/formatters";
 
-import CreditReviewModal from "../../components/Creditos/CreditReviewModal";
 import {
   solicitudColumns,
   COLUMNAS_EXPORT_SOLICITUDES,
@@ -21,33 +21,26 @@ export default function Gest_SolicitudesCredito() {
 
   const { user } = useAuth();
   const nombreEmpleado = useNombreEmpleadoActual();
-  const { isOpen, openModal, closeModal } = useModal();
+  const navigate = useNavigate();
 
   const {
     solicitudes,
     loading,
-    procesando,
-    solicitudSeleccionada,
-    setSolicitudSeleccionada,
     filtroEstadoSolicitud,
     setFiltroEstadoSolicitud,
-    historialPrevioSeleccionado,
-    loadingHistorial,
-    resumenEmpleadoSeleccionado,
     solicitudesFiltradas,
     textoFiltrosPdf,
     totalPendientes,
     totalAprobados,
     totalRechazados,
     montoEnRiesgo,
-    handleDecision,
-  } = useSolicitudesCredito({ user, nombreEmpleado, isOpen });
+  } = useSolicitudesCredito({ user, nombreEmpleado, isOpen: false });
 
   const columns = solicitudColumns({
-    onVerDetalle: (solicitud) => {
-      setSolicitudSeleccionada(solicitud);
-      openModal();
-    },
+    onVerDetalle: (solicitud) =>
+      navigate("/solicitudes-reservas/detalle", {
+        state: { solicitud },
+      }),
   });
 
   return (
@@ -118,10 +111,7 @@ export default function Gest_SolicitudesCredito() {
             <ExportButtons
               rows={solicitudesFiltradas}
               columns={COLUMNAS_EXPORT_SOLICITUDES}
-              filename={
-                "Solicitudes de Crédito " +
-                new Date().toLocaleDateString("es-HN")
-              }
+              filename={"Solicitudes de Crédito " + formatDateForFilename()}
               sheetName="Solicitudes de Crédito"
               meta={{
                 empresa: "Comisariato San Jose",
@@ -130,7 +120,7 @@ export default function Gest_SolicitudesCredito() {
               }}
               pdfOptions={{
                 title: "Solicitudes de Crédito",
-                subtitle: new Date().toLocaleDateString("es-HN"),
+                subtitle: formatDateForFilename(),
               }}
               onExport={(formato) =>
                 registrarBitacora({
@@ -151,17 +141,6 @@ export default function Gest_SolicitudesCredito() {
         <DataTable.Table />
         <DataTable.Pagination />
       </DataTable>
-
-      <CreditReviewModal
-        isOpen={isOpen}
-        onClose={closeModal}
-        solicitud={solicitudSeleccionada}
-        resumenEmpleado={resumenEmpleadoSeleccionado}
-        historialPrevio={historialPrevioSeleccionado}
-        loadingHistorial={loadingHistorial}
-        onDecision={handleDecision}
-        procesando={procesando}
-      />
     </div>
   );
 }

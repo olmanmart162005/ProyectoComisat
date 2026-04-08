@@ -297,48 +297,48 @@ export function useProductos({ user, nombreEmpleado, cargarProductos = true }) {
   };
 
   const handleEliminar = async (id) => {
-    if (window.confirm("¿Estás seguro de que deseas eliminar este producto?")) {
-      try {
-        const productoAEliminar = productos.find((p) => p.id === id);
+    try {
+      const productoAEliminar = productos.find((p) => p.id === id);
 
-        if (productoAEliminar) {
-          await addDoc(collection(db, "historialProductos"), {
-            nombre: productoAEliminar.nombre,
-            descripcion: productoAEliminar.descripcion,
-            categoriaId: productoAEliminar.categoriaId,
-            categoriaNombre: productoAEliminar.categoriaNombre,
-            precioContado: productoAEliminar.precioContado,
-            precioCredito: productoAEliminar.precioCredito,
-            stockMinimo: productoAEliminar.stockMinimo,
-            fechaRegistro: productoAEliminar.fechaRegistro,
-            productoId: id,
-            fechaBaja: serverTimestamp(),
-            bajadoPor: user?.email,
-            nombreBajadoPor: nombreEmpleado,
-          });
-        }
-
-        await deleteDoc(doc(db, "productos", id));
-
-        await registrarBitacora({
-          usuario: user?.email,
-          nombre: nombreEmpleado,
-          coleccion: "productos",
-          accion: "eliminacion",
-          docId: id,
-          metadata: {
-            nombre: productoAEliminar?.nombre,
-            categoriaNombre: productoAEliminar?.categoriaNombre,
-            precioContado: productoAEliminar?.precioContado,
-          },
+      if (productoAEliminar) {
+        await addDoc(collection(db, "historialProductos"), {
+          nombre: productoAEliminar.nombre,
+          descripcion: productoAEliminar.descripcion,
+          categoriaId: productoAEliminar.categoriaId,
+          categoriaNombre: productoAEliminar.categoriaNombre,
+          precioContado: productoAEliminar.precioContado,
+          precioCredito: productoAEliminar.precioCredito,
+          stockMinimo: productoAEliminar.stockMinimo,
+          fechaRegistro: productoAEliminar.fechaRegistro,
+          productoId: id,
+          fechaBaja: serverTimestamp(),
+          bajadoPor: user?.email,
+          nombreBajadoPor: nombreEmpleado,
         });
-
-        fetchProductos();
-        sileo.info("Producto eliminado y movido al historial");
-      } catch (error) {
-        console.error("Error al eliminar", error);
-        sileo.error("Error al eliminar");
       }
+
+      await deleteDoc(doc(db, "productos", id));
+
+      await registrarBitacora({
+        usuario: user?.email ?? "desconocido",
+        nombre: nombreEmpleado || user?.email || "desconocido",
+        coleccion: "productos",
+        accion: "eliminacion",
+        docId: id,
+        metadata: {
+          nombre: productoAEliminar?.nombre,
+          categoriaNombre: productoAEliminar?.categoriaNombre,
+          precioContado: productoAEliminar?.precioContado,
+        },
+      });
+
+      await fetchProductos();
+      sileo.info("Producto eliminado y movido al historial");
+      return true;
+    } catch (error) {
+      console.error("Error al eliminar", error);
+      sileo.error("Error al eliminar");
+      return false;
     }
   };
 

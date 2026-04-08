@@ -92,7 +92,6 @@ export function productColumns({ onView, onEdit, onEliminar }) {
         </span>
       ),
     },
-    { accessorKey: "descripcion", header: "Descripción" },
     { accessorKey: "categoriaNombre", header: "Categoría" },
     {
       accessorKey: "precioContado",

@@ -27,26 +27,26 @@ export function useRoles({ user, nombreEmpleado }) {
   }, []);
 
   const handleEliminar = async (id) => {
-    if (window.confirm("¿Estás seguro de que deseas eliminar este rol?")) {
-      try {
-        const rolAEliminar = roles.find((r) => r.id === id);
-        await deleteDoc(doc(db, "roles", id));
-        await registrarBitacora({
-          usuario: user.email,
-          nombre: nombreEmpleado,
-          coleccion: "roles",
-          accion: "eliminacion",
-          docId: id,
-          metadata: {
-            nombre: rolAEliminar?.nombre,
-          },
-        });
-        fetchRoles();
-        sileo.success("Rol eliminado");
-      } catch (error) {
-        console.error("Error al eliminar", error);
-        sileo.error("Error al eliminar");
-      }
+    try {
+      const rolAEliminar = roles.find((r) => r.id === id);
+      await deleteDoc(doc(db, "roles", id));
+      await registrarBitacora({
+        usuario: user?.email ?? "desconocido",
+        nombre: nombreEmpleado || user?.email || "desconocido",
+        coleccion: "roles",
+        accion: "eliminacion",
+        docId: id,
+        metadata: {
+          nombre: rolAEliminar?.nombre,
+        },
+      });
+      fetchRoles();
+      sileo.success("Rol eliminado");
+      return true;
+    } catch (error) {
+      console.error("Error al eliminar", error);
+      sileo.error("Error al eliminar");
+      return false;
     }
   };
 

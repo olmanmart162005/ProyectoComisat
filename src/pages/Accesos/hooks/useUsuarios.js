@@ -242,31 +242,31 @@ export const useUsuarios = ({ closeModal, user, nombreEmpleado }) => {
   };
 
   const handleEliminar = async (id) => {
-    if (window.confirm("¿Estás seguro de que deseas eliminar este usuario?")) {
-      try {
-        const usuarioAEliminar = usuarios.find((u) => u.id === id);
-        await deleteDoc(doc(db, "usuarios", id));
+    try {
+      const usuarioAEliminar = usuarios.find((u) => u.id === id);
+      await deleteDoc(doc(db, "usuarios", id));
 
-        await registrarBitacora({
-          usuario: user?.email || "Sistema",
-          nombre: nombreEmpleado || "Sistema",
-          coleccion: "usuarios",
-          accion: "eliminacion",
-          docId: id,
-          metadata: {
-            nombre: usuarioAEliminar?.nombre,
-            correo: usuarioAEliminar?.correo,
-            rolNombre: usuarioAEliminar?.rolNombre,
-            estado: usuarioAEliminar?.estado,
-          },
-        });
+      await registrarBitacora({
+        usuario: user?.email || "Sistema",
+        nombre: nombreEmpleado || "Sistema",
+        coleccion: "usuarios",
+        accion: "eliminacion",
+        docId: id,
+        metadata: {
+          nombre: usuarioAEliminar?.nombre,
+          correo: usuarioAEliminar?.correo,
+          rolNombre: usuarioAEliminar?.rolNombre,
+          estado: usuarioAEliminar?.estado,
+        },
+      });
 
-        fetchUsuarios();
-        sileo.success("Usuario eliminado");
-      } catch (error) {
-        console.error("Error al eliminar", error);
-        sileo.error("Error al eliminar");
-      }
+      fetchUsuarios();
+      sileo.success("Usuario eliminado");
+      return true;
+    } catch (error) {
+      console.error("Error al eliminar", error);
+      sileo.error("Error al eliminar");
+      return false;
     }
   };
 

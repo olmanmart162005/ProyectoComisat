@@ -106,29 +106,30 @@ export const useDepartamentos = ({ closeModal }) => {
   };
 
   const handleEliminar = async (id) => {
-    if (
-      window.confirm("¿Estás seguro de que deseas eliminar este departamento?")
-    ) {
-      try {
-        await deleteDoc(doc(db, "departamentos", id));
+    try {
+      const departamentoAEliminar = departamentos.find((d) => d.id === id);
 
-        await registrarBitacora({
-          usuario: user?.email ?? "desconocido",
-          nombre: nombreEmpleado,
-          coleccion: "departamentos",
-          accion: "eliminacion",
-          docId: id,
-          metadata: {
-            id,
-          },
-        });
+      await deleteDoc(doc(db, "departamentos", id));
 
-        fetchDepartamentos();
-        sileo.success("Departamento eliminado");
-      } catch (error) {
-        console.error("Error al eliminar", error);
-        sileo.error("Error al eliminar");
-      }
+      await registrarBitacora({
+        usuario: user?.email ?? "desconocido",
+        nombre: nombreEmpleado || user?.email || "desconocido",
+        coleccion: "departamentos",
+        accion: "eliminacion",
+        docId: id,
+        metadata: {
+          nombre: departamentoAEliminar?.nombre,
+          id,
+        },
+      });
+
+      fetchDepartamentos();
+      sileo.success("Departamento eliminado");
+      return true;
+    } catch (error) {
+      console.error("Error al eliminar", error);
+      sileo.error("Error al eliminar");
+      return false;
     }
   };
 

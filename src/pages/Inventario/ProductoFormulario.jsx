@@ -2,16 +2,11 @@ import { useEffect, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { useLocation, useNavigate } from "react-router-dom";
 
-import Badge from "../../components/ui/badge/Badge";
 import PageShell from "../../components/common/PageShell";
 import { useAuth } from "../../auth/AuthProvider";
 import { useNombreEmpleadoActual } from "../../hooks/useNombreEmpleadoActual";
 import { useProductos } from "./hooks/useProductos";
-import {
-  MAX_DESCRIPCION,
-  getEstadoProducto,
-  getEstadoProductoColor,
-} from "./productoUtils";
+import { MAX_DESCRIPCION, getEstadoProducto } from "./productoUtils";
 
 export default function ProductoFormulario() {
   const location = useLocation();
@@ -200,91 +195,83 @@ export default function ProductoFormulario() {
     );
   }
 
-  const estadoVisual = getEstadoProducto(stock, stockMinimo, estado);
-
   return (
     <PageShell
       breadcrumbCurrent={modoEdicion ? "Editar" : "Nuevo"}
       homeLabel="Productos"
       homePath="/productos"
     >
-      <div className="space-y-6">
-        {modoEdicion && (
-          <div className="flex justify-end">
-            <Badge size="sm" color={getEstadoProductoColor(estadoVisual)}>
-              {estadoVisual}
-            </Badge>
-          </div>
-        )}
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <section className="grid grid-cols-1 gap-6 lg:grid-cols-12 items-start">
+          <div className="lg:col-span-5 space-y-2.5">
+            <label className="block text-[10px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500">
+              Imagen del Producto
+            </label>
+            <div
+              {...getRootProps()}
+              className={`group relative flex aspect-square cursor-pointer flex-col items-center justify-center overflow-hidden rounded-xl border-2 border-dashed p-1.5 transition-all ${
+                isDragActive
+                  ? "border-blue-500 bg-blue-50 dark:border-blue-400 dark:bg-blue-500/10"
+                  : "border-gray-200 bg-gray-50 hover:border-blue-300 dark:border-white/10 dark:bg-gray-900/40 dark:hover:border-blue-500/40"
+              }`}
+            >
+              <input {...getInputProps()} />
+              {previewImagen ? (
+                <img
+                  src={previewImagen}
+                  alt={nombre || "Preview"}
+                  className="h-full w-full rounded-lg object-cover opacity-40 transition-opacity group-hover:opacity-25"
+                />
+              ) : (
+                <div className="absolute inset-0 bg-gradient-to-br from-white/80 via-white/60 to-transparent dark:from-gray-900/70 dark:via-gray-900/45" />
+              )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-            <div className="lg:col-span-1">
-              <label className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-400">
-                Imagen del Producto
-              </label>
-              <div
-                {...getRootProps()}
-                className={`cursor-pointer rounded-lg border-2 border-dashed p-4 transition ${
-                  isDragActive
-                    ? "border-blue-500 bg-blue-50 dark:bg-blue-500/10"
-                    : "border-gray-300 bg-gray-50 dark:border-gray-700 dark:bg-gray-900/40"
-                }`}
-              >
-                <input {...getInputProps()} />
-                {previewImagen ? (
-                  <div className="flex items-center justify-center rounded-lg p-2">
-                    <img
-                      src={previewImagen}
-                      alt={nombre || "Preview"}
-                      className="max-h-64 w-auto max-w-full rounded-lg object-contain"
+              <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-4">
+                <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-blue-50 text-blue-600 transition-transform group-hover:scale-105 dark:bg-blue-500/10 dark:text-blue-400">
+                  <svg
+                    className="h-5 w-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={1.8}
+                      d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
                     />
-                  </div>
-                ) : (
-                  <div className="flex flex-col items-center justify-center py-6">
-                    <svg
-                      className="mb-2 h-10 w-10 text-gray-400"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={1.5}
-                        d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                      />
-                    </svg>
-                    <p className="text-sm font-medium text-gray-700 dark:text-gray-400">
-                      {isDragActive
-                        ? "Suelta la imagen aquí"
-                        : "Arrastra la imagen o haz clic"}
-                    </p>
-                    <p className="mt-1 text-xs text-gray-500 dark:text-gray-500">
-                      PNG, JPG, WebP
-                    </p>
-                  </div>
-                )}
+                  </svg>
+                </div>
+                <p className="text-sm font-semibold text-gray-700 dark:text-gray-200">
+                  {isDragActive
+                    ? "Suelta la imagen aquí"
+                    : "Haz clic o arrastra la imagen"}
+                </p>
+                <p className="mt-1 text-xs text-gray-500 dark:text-gray-500">
+                  PNG, JPG o WebP · máx. 2MB
+                </p>
               </div>
             </div>
+          </div>
 
-            <div className="lg:col-span-2 grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-400">
-                  Nombre
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={nombre}
-                  onChange={(e) => setNombre(e.target.value)}
-                  placeholder="Ej. Cafetera"
-                  className="mt-1 block w-full rounded-md border border-gray-300 p-2 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-                />
-              </div>
+          <div className="lg:col-span-7 flex flex-col gap-5 self-stretch">
+            <div>
+              <label className="mb-1.5 ml-1 block text-[10px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500">
+                Nombre del Producto
+              </label>
+              <input
+                type="text"
+                required
+                value={nombre}
+                onChange={(e) => setNombre(e.target.value)}
+                placeholder="Ej. Cafetera"
+                className="w-full rounded-lg border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-gray-900 outline-none transition-all focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 dark:border-white/10 dark:bg-white/[0.02] dark:text-white"
+              />
+            </div>
 
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-400">
+                <label className="mb-1.5 ml-1 block text-[10px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500">
                   Categoría
                 </label>
                 <div className="relative">
@@ -316,18 +303,18 @@ export default function ProductoFormulario() {
                       )
                     }
                     placeholder="Buscar categoría..."
-                    className="mt-1 block w-full rounded-md border border-gray-300 p-2 text-gray-900 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100"
+                    className="w-full rounded-lg border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-gray-900 outline-none transition-all focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 dark:border-white/10 dark:bg-white/[0.02] dark:text-white"
                   />
 
                   {mostrarSugerenciasCategoria &&
                     busquedaCategoria.length > 0 && (
-                      <ul className="absolute z-50 mt-1 max-h-52 w-full overflow-y-auto rounded-md border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-800">
+                      <ul className="absolute z-50 mt-1 max-h-52 w-full overflow-y-auto rounded-lg border border-gray-200 bg-white shadow-lg dark:border-white/10 dark:bg-gray-800">
                         {categoriasFiltradas.length > 0 ? (
                           categoriasFiltradas.map((cat) => (
                             <li
                               key={cat.id}
                               onMouseDown={() => seleccionarCategoria(cat)}
-                              className="cursor-pointer px-4 py-2 hover:bg-blue-50 dark:hover:bg-gray-700"
+                              className="cursor-pointer px-4 py-2 hover:bg-blue-50 dark:hover:bg-white/5"
                             >
                               <p className="text-sm font-medium text-gray-800 dark:text-white/90">
                                 {cat.nombre}
@@ -345,8 +332,92 @@ export default function ProductoFormulario() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-400">
-                  Precio Contado (L.)
+                <label className="mb-1.5 ml-1 block text-[10px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500">
+                  Estado del producto
+                </label>
+                <div className="flex h-[42px] items-center rounded-lg border border-gray-200 bg-white px-3.5 dark:border-white/10 dark:bg-white/[0.02]">
+                  <div className="flex items-center gap-3">
+                    <button
+                      type="button"
+                      role="switch"
+                      aria-checked={estado !== "Inactivo"}
+                      onClick={() =>
+                        setEstado((prev) =>
+                          prev === "Inactivo" ? "Activo" : "Inactivo",
+                        )
+                      }
+                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                        estado !== "Inactivo"
+                          ? "bg-blue-600"
+                          : "bg-gray-300 dark:bg-gray-600"
+                      }`}
+                    >
+                      <span
+                        className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform ${
+                          estado !== "Inactivo"
+                            ? "translate-x-5"
+                            : "translate-x-1"
+                        }`}
+                      />
+                    </button>
+                    <span className="text-sm font-medium text-gray-700 dark:text-gray-200">
+                      {estado !== "Inactivo" ? "Activo" : "Inactivo"}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex-1">
+              <div className="mb-1.5 ml-1 flex items-end justify-between">
+                <label className="block text-[10px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500">
+                  Descripción del Producto
+                </label>
+                <span className="text-[9px] font-bold uppercase text-gray-400 dark:text-gray-500">
+                  {descripcion.length} / {MAX_DESCRIPCION}
+                </span>
+              </div>
+              <textarea
+                value={descripcion}
+                onChange={(e) =>
+                  setDescripcion(
+                    (e.target.value || "").slice(0, MAX_DESCRIPCION),
+                  )
+                }
+                maxLength={MAX_DESCRIPCION}
+                placeholder="Escribe los detalles destacados del producto..."
+                rows={6}
+                className="min-h-[180px] w-full resize-none rounded-lg border border-gray-200 bg-white px-3.5 py-3 text-sm text-gray-900 outline-none transition-all focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 dark:border-white/10 dark:bg-white/[0.02] dark:text-white"
+              />
+            </div>
+          </div>
+        </section>
+
+        <section className="grid grid-cols-1 gap-6 border-t border-gray-100 pt-2 md:grid-cols-2 dark:border-white/10">
+          <div className="space-y-3">
+            <div className="flex items-center gap-2.5 border-b border-gray-100 pb-1.5 dark:border-white/10">
+              <svg
+                className="h-5 w-5 text-blue-600 dark:text-blue-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 8c-1.657 0-3 1.343-3 3s1.343 3 3 3 3 1.343 3 3-1.343 3-3 3m0-12V5m0 14v-2m0-12h3m-3 0H9"
+                />
+              </svg>
+              <h3 className="text-base font-bold text-gray-900 dark:text-white/90">
+                Precios
+              </h3>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="mb-1.5 ml-1 block text-[10px] font-bold uppercase text-gray-400 dark:text-gray-500">
+                  Costo
                 </label>
                 <input
                   type="number"
@@ -359,13 +430,12 @@ export default function ProductoFormulario() {
                     }
                   }}
                   placeholder="3500"
-                  className="mt-1 block w-full rounded-md border border-gray-300 p-2 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                  className="w-full rounded-lg border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-gray-900 outline-none transition-all focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 dark:border-white/10 dark:bg-white/[0.02] dark:text-white"
                 />
               </div>
-
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-400">
-                  Precio Crédito (L.)
+                <label className="mb-1.5 ml-1 block text-[10px] font-bold uppercase text-gray-400 dark:text-gray-500">
+                  Venta
                 </label>
                 <input
                   type="number"
@@ -375,13 +445,36 @@ export default function ProductoFormulario() {
                   readOnly
                   disabled
                   placeholder="Calculado automáticamente"
-                  className="mt-1 block w-full cursor-not-allowed rounded-md border border-gray-300 bg-gray-50 p-2 text-gray-700 opacity-70 shadow-sm dark:border-gray-700 dark:bg-gray-700 dark:text-gray-300"
+                  className="w-full cursor-not-allowed rounded-lg border border-blue-200 bg-blue-50 px-3.5 py-2.5 text-sm font-semibold text-blue-700 opacity-90 outline-none dark:border-blue-500/20 dark:bg-blue-500/10 dark:text-blue-300"
                 />
               </div>
+            </div>
+          </div>
 
+          <div className="space-y-3">
+            <div className="flex items-center gap-2.5 border-b border-gray-100 pb-1.5 dark:border-white/10">
+              <svg
+                className="h-5 w-5 text-blue-600 dark:text-blue-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M20 13V7a2 2 0 00-2-2H6a2 2 0 00-2 2v6m16 0v6a2 2 0 01-2 2H6a2 2 0 01-2-2v-6m16 0H4m8-8v16"
+                />
+              </svg>
+              <h3 className="text-base font-bold text-gray-900 dark:text-white/90">
+                Inventario
+              </h3>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-400">
-                  Stock
+                <label className="mb-1.5 ml-1 block text-[10px] font-bold uppercase text-gray-400 dark:text-gray-500">
+                  Stock Actual
                 </label>
                 <input
                   type="number"
@@ -394,13 +487,13 @@ export default function ProductoFormulario() {
                     }
                   }}
                   placeholder="10"
-                  className="mt-1 block w-full rounded-md border border-gray-300 p-2 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                  className="w-full rounded-lg border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-gray-900 outline-none transition-all focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 dark:border-white/10 dark:bg-white/[0.02] dark:text-white"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-400">
-                  Stock Mínimo
+                <label className="mb-1.5 ml-1 block text-[10px] font-bold uppercase text-gray-400 dark:text-gray-500">
+                  Mínimo Stock
                 </label>
                 <input
                   type="number"
@@ -413,65 +506,31 @@ export default function ProductoFormulario() {
                     }
                   }}
                   placeholder="5"
-                  className="mt-1 block w-full rounded-md border border-gray-300 p-2 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+                  className="w-full rounded-lg border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-gray-900 outline-none transition-all focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 dark:border-white/10 dark:bg-white/[0.02] dark:text-white"
                 />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-400">
-                  Estado
-                </label>
-                <select
-                  value={estado === "Agotado" ? "Activo" : estado}
-                  onChange={(e) => setEstado(e.target.value)}
-                  className="mt-1 block w-full rounded-md border border-gray-300 p-2 text-gray-900 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100"
-                >
-                  <option
-                    value="Activo"
-                    className="bg-white text-gray-900 dark:bg-gray-800 dark:text-white"
-                  >
-                    Activo
-                  </option>
-                  <option
-                    value="Inactivo"
-                    className="bg-white text-gray-900 dark:bg-gray-800 dark:text-white"
-                  >
-                    Inactivo
-                  </option>
-                </select>
               </div>
             </div>
           </div>
+        </section>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-400">
-              Descripción
-            </label>
-            <textarea
-              value={descripcion}
-              onChange={(e) =>
-                setDescripcion((e.target.value || "").slice(0, MAX_DESCRIPCION))
-              }
-              maxLength={MAX_DESCRIPCION}
-              placeholder="Ej. Cafetera Oster de 8 tazas"
-              rows={3}
-              className="mt-1 block h-24 w-full resize-none rounded-md border border-gray-300 p-3 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-            />
-            <p className="mt-1 text-right text-xs text-gray-500 dark:text-gray-400">
-              {descripcion.length}/{MAX_DESCRIPCION}
-            </p>
-          </div>
-
-          <div className="flex gap-3 pt-2">
+        <footer className="sticky bottom-0 z-10 -mx-5 border-t border-gray-100 bg-white px-5 py-4 dark:border-white/10 dark:bg-gray-950/80 sm:-mx-6 sm:px-6">
+          <div className="flex justify-end gap-3">
+            <button
+              type="button"
+              onClick={() => navigate("/productos")}
+              className="rounded-lg border border-gray-300 bg-white px-8 py-3 text-xs font-bold text-gray-700 transition-all hover:bg-gray-50 dark:border-white/10 dark:bg-white/[0.02] dark:text-gray-200 dark:hover:bg-white/5"
+            >
+              Volver
+            </button>
             <button
               type="submit"
               disabled={enviando}
-              className={`flex-1 rounded-md px-4 py-2 font-bold text-white transition ${
+              className={`rounded-lg px-10 py-3 text-xs font-bold text-white shadow-lg shadow-blue-600/20 transition-all active:scale-[0.98] ${
                 enviando
                   ? "bg-gray-400"
                   : modoEdicion
-                    ? "bg-blue-600 hover:bg-blue-700"
-                    : "bg-green-600 hover:bg-green-700"
+                    ? "bg-blue-700 hover:bg-blue-800"
+                    : "bg-blue-600 hover:bg-blue-700"
               }`}
             >
               {enviando
@@ -481,8 +540,8 @@ export default function ProductoFormulario() {
                   : "Guardar"}
             </button>
           </div>
-        </form>
-      </div>
+        </footer>
+      </form>
     </PageShell>
   );
 }

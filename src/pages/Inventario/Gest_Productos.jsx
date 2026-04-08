@@ -1,8 +1,10 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import DataTable from "../../components/ui/table/DataTable";
 import ExportButtons from "../../layout/Exportbuttons";
 import MetricCard from "../../components/common/MetricCard";
+import ConfirmDeleteModal from "../../components/common/ConfirmDeleteModal";
 import { useAuth } from "../../auth/AuthProvider";
 import { useNombreEmpleadoActual } from "../../hooks/useNombreEmpleadoActual";
 import { BoxIconLine, CheckCircleIcon, CloseIcon, PlusIcon } from "../../icons";
@@ -19,6 +21,8 @@ export default function Gest_Productos() {
   const { user } = useAuth();
   const nombreEmpleado = useNombreEmpleadoActual();
   const navigate = useNavigate();
+  const [productoAEliminar, setProductoAEliminar] = useState(null);
+  const [eliminando, setEliminando] = useState(false);
   const {
     productos,
     categorias,
@@ -38,6 +42,28 @@ export default function Gest_Productos() {
     handleEliminar,
   } = useProductos({ user, nombreEmpleado });
 
+  const abrirConfirmacionEliminar = (productoId) => {
+    const producto = productos.find((item) => item.id === productoId) || null;
+    setProductoAEliminar(producto);
+  };
+
+  const cerrarConfirmacionEliminar = () => {
+    if (eliminando) return;
+    setProductoAEliminar(null);
+  };
+
+  const confirmarEliminarProducto = async () => {
+    if (!productoAEliminar?.id) return;
+
+    setEliminando(true);
+    const ok = await handleEliminar(productoAEliminar.id);
+    setEliminando(false);
+
+    if (ok) {
+      setProductoAEliminar(null);
+    }
+  };
+
   const columns = productColumns({
     onView: (producto) =>
       navigate("/productos/detalle", {
@@ -47,7 +73,7 @@ export default function Gest_Productos() {
       navigate("/productos/editar", {
         state: { producto },
       }),
-    onEliminar: handleEliminar,
+    onEliminar: abrirConfirmacionEliminar,
   });
 
   return (
@@ -140,6 +166,15 @@ export default function Gest_Productos() {
         <DataTable.Table />
         <DataTable.Pagination />
       </DataTable>
+
+      <ConfirmDeleteModal
+        isOpen={Boolean(productoAEliminar)}
+        onClose={cerrarConfirmacionEliminar}
+        onConfirm={confirmarEliminarProducto}
+        itemName={productoAEliminar?.nombre}
+        message="¿Deseas eliminar el producto"
+        loading={eliminando}
+      />
     </div>
   );
 }

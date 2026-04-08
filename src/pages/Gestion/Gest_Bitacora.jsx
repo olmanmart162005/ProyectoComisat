@@ -45,7 +45,9 @@ export default function Gest_Bitacora() {
         <MetricCard
           title="Registros Hoy"
           value={totalHoy}
-          icon={<ListIcon className="text-gray-800 size-6 dark:text-white/90" />}
+          icon={
+            <ListIcon className="text-gray-800 size-6 dark:text-white/90" />
+          }
           iconWrapperClass="bg-gray-100 dark:bg-gray-800"
         />
         <MetricCard

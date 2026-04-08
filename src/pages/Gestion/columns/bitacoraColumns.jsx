@@ -58,11 +58,17 @@ function resumirMetadata(accion, metadata = {}) {
       const base = metadata.nombre ?? metadata.nombreCompleto;
       if (base) partes.push(base);
       if (metadata.stockAnterior !== undefined)
-        partes.push(`Stock: ${metadata.stockAnterior} → ${metadata.stockNuevo}`);
+        partes.push(
+          `Stock: ${metadata.stockAnterior} → ${metadata.stockNuevo}`,
+        );
       if (metadata.estadoAnterior !== undefined)
-        partes.push(`Estado: ${metadata.estadoAnterior} → ${metadata.estadoNuevo}`);
+        partes.push(
+          `Estado: ${metadata.estadoAnterior} → ${metadata.estadoNuevo}`,
+        );
       if (metadata.salarioAnterior !== undefined)
-        partes.push(`Salario: L.${metadata.salarioAnterior} → L.${metadata.salarioNuevo}`);
+        partes.push(
+          `Salario: L.${metadata.salarioAnterior} → L.${metadata.salarioNuevo}`,
+        );
       if (metadata.departamentoAnterior !== undefined)
         partes.push(
           `Depto: ${metadata.departamentoAnterior} → ${metadata.departamentoNuevo}`,

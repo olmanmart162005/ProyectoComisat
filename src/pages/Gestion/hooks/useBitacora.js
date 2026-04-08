@@ -18,11 +18,17 @@ function resumirMetadata(accion, metadata = {}) {
       const base = metadata.nombre ?? metadata.nombreCompleto;
       if (base) partes.push(base);
       if (metadata.stockAnterior !== undefined)
-        partes.push(`Stock: ${metadata.stockAnterior} → ${metadata.stockNuevo}`);
+        partes.push(
+          `Stock: ${metadata.stockAnterior} → ${metadata.stockNuevo}`,
+        );
       if (metadata.estadoAnterior !== undefined)
-        partes.push(`Estado: ${metadata.estadoAnterior} → ${metadata.estadoNuevo}`);
+        partes.push(
+          `Estado: ${metadata.estadoAnterior} → ${metadata.estadoNuevo}`,
+        );
       if (metadata.salarioAnterior !== undefined)
-        partes.push(`Salario: L.${metadata.salarioAnterior} → L.${metadata.salarioNuevo}`);
+        partes.push(
+          `Salario: L.${metadata.salarioAnterior} → L.${metadata.salarioNuevo}`,
+        );
       if (metadata.departamentoAnterior !== undefined)
         partes.push(
           `Depto: ${metadata.departamentoAnterior} → ${metadata.departamentoNuevo}`,
@@ -73,7 +79,8 @@ export function useBitacora() {
     });
 
     const unique = Array.from(set).reduce((acc, val) => {
-      if (!acc.some((v) => v.toLowerCase() === val.toLowerCase())) acc.push(val);
+      if (!acc.some((v) => v.toLowerCase() === val.toLowerCase()))
+        acc.push(val);
       return acc;
     }, []);
 
@@ -83,7 +90,10 @@ export function useBitacora() {
   const fetchBitacora = async () => {
     setLoading(true);
     try {
-      const qCompleta = query(collection(db, "bitacora"), orderBy("fecha", "desc"));
+      const qCompleta = query(
+        collection(db, "bitacora"),
+        orderBy("fecha", "desc"),
+      );
       const snapCompleta = await getDocs(qCompleta);
       const todos = snapCompleta.docs.map((d) => ({ id: d.id, ...d.data() }));
       setTodosLosRegistros(todos);

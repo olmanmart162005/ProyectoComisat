@@ -19,7 +19,8 @@ export default function BitacoraFiltersDropdown({
 }) {
   const [isOpen, setIsOpen] = useState(false);
 
-  const hayFiltros = Boolean(filtroColeccion) || Boolean(filtroAccion) || Boolean(rangoFecha);
+  const hayFiltros =
+    Boolean(filtroColeccion) || Boolean(filtroAccion) || Boolean(rangoFecha);
   const etiqueta = hayFiltros ? "Filtrando" : "Filtrar";
 
   const limpiarFiltros = () => {
@@ -62,7 +63,11 @@ export default function BitacoraFiltersDropdown({
               Todas
             </option>
             {coleccionesDinamicas.map((c) => (
-              <option key={c.value} value={c.value} className="bg-white text-gray-900">
+              <option
+                key={c.value}
+                value={c.value}
+                className="bg-white text-gray-900"
+              >
                 {c.label}
               </option>
             ))}
@@ -82,7 +87,11 @@ export default function BitacoraFiltersDropdown({
               Todas
             </option>
             {accionesDinamicas.map((a) => (
-              <option key={a.value} value={a.value} className="bg-white text-gray-900">
+              <option
+                key={a.value}
+                value={a.value}
+                className="bg-white text-gray-900"
+              >
                 {a.label}
               </option>
             ))}

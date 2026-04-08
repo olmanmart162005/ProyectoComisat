@@ -126,8 +126,7 @@ const syncUsuarioConEmpleado = async ({
     console.error("Usuario creado pero falló el correo:", emailErr);
     sileo.warning({
       title: "Empleado creado",
-      description:
-        "El usuario se generó, pero no se pudo enviar el correo de credenciales.",
+      description: "El usuario se generó, pero no se pudo enviar el correo de credenciales.",
     });
   }
 };

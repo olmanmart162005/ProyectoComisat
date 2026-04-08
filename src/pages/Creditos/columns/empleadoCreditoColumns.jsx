@@ -34,9 +34,20 @@ export const estadoEmpleadoColor = {
   Inactivo: "error",
 };
 
+export const COLUMNAS_EXPORT_EMPLEADOS_PERFIL = [
+  { key: "nombres", header: "Nombres", type: "text" },
+  { key: "apellidos", header: "Apellidos", type: "text" },
+  { key: "departamentoNombre", header: "Departamento", type: "text" },
+  { key: "salario", header: "Salario", type: "currency" },
+  { key: "fechaInicio", header: "Fecha Inicio", type: "date" },
+  { key: "estado", header: "Estado", type: "text" },
+  { key: "creditoActivo", header: "Crédito", type: "text" },
+];
+
 export function empleadoCreditoColumns({
   onVerPerfil,
   getEstadoEmpleado: getEstadoEmpleadoProp,
+  getEstadoCreditoEmpleado: getEstadoCreditoEmpleadoProp,
 }) {
   const getEstado = getEstadoEmpleadoProp ?? getEstadoEmpleado;
 
@@ -89,6 +100,23 @@ export function empleadoCreditoColumns({
         return (
           <Badge size="sm" color={estadoEmpleadoColor[estado] ?? "warning"}>
             {estado}
+          </Badge>
+        );
+      },
+    },
+    {
+      id: "credito",
+      header: "Crédito",
+      cell: ({ row }) => {
+        const estadoCreditoEmpleado =
+          getEstadoCreditoEmpleadoProp?.(row.original) ?? "No";
+
+        return (
+          <Badge
+            size="sm"
+            color={estadoCreditoEmpleado === "Sí" ? "success" : "warning"}
+          >
+            {estadoCreditoEmpleado}
           </Badge>
         );
       },

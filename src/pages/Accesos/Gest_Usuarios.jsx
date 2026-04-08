@@ -1,18 +1,16 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 import DataTable from "../../components/ui/table/DataTable";
 import ConfirmDeleteModal from "../../components/common/ConfirmDeleteModal";
 import ExportButtons from "../../layout/Exportbuttons";
 import MetricCard from "../../components/common/MetricCard";
-import { useModal } from "../../hooks/useModal";
-import { sileo, Toaster } from "sileo";
+import { Toaster } from "sileo";
 import { useAuth } from "../../auth/AuthProvider";
 import { useNombreEmpleadoActual } from "../../hooks/useNombreEmpleadoActual";
 import { registrarBitacora } from "../../services/bitacora";
 import { GroupIcon, CheckCircleIcon, CloseIcon } from "../../icons";
 import { formatDateForFilename } from "../../utils/formatters";
-
-import UsuarioModal from "../../components/Accesos/UsuarioModal";
 import UsuariosFiltersDropdown from "../../components/Accesos/UsuariosFiltersDropdown";
 import { useUsuarios } from "./hooks/useUsuarios";
 import {
@@ -23,32 +21,17 @@ import {
 export default function Gest_Usuarios() {
   Toaster.position = "top-right";
 
-  const { isOpen, openModal, closeModal } = useModal();
+  const navigate = useNavigate();
   const { user } = useAuth();
   const nombreEmpleado = useNombreEmpleadoActual();
-  const [soloVista, setSoloVista] = useState(false);
   const [usuarioAEliminar, setUsuarioAEliminar] = useState(null);
   const [eliminando, setEliminando] = useState(false);
 
   const {
+    usuarios,
     empleados,
     roles,
     loading,
-    busquedaEmpleado,
-    setBusquedaEmpleado,
-    mostrarSugerencias,
-    setMostrarSugerencias,
-    editandoId,
-    setEditandoId,
-    enviando,
-    setEmpleadoId,
-    setNombre,
-    setCorreoPersonal,
-    correo,
-    setCorreo,
-    rolId,
-    estado,
-    setEstado,
     filtroEstado,
     setFiltroEstado,
     filtroRol,
@@ -58,43 +41,8 @@ export default function Gest_Usuarios() {
     usuariosInactivos,
     usuariosFiltrados,
     textoFiltrosPdf,
-    handleRolChange,
-    handleSubmit,
-    handleUpdate,
     handleEliminar,
-    resetFormulario,
-  } = useUsuarios({ closeModal, user, nombreEmpleado });
-
-  const abrirDetalle = (u) => {
-    setEditandoId(u.id);
-    setEmpleadoId(u.empleadoId || "");
-    setNombre(u.nombre || "");
-    setBusquedaEmpleado(u.nombre || "");
-    setCorreoPersonal(u.correoPersonal || "");
-    setCorreo(u.correo || "");
-    handleRolChange({ target: { value: u.rolId || "" } });
-    setEstado(u.estado || "Activo");
-    setSoloVista(true);
-    openModal();
-  };
-
-  const abrirEdicion = (u) => {
-    setEditandoId(u.id);
-    setEmpleadoId(u.empleadoId || "");
-    setNombre(u.nombre || "");
-    setBusquedaEmpleado(u.nombre || "");
-    setCorreoPersonal(u.correoPersonal || "");
-    setCorreo(u.correo || "");
-    handleRolChange({ target: { value: u.rolId || "" } });
-    setEstado(u.estado || "Activo");
-    setSoloVista(false);
-    openModal();
-  };
-
-  const cerrarModalUsuario = () => {
-    setSoloVista(false);
-    closeModal();
-  };
+  } = useUsuarios({ user, nombreEmpleado });
 
   const abrirEliminarUsuario = (uId) => {
     const usuario = usuarios.find((item) => item.id === uId) || null;
@@ -115,8 +63,14 @@ export default function Gest_Usuarios() {
   };
 
   const columns = usuarioColumns({
-    onView: abrirDetalle,
-    onEdit: abrirEdicion,
+    onView: (usuario) =>
+      navigate("/usuarios/detalle", {
+        state: { usuario },
+      }),
+    onEdit: (usuario) =>
+      navigate("/usuarios/editar", {
+        state: { usuario },
+      }),
     onEliminar: abrirEliminarUsuario,
   });
 
@@ -128,9 +82,7 @@ export default function Gest_Usuarios() {
         </h2>
         <button
           onClick={() => {
-            resetFormulario();
-            setSoloVista(false);
-            openModal();
+            navigate("/usuarios/nuevo");
           }}
           className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-5 py-2.5 rounded-lg shadow-sm transition flex items-center gap-2"
         >
@@ -175,30 +127,6 @@ export default function Gest_Usuarios() {
           iconWrapperClass="bg-red-50 dark:bg-red-500/10"
         />
       </div>
-
-      <UsuarioModal
-        isOpen={isOpen}
-        onClose={cerrarModalUsuario}
-        editandoId={editandoId}
-        enviando={enviando}
-        onSubmit={editandoId ? handleUpdate : handleSubmit}
-        busquedaEmpleado={busquedaEmpleado}
-        setBusquedaEmpleado={setBusquedaEmpleado}
-        mostrarSugerencias={mostrarSugerencias}
-        setMostrarSugerencias={setMostrarSugerencias}
-        empleados={empleados}
-        setEmpleadoId={setEmpleadoId}
-        setNombre={setNombre}
-        setCorreoPersonal={setCorreoPersonal}
-        correo={correo}
-        setCorreo={setCorreo}
-        rolId={rolId}
-        handleRolChange={handleRolChange}
-        roles={roles}
-        estado={estado}
-        setEstado={setEstado}
-        soloVista={soloVista}
-      />
 
       <DataTable columns={columns} data={usuariosFiltrados} loading={loading}>
         <DataTable.Toolbar searchPlaceholder="Buscar usuario...">

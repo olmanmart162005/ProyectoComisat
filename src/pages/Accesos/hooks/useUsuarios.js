@@ -112,7 +112,7 @@ export const useUsuarios = ({ closeModal, user, nombreEmpleado }) => {
   };
 
   // Reemplaza handleSubmit completo
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e, { onSuccess } = {}) => {
     e.preventDefault();
     setEnviando(true);
     try {
@@ -171,13 +171,14 @@ export const useUsuarios = ({ closeModal, user, nombreEmpleado }) => {
         });
         resetFormulario();
         fetchUsuarios();
-        closeModal();
+        closeModal?.();
         return;
       }
 
       resetFormulario();
       fetchUsuarios();
-      closeModal();
+      closeModal?.();
+      onSuccess?.();
       sileo.success({
         title: "Usuario creado",
         description: "Credenciales enviadas al correo personal del empleado.",
@@ -190,7 +191,7 @@ export const useUsuarios = ({ closeModal, user, nombreEmpleado }) => {
     }
   };
 
-  const handleUpdate = async (e) => {
+  const handleUpdate = async (e, { onSuccess } = {}) => {
     e.preventDefault();
     setEnviando(true);
     try {
@@ -231,7 +232,8 @@ export const useUsuarios = ({ closeModal, user, nombreEmpleado }) => {
 
       resetFormulario();
       fetchUsuarios();
-      closeModal();
+      closeModal?.();
+      onSuccess?.();
       setTimeout(() => sileo.success("Usuario actualizado"), 150);
     } catch (error) {
       console.error("Error al actualizar", error);

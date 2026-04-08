@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 
 import PageShell from "../../components/common/PageShell";
 import { useAuth } from "../../auth/AuthProvider";
@@ -36,6 +38,10 @@ export default function EmpleadoFormulario() {
   const [salario, setSalario] = useState("");
   const [fechaInicio, setFechaInicio] = useState("");
   const [estado, setEstado] = useState("Activo");
+
+  const fechaInicioSeleccionada = fechaInicio
+    ? new Date(`${fechaInicio}T00:00:00`)
+    : null;
 
   const resetFormulario = () => {
     const codigoNuevo = generarNuevoCodigo(empleados, historialEmpleados);
@@ -153,7 +159,6 @@ export default function EmpleadoFormulario() {
               <p className="mt-2 text-3xl font-extrabold text-blue-700 dark:text-blue-300">
                 {codigoEmpleado || "Generando..."}
               </p>
-             
             </div>
 
             <div className="rounded-xl border border-gray-200 bg-white p-5 dark:border-white/10 dark:bg-white/[0.02]">
@@ -353,12 +358,16 @@ export default function EmpleadoFormulario() {
               <label className="mb-1.5 ml-1 block text-[10px] font-bold uppercase text-gray-400 dark:text-gray-500">
                 Fecha de Inicio
               </label>
-              <input
-                type="date"
+              <DatePicker
+                selected={fechaInicioSeleccionada}
+                onChange={(date) =>
+                  setFechaInicio(date ? formatDateForInput(date) : "")
+                }
+                dateFormat="dd/MM/yyyy"
+                placeholderText="Selecciona una fecha"
                 required
-                value={fechaInicio}
-                onChange={(e) => setFechaInicio(e.target.value)}
                 className="w-full rounded-lg border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-gray-900 outline-none transition-all focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 dark:border-white/10 dark:bg-white/[0.02] dark:text-white"
+                wrapperClassName="w-full"
               />
             </div>
           </div>

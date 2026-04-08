@@ -134,7 +134,8 @@ export default function SolicitudDetalle() {
                       Plazo:
                     </span>{" "}
                     <span className="font-bold text-gray-900 dark:text-white/90">
-                      {Number(fin.plazoCuotas ?? solicitud.plazoCuotas ?? 0)} meses
+                      {Number(fin.plazoCuotas ?? solicitud.plazoCuotas ?? 0)}{" "}
+                      meses
                     </span>
                   </p>
 

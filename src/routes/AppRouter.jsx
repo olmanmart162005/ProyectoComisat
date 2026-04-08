@@ -40,6 +40,8 @@ import EmpleadoFormulario from "../pages/Personal/EmpleadoFormulario";
 import Gest_Categorias from "../pages/Inventario/Gest_Categorias";
 import CategoriaFormulario from "../pages/Inventario/CategoriaFormulario";
 import Departamentos from "../pages/Personal/Gest_Departamentos";
+import UsuarioFormulario from "../pages/Accesos/UsuarioFormulario";
+import UsuarioDetalle from "../pages/Accesos/UsuarioDetalle";
 import Gest_Bitacora from "../pages/Gestion/Gest_Bitacora";
 import HistorialProductos from "../pages/Gestion/HistorialProductos";
 import HistorialEmpleados from "../pages/Gestion/HistorialEmpleados";
@@ -209,6 +211,30 @@ export default function AppRouter() {
             element={
               <RoleRoute roles={["Administrador"]}>
                 <Usuarios />
+              </RoleRoute>
+            }
+          />
+          <Route
+            path="usuarios/nuevo"
+            element={
+              <RoleRoute roles={["Administrador"]}>
+                <UsuarioFormulario />
+              </RoleRoute>
+            }
+          />
+          <Route
+            path="usuarios/editar"
+            element={
+              <RoleRoute roles={["Administrador"]}>
+                <UsuarioFormulario />
+              </RoleRoute>
+            }
+          />
+          <Route
+            path="usuarios/detalle"
+            element={
+              <RoleRoute roles={["Administrador"]}>
+                <UsuarioDetalle />
               </RoleRoute>
             }
           />

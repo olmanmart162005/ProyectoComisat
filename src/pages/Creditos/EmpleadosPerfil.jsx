@@ -1,21 +1,25 @@
 import MetricCard from "../../components/common/MetricCard";
 import DataTable from "../../components/ui/table/DataTable";
 import { useNavigate } from "react-router-dom";
-import {
-  BoxIconLine,
-  CheckCircleIcon,
-  GroupIcon,
-  CloseIcon,
-} from "../../icons";
+import { useAuth } from "../../auth/AuthProvider";
+import { useNombreEmpleadoActual } from "../../hooks/useNombreEmpleadoActual";
+import { EmpleadosPerfilFiltersDropdown } from "../../components/creditos/EmpleadosPerfilFiltersDropdown";
+import ExportButtons from "../../layout/Exportbuttons";
+import { registrarBitacora } from "../../services/bitacora";
+import { formatDateForFilename } from "../../utils/formatters";
+import { BoxIconLine, CheckCircleIcon, GroupIcon } from "../../icons";
 
 import {
   empleadoCreditoColumns,
+  COLUMNAS_EXPORT_EMPLEADOS_PERFIL,
   getEstadoEmpleado,
 } from "./columns/empleadoCreditoColumns";
 import { useEmpleadosPerfil } from "./hooks/useEmpleadosPerfil";
 
 export default function EmpleadosPerfil() {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const nombreEmpleado = useNombreEmpleadoActual();
   const {
     empleados,
     departamentos,
@@ -25,9 +29,13 @@ export default function EmpleadosPerfil() {
     setFiltroDepartamento,
     filtroEstado,
     setFiltroEstado,
+    filtroCreditoActivo,
+    setFiltroCreditoActivo,
     totalActivos,
-    totalInactivos,
+    totalConCreditoActivo,
     empleadosFiltrados,
+    textoFiltrosPdf,
+    getEstadoCreditoEmpleado,
   } = useEmpleadosPerfil();
 
   const columns = empleadoCreditoColumns({
@@ -36,6 +44,7 @@ export default function EmpleadosPerfil() {
         state: { empleado, porcentajeLimite },
       }),
     getEstadoEmpleado,
+    getEstadoCreditoEmpleado,
   });
 
   return (
@@ -62,51 +71,55 @@ export default function EmpleadosPerfil() {
           iconWrapperClass="bg-green-50 dark:bg-green-500/10"
         />
         <MetricCard
-          title="Inactivos"
-          value={totalInactivos}
-          icon={<CloseIcon className="text-red-600 size-6 dark:text-red-400" />}
-          iconWrapperClass="bg-red-50 dark:bg-red-500/10"
+          title="Con Crédito Activo"
+          value={totalConCreditoActivo}
+          icon={
+            <CheckCircleIcon className="text-blue-600 size-6 dark:text-blue-400" />
+          }
+          iconWrapperClass="bg-blue-50 dark:bg-blue-500/10"
         />
       </div>
 
       <DataTable columns={columns} data={empleadosFiltrados} loading={loading}>
         <DataTable.Toolbar searchPlaceholder="Buscar por nombre o apellido...">
-          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto sm:ml-auto">
-            <select
-              value={filtroDepartamento}
-              onChange={(e) => setFiltroDepartamento(e.target.value)}
-              className="w-full sm:w-52 p-2 border border-gray-300 rounded-md text-sm text-gray-900 focus:ring-blue-500 focus:border-blue-500 dark:bg-white/5 dark:border-white/10 dark:text-gray-100"
-            >
-              <option value="" className="bg-white text-gray-900">
-                Departamento
-              </option>
-              {departamentos.map((dep) => (
-                <option
-                  key={dep.id}
-                  value={dep.id}
-                  className="bg-white text-gray-900"
-                >
-                  {dep.nombre}
-                </option>
-              ))}
-            </select>
+          <EmpleadosPerfilFiltersDropdown
+            departamentos={departamentos}
+            filtroDepartamento={filtroDepartamento}
+            setFiltroDepartamento={setFiltroDepartamento}
+            filtroEstado={filtroEstado}
+            setFiltroEstado={setFiltroEstado}
+            filtroCreditoActivo={filtroCreditoActivo}
+            setFiltroCreditoActivo={setFiltroCreditoActivo}
+          />
 
-            <select
-              value={filtroEstado}
-              onChange={(e) => setFiltroEstado(e.target.value)}
-              className="w-full sm:w-40 p-2 border border-gray-300 rounded-md text-sm text-gray-900 focus:ring-blue-500 focus:border-blue-500 dark:bg-white/5 dark:border-white/10 dark:text-gray-100"
-            >
-              <option value="" className="bg-white text-gray-900">
-                Estado
-              </option>
-              <option value="Activo" className="bg-white text-gray-900">
-                Activo
-              </option>
-              <option value="Inactivo" className="bg-white text-gray-900">
-                Inactivo
-              </option>
-            </select>
-          </div>
+          <ExportButtons
+            rows={empleadosFiltrados}
+            columns={COLUMNAS_EXPORT_EMPLEADOS_PERFIL}
+            filename={"Empleados Perfil " + formatDateForFilename()}
+            sheetName="Empleados Perfil"
+            meta={{
+              empresa: "Comisariato San Jose",
+              usuario: nombreEmpleado || user?.email || "Sistema",
+              extra: textoFiltrosPdf,
+            }}
+            pdfOptions={{
+              title: "Empleados Perfil",
+              subtitle: formatDateForFilename(),
+            }}
+            onExport={(formato) =>
+              registrarBitacora({
+                usuario: user?.email ?? "desconocido",
+                nombre: nombreEmpleado || user?.email || "desconocido",
+                coleccion: "creditos",
+                accion: "exportar",
+                metadata: {
+                  formato,
+                  totalRegistros: empleadosFiltrados.length,
+                  filtros: textoFiltrosPdf,
+                },
+              })
+            }
+          />
         </DataTable.Toolbar>
         <DataTable.Table />
         <DataTable.Pagination />

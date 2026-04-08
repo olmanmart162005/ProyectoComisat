@@ -6,27 +6,10 @@ import DataTable from "../../components/ui/table/DataTable";
 import SolicitudDecisionConfirmModal from "../../components/Creditos/SolicitudDecisionConfirmModal";
 import { useAuth } from "../../auth/AuthProvider";
 import { useNombreEmpleadoActual } from "../../hooks/useNombreEmpleadoActual";
+import { safeFormatDateTime } from "../../utils/formatters";
 import { lps } from "./columns/solicitudColumns";
 import { historialColumns } from "./columns/perfilDetalleColumns";
 import { useSolicitudDetalle } from "./hooks/useSolicitudDetalle";
-
-const formatFechaHora = (valor) => {
-  if (!valor) return "Sin registro";
-  if (typeof valor?.toDate === "function") {
-    return valor.toDate()?.toLocaleString("es-HN") ?? "Sin registro";
-  }
-  if (valor instanceof Date) {
-    return valor.toLocaleString("es-HN");
-  }
-  const seconds = valor?.seconds ?? valor?._seconds;
-  if (typeof seconds === "number") {
-    return new Date(seconds * 1000).toLocaleString("es-HN");
-  }
-  const parsed = new Date(valor);
-  return Number.isNaN(parsed.getTime())
-    ? "Sin registro"
-    : parsed.toLocaleString("es-HN");
-};
 
 export default function SolicitudDetalle() {
   const { state } = useLocation();
@@ -107,7 +90,7 @@ export default function SolicitudDetalle() {
                     Fecha de autorización
                   </p>
                   <p className="text-sm font-medium text-gray-800 dark:text-white/90 mt-1">
-                    {formatFechaHora(solicitud.fechaAutoriza)}
+                    {safeFormatDateTime(solicitud.fechaAutoriza)}
                   </p>
                 </div>
               </div>

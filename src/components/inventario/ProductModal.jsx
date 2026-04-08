@@ -1,17 +1,35 @@
 import { useEffect, useState } from "react";
-import { db, storage } from "../../firebase/firebase";
-import {
-  addDoc,
-  collection,
-  doc,
-  serverTimestamp,
-  updateDoc,
-} from "firebase/firestore";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import { sileo } from "sileo";
-
+import { useDropzone } from "react-dropzone";
 import { Modal } from "../ui/modal";
-import { registrarBitacora } from "../../services/bitacora";
+
+const MAX_DESCRIPCION = 150;
+
+const formatMoney = (value) => {
+  const num = Number(value);
+  if (Number.isNaN(num)) return "—";
+  return `L. ${num.toLocaleString("es-HN")}`;
+};
+
+const formatDateDisplay = (value) => {
+  if (!value) return "—";
+  try {
+    const date = value.toDate ? value.toDate() : new Date(value);
+    return date.toLocaleDateString("es-HN");
+  } catch {
+    return "—";
+  }
+};
+
+const DetailItem = ({ label, value }) => (
+  <div className="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 dark:border-white/10 dark:bg-gray-900/40">
+    <p className="text-[11px] font-semibold uppercase tracking-widest text-gray-400 dark:text-gray-500">
+      {label}
+    </p>
+    <p className="mt-1 text-sm font-medium text-gray-800 dark:text-white/90 break-words">
+      {value || "—"}
+    </p>
+  </div>
+);
 
 export default function ProductModal({
   isOpen,
@@ -22,6 +40,9 @@ export default function ProductModal({
   user,
   nombreEmpleado,
   onSuccess,
+  guardarProducto,
+  actualizarProducto,
+  soloVista = false,
 }) {
   const [editandoId, setEditandoId] = useState(null);
   const [enviando, setEnviando] = useState(false);
@@ -39,6 +60,19 @@ export default function ProductModal({
   const [previewImagen, setPreviewImagen] = useState(null);
   const [imagenUrlActual, setImagenUrlActual] = useState("");
 
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop: (acceptedFiles) => {
+      if (acceptedFiles.length > 0) {
+        handleImagenChange({ target: { files: acceptedFiles } });
+      }
+    },
+    accept: {
+      "image/png": [],
+      "image/jpeg": [],
+      "image/webp": [],
+    },
+  });
+
   const getEstadoProducto = (
     stockValue,
     stockMinimoValue,
@@ -49,6 +83,13 @@ export default function ProductModal({
       ? "Agotado"
       : "Activo";
   };
+
+  const categoriaActual =
+    categorias.find((cat) => cat.id === categoriaId)?.nombre ||
+    categoriaNombre ||
+    "—";
+
+  const estadoVisual = getEstadoProducto(stock, stockMinimo, estado);
 
   const resetFormulario = () => {
     setEditandoId(null);
@@ -79,7 +120,7 @@ export default function ProductModal({
       setNombre(editandoData.nombre || "");
       setDescripcion(editandoData.descripcion || "");
       setPrecioContado(String(editandoData.precioContado || ""));
-      setPrecioCredito("");
+      setPrecioCredito(String(editandoData.precioCredito || ""));
       setStock(String(editandoData.stock || ""));
       setStockMinimo(String(editandoData.stockMinimo || ""));
       setCategoriaId(editandoData.categoriaId || "");
@@ -129,68 +170,26 @@ export default function ProductModal({
     setArchivoImagen(file);
     setPreviewImagen(URL.createObjectURL(file));
   };
-
-  const subirImagen = async (archivo) => {
-    const storageRef = ref(storage, `productos/${Date.now()}_${archivo.name}`);
-    await uploadBytes(storageRef, archivo);
-    return await getDownloadURL(storageRef);
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setEnviando(true);
     try {
-      const stockMinimoNumero = parseInt(stockMinimo, 10);
-      if (Number.isNaN(stockMinimoNumero) || stockMinimoNumero < 0) {
-        sileo.error("Stock mínimo no puede ser menor que 0");
-        return;
-      }
-
-      const contado = parseFloat(precioContado) || 0;
-      const creditoCalculado = contado * (1 + porcentajeAumento);
-      const estadoFinal = getEstadoProducto(stock, stockMinimo, estado);
-
-      let imagenUrl = "";
-      if (archivoImagen) {
-        imagenUrl = await subirImagen(archivoImagen);
-      }
-
-      const nuevoDoc = await addDoc(collection(db, "productos"), {
+      if ((descripcion || "").length > MAX_DESCRIPCION) return;
+      await guardarProducto?.({
         nombre,
         descripcion,
-        precioContado: contado,
-        precioCredito: parseFloat(creditoCalculado.toFixed(2)),
-        stock: parseInt(stock),
-        stockMinimo: stockMinimoNumero,
+        precioContado,
+        stock,
+        stockMinimo,
         categoriaId,
         categoriaNombre,
-        estado: estadoFinal,
-        imagenUrl,
-        fechaRegistro: serverTimestamp(),
+        estado,
+        archivoImagen,
+        porcentajeAumento,
+        onSuccess,
+        resetFormulario,
+        onClose,
       });
-
-      await registrarBitacora({
-        usuario: user.email,
-        nombre: nombreEmpleado,
-        coleccion: "productos",
-        accion: "creacion",
-        docId: nuevoDoc.id,
-        metadata: {
-          nombre,
-          categoriaNombre,
-          stock: parseInt(stock),
-          stockMinimo: stockMinimoNumero,
-          estado: estadoFinal,
-        },
-      });
-
-      await onSuccess?.();
-      resetFormulario();
-      sileo.success("Producto creado con éxito");
-      onClose();
-    } catch (error) {
-      console.error("Error al guardar", error);
-      sileo.error("Error al guardar");
     } finally {
       setEnviando(false);
     }
@@ -200,77 +199,106 @@ export default function ProductModal({
     e.preventDefault();
     setEnviando(true);
     try {
-      const stockMinimoNumero = parseInt(stockMinimo, 10);
-      if (Number.isNaN(stockMinimoNumero) || stockMinimoNumero < 0) {
-        sileo.error("Stock mínimo no puede ser menor que 0");
-        return;
-      }
-
-      const contado = parseFloat(precioContado) || 0;
-      const creditoCalculado = contado * (1 + porcentajeAumento);
-      const estadoFinal = getEstadoProducto(stock, stockMinimo, estado);
-
-      let imagenUrl = imagenUrlActual;
-      if (archivoImagen) {
-        imagenUrl = await subirImagen(archivoImagen);
-      }
-
-      const productoAnterior = editandoData;
-
-      await updateDoc(doc(db, "productos", editandoId), {
+      if ((descripcion || "").length > MAX_DESCRIPCION) return;
+      await actualizarProducto?.({
+        editandoId,
+        editandoData,
         nombre,
         descripcion,
-        precioContado: contado,
-        precioCredito: parseFloat(creditoCalculado.toFixed(2)),
-        stock: parseInt(stock),
-        stockMinimo: stockMinimoNumero,
+        precioContado,
+        stock,
+        stockMinimo,
         categoriaId,
         categoriaNombre,
-        estado: estadoFinal,
-        imagenUrl,
-        ultimaModificacion: serverTimestamp(),
+        estado,
+        archivoImagen,
+        imagenUrlActual,
+        porcentajeAumento,
+        onSuccess,
+        resetFormulario,
+        onClose,
       });
-
-      await registrarBitacora({
-        usuario: user.email,
-        nombre: nombreEmpleado,
-        coleccion: "productos",
-        accion: "actualizacion",
-        docId: editandoId,
-        metadata: {
-          nombre,
-          ...(productoAnterior?.stock !== parseInt(stock) && {
-            stockAnterior: productoAnterior?.stock,
-            stockNuevo: parseInt(stock),
-          }),
-          ...(productoAnterior?.stockMinimo !== parseInt(stockMinimo) && {
-            stockMinimoAnterior: productoAnterior?.stockMinimo,
-            stockMinimoNuevo: stockMinimoNumero,
-          }),
-          ...(productoAnterior?.estado !== estado && {
-            estadoAnterior: productoAnterior?.estado,
-            estadoNuevo: estadoFinal,
-          }),
-          ...(archivoImagen && {
-            imagenActualizada: true,
-          }),
-        },
-      });
-
-      await onSuccess?.();
-      resetFormulario();
-      sileo.success({
-        title: "Producto actualizado",
-        description: "Los cambios se guardaron correctamente.",
-      });
-      onClose();
-    } catch (error) {
-      console.error("Error al actualizar", error);
-      sileo.error("Error al actualizar");
     } finally {
       setEnviando(false);
     }
   };
+
+  if (soloVista) {
+    return (
+      <Modal isOpen={isOpen} onClose={onClose} className="max-w-3xl">
+        <div className="p-6">
+          <div className="mb-6 pr-12">
+            <div className="flex flex-col items-start gap-2">
+              <h2 className="text-xl font-bold text-gray-800 dark:text-white/90">
+                Detalle del Producto
+              </h2>
+              <span
+                className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${
+                  estadoVisual === "Activo"
+                    ? "bg-success-50 text-success-600 dark:bg-success-500/15 dark:text-success-500"
+                    : estadoVisual === "Agotado"
+                      ? "bg-warning-50 text-warning-600 dark:bg-warning-500/15 dark:text-orange-400"
+                      : "bg-error-50 text-error-600 dark:bg-error-500/15 dark:text-error-500"
+                }`}
+              >
+                {estadoVisual}
+              </span>
+            </div>
+            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+              Información general y comercial del producto.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+            <div className="lg:col-span-1 rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 dark:border-white/10 dark:bg-gray-900/40">
+              <p className="text-[11px] font-semibold uppercase tracking-widest text-gray-400 dark:text-gray-500">
+                Imagen
+              </p>
+              <div className="mt-2">
+                {previewImagen ? (
+                  <div className="flex min-h-56 items-center justify-center rounded-lg border border-gray-200 bg-white p-3 dark:border-white/10 dark:bg-white/[0.03]">
+                    <img
+                      src={previewImagen}
+                      alt={nombre}
+                      className="max-h-72 w-auto max-w-full rounded-lg object-contain"
+                    />
+                  </div>
+                ) : (
+                  <div className="flex h-56 w-full items-center justify-center rounded-lg border border-dashed border-gray-300 bg-white text-sm text-gray-400 dark:border-white/10 dark:bg-white/[0.03] dark:text-gray-500">
+                    Sin imagen
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="lg:col-span-2 grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <DetailItem label="Nombre" value={nombre} />
+              <DetailItem label="Categoría" value={categoriaActual} />
+              <DetailItem label="Descripción" value={descripcion} />
+              <DetailItem
+                label="Precio Contado"
+                value={formatMoney(
+                  editandoData?.precioContado ?? precioContado,
+                )}
+              />
+              <DetailItem
+                label="Precio Crédito"
+                value={formatMoney(
+                  editandoData?.precioCredito ?? precioCredito,
+                )}
+              />
+              <DetailItem label="Stock" value={stock} />
+              <DetailItem label="Stock Mínimo" value={stockMinimo} />
+              <DetailItem
+                label="Fecha Registro"
+                value={formatDateDisplay(editandoData?.fechaRegistro)}
+              />
+            </div>
+          </div>
+        </div>
+      </Modal>
+    );
+  }
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} className="max-w-3xl">
@@ -280,205 +308,225 @@ export default function ProductModal({
         </h2>
         <form
           onSubmit={editandoId ? handleUpdate : handleSubmit}
-          className="grid grid-cols-1 md:grid-cols-2 gap-5"
+          className="space-y-4"
         >
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-400">
-              Nombre
-            </label>
-            <input
-              type="text"
-              required
-              value={nombre}
-              onChange={(e) => setNombre(e.target.value)}
-              placeholder="Ej. Cafetera"
-              className="mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white"
-            />
+          {/* Fila 1: Imagen + Campos (Nombre, Categoría, Precios, Stock) */}
+          <div className="grid grid-cols-3 gap-4">
+            {/* Imagen y Descripción - Columna izquierda */}
+            <div className="col-span-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-2">
+                Imagen del Producto
+              </label>
+              <div
+                {...getRootProps()}
+                className={`rounded-lg border-2 border-dashed transition cursor-pointer p-4 ${
+                  isDragActive
+                    ? "border-blue-500 bg-blue-50 dark:bg-blue-500/10"
+                    : "border-gray-300 bg-gray-50 dark:border-gray-700 dark:bg-gray-900/40"
+                }`}
+              >
+                <input {...getInputProps()} />
+                {previewImagen ? (
+                  <div className="flex items-center justify-center rounded-lg p-2">
+                    <img
+                      src={previewImagen}
+                      alt="Preview"
+                      className="max-h-64 w-auto max-w-full rounded-lg object-contain"
+                    />
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center justify-center py-6">
+                    <svg
+                      className="w-10 h-10 text-gray-400 mb-2"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={1.5}
+                        d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                      />
+                    </svg>
+                    <p className="text-sm font-medium text-gray-700 dark:text-gray-400">
+                      {isDragActive
+                        ? "Suelta la imagen aquí"
+                        : "Arrastra la imagen o haz clic"}
+                    </p>
+                    <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
+                      PNG, JPG, WebP
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Campos - Columna derecha */}
+            <div className="col-span-2 grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-400">
+                  Nombre
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={nombre}
+                  onChange={(e) => setNombre(e.target.value)}
+                  placeholder="Ej. Cafetera"
+                  className="mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-400">
+                  Categoría
+                </label>
+                <select
+                  value={categoriaId}
+                  onChange={handleCategoriaChange}
+                  className="mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm text-gray-900 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
+                >
+                  {categorias.length === 0 ? (
+                    <option disabled>Cargando categorías...</option>
+                  ) : (
+                    categorias.map((cat) => (
+                      <option
+                        key={cat.id}
+                        value={cat.id}
+                        className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                      >
+                        {cat.nombre}
+                      </option>
+                    ))
+                  )}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-400">
+                  Precio Contado (L.)
+                </label>
+                <input
+                  type="number"
+                  required
+                  min="0"
+                  value={precioContado}
+                  onChange={(e) => {
+                    if (e.target.value === "" || Number(e.target.value) >= 0)
+                      setPrecioContado(e.target.value);
+                  }}
+                  placeholder="3500"
+                  className="mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-400">
+                  Precio Crédito (L.)
+                </label>
+                <input
+                  type="number"
+                  required
+                  min="0"
+                  value={precioCredito}
+                  readOnly
+                  disabled
+                  placeholder="Calculado automáticamente"
+                  className="mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm bg-gray-50 dark:bg-gray-700 text-gray-700 dark:text-gray-300 cursor-not-allowed opacity-70 dark:border-gray-700"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-400">
+                  Stock
+                </label>
+                <input
+                  type="number"
+                  required
+                  min="0"
+                  value={stock}
+                  onChange={(e) => {
+                    if (e.target.value === "" || Number(e.target.value) >= 0)
+                      setStock(e.target.value);
+                  }}
+                  placeholder="10"
+                  className="mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-400">
+                  Stock Mínimo
+                </label>
+                <input
+                  type="number"
+                  required
+                  min="0"
+                  value={stockMinimo}
+                  onChange={(e) => {
+                    if (e.target.value === "" || Number(e.target.value) >= 0)
+                      setStockMinimo(e.target.value);
+                  }}
+                  placeholder="5"
+                  className="mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white"
+                />
+              </div>
+            </div>
           </div>
 
+          {/* Fila 2: Descripción (Ancho completo) */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-400">
-              Categoría
-            </label>
-            <select
-              value={categoriaId}
-              onChange={handleCategoriaChange}
-              className="mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm text-gray-900 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
-            >
-              {categorias.length === 0 ? (
-                <option disabled>Cargando categorías...</option>
-              ) : (
-                categorias.map((cat) => (
-                  <option
-                    key={cat.id}
-                    value={cat.id}
-                    className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-                  >
-                    {cat.nombre}
-                  </option>
-                ))
-              )}
-            </select>
-          </div>
-
-          <div className="md:col-span-2">
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-400">
               Descripción
             </label>
             <textarea
               value={descripcion}
-              onChange={(e) => setDescripcion(e.target.value)}
-              maxLength={150}
+              onChange={(e) =>
+                setDescripcion((e.target.value || "").slice(0, MAX_DESCRIPCION))
+              }
+              maxLength={MAX_DESCRIPCION}
               placeholder="Ej. Cafetera Oster de 8 tazas"
-              rows={2}
-              className="mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white resize-none"
+              rows={3}
+              className="mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white resize-none h-24"
             />
+            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400 text-right">
+              {descripcion.length}/{MAX_DESCRIPCION}
+            </p>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-400">
-              Precio Contado (L.)
-            </label>
-            <input
-              type="number"
-              required
-              min="0"
-              value={precioContado}
-              onChange={(e) => {
-                if (e.target.value === "" || Number(e.target.value) >= 0)
-                  setPrecioContado(e.target.value);
-              }}
-              placeholder="3500"
-              className="mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-400">
-              Precio Crédito (L.)
-            </label>
-            <input
-              type="number"
-              required
-              min="0"
-              value={precioCredito}
-              readOnly
-              disabled
-              placeholder="Calculado automáticamente"
-              className="mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm bg-gray-50 dark:bg-gray-700 text-gray-700 dark:text-gray-300 cursor-not-allowed opacity-70 dark:border-gray-700"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-400">
-              Stock
-            </label>
-            <input
-              type="number"
-              required
-              min="0"
-              value={stock}
-              onChange={(e) => {
-                if (e.target.value === "" || Number(e.target.value) >= 0)
-                  setStock(e.target.value);
-              }}
-              placeholder="10"
-              className="mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-400">
-              Stock Mínimo
-            </label>
-            <input
-              type="number"
-              required
-              min="0"
-              value={stockMinimo}
-              onChange={(e) => {
-                if (e.target.value === "" || Number(e.target.value) >= 0)
-                  setStockMinimo(e.target.value);
-              }}
-              placeholder="5"
-              className="mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-400">
-              Estado
-            </label>
-            <select
-              value={estado === "Agotado" ? "Activo" : estado}
-              onChange={(e) => setEstado(e.target.value)}
-              className="mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm text-gray-900 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
-            >
-              <option
-                value="Activo"
-                className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+          {/* Fila 3: Estado y Botón */}
+          <div className="grid grid-cols-3 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-400">
+                Estado
+              </label>
+              <select
+                value={estado === "Agotado" ? "Activo" : estado}
+                onChange={(e) => setEstado(e.target.value)}
+                className="mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm text-gray-900 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100"
               >
-                Activo
-              </option>
-              <option
-                value="Inactivo"
-                className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-              >
-                Inactivo
-              </option>
-            </select>
-          
-          </div>
-
-          <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-400">
-              Imagen del Producto
-            </label>
-            <div className="mt-1 flex items-center gap-4">
-              {previewImagen ? (
-                <img
-                  src={previewImagen}
-                  alt="Preview"
-                  className="w-16 h-16 rounded-lg object-cover border border-gray-200 dark:border-white/10 flex-shrink-0"
-                />
-              ) : (
-                <div className="w-16 h-16 rounded-lg bg-gray-100 dark:bg-white/5 border border-dashed border-gray-300 dark:border-white/10 flex items-center justify-center flex-shrink-0">
-                  <svg
-                    className="w-6 h-6 text-gray-400"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={1.5}
-                      d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                    />
-                  </svg>
-                </div>
-              )}
-              <div className="flex-1">
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImagenChange}
-                  className="block w-full text-sm text-gray-500 file:mr-3 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-600 hover:file:bg-blue-100 dark:text-gray-400 dark:file:bg-blue-500/10 dark:file:text-blue-400"
-                />
-                {editandoId && !archivoImagen && (
-                  <p className="text-xs text-gray-400 mt-1">
-                    Deja vacío para conservar la imagen actual.
-                  </p>
-                )}
-              </div>
+                <option
+                  value="Activo"
+                  className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                >
+                  Activo
+                </option>
+                <option
+                  value="Inactivo"
+                  className="bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                >
+                  Inactivo
+                </option>
+              </select>
             </div>
-          </div>
 
-          <div className="flex gap-3 md:col-span-2 mt-2">
+            <div></div>
+
             <button
               type="submit"
               disabled={enviando}
-              className={`flex-1 p-2 rounded-md text-white font-bold transition ${
+              className={`mt-6 p-2 rounded-md text-white font-bold transition ${
                 enviando
                   ? "bg-gray-400"
                   : editandoId

@@ -24,6 +24,9 @@ import DescargaApp from "../pages/DescargaApp";
 import Gest_Empleados from "../pages/Personal/Gest_Empleados";
 import Gest_Roles from "../pages/Accesos/Gest_Roles";
 import Gest_Productos from "../pages/Inventario/Gest_Productos";
+import ProductoDetalle from "../pages/Inventario/ProductoDetalle";
+import ProductoFormulario from "../pages/Inventario/ProductoFormulario";
+import Gest_ComentariosProducto from "../pages/Inventario/Gest_ComentariosProducto";
 import Usuarios from "../pages/Accesos/Gest_Usuarios";
 import ConfiguracionGlobal from "../pages/Gestion/Gest_ConfiguracionGlobal";
 import Gest_SolicitudesCredito from "../pages/Creditos/Gest_SolicitudesCredito";
@@ -34,7 +37,7 @@ import EmpleadosPerfil from "../pages/Creditos/EmpleadosPerfil";
 import PerfilEmpleadoDetalle from "../pages/Creditos/PerfilEmpleadoDetalle";
 import Gest_Categorias from "../pages/Inventario/Gest_Categorias";
 import Departamentos from "../pages/Personal/Gest_Departamentos";
-import Bitacora from "../pages/Gestion/Bitacora";
+import Gest_Bitacora from "../pages/Gestion/Gest_Bitacora";
 import HistorialProductos from "../pages/Gestion/HistorialProductos";
 import HistorialEmpleados from "../pages/Gestion/HistorialEmpleados";
 
@@ -175,6 +178,38 @@ export default function AppRouter() {
             }
           />
           <Route
+            path="productos/nuevo"
+            element={
+              <RoleRoute roles={["Administrador", "Gestor de Inventario"]}>
+                <ProductoFormulario />
+              </RoleRoute>
+            }
+          />
+          <Route
+            path="productos/editar"
+            element={
+              <RoleRoute roles={["Administrador", "Gestor de Inventario"]}>
+                <ProductoFormulario />
+              </RoleRoute>
+            }
+          />
+          <Route
+            path="productos/detalle"
+            element={
+              <RoleRoute roles={["Administrador", "Gestor de Inventario"]}>
+                <ProductoDetalle />
+              </RoleRoute>
+            }
+          />
+          <Route
+            path="productos/comentarios"
+            element={
+              <RoleRoute roles={["Administrador", "Gestor de Inventario"]}>
+                <Gest_ComentariosProducto />
+              </RoleRoute>
+            }
+          />
+          <Route
             path="solicitudes-reservas"
             element={
               <RoleRoute roles={["Administrador", "Oficial de Credito"]}>
@@ -226,7 +261,7 @@ export default function AppRouter() {
             path="bitacora"
             element={
               <RoleRoute roles={["Administrador"]}>
-                <Bitacora />
+                <Gest_Bitacora />
               </RoleRoute>
             }
           />

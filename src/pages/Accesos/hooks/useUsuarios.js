@@ -10,12 +10,13 @@ import {
   updateDoc,
 } from "firebase/firestore";
 import { sileo } from "sileo";
+import { registrarBitacora } from "../../../services/bitacora";
 import {
   generarPasswordTemporal,
   enviarCorreoCredenciales,
 } from "../../../services/credencialesEmail";
 
-export const useUsuarios = ({ closeModal }) => {
+export const useUsuarios = ({ closeModal, user, nombreEmpleado }) => {
   const [usuarios, setUsuarios] = useState([]);
   const [empleados, setEmpleados] = useState([]);
   const [roles, setRoles] = useState([]);
@@ -119,12 +120,12 @@ export const useUsuarios = ({ closeModal }) => {
       const empSeleccionado = empleados.find((em) => em.id === empleadoId);
       const apellidosEmpleado = empSeleccionado?.apellidos ?? "";
       const dniEmpleado = empSeleccionado?.dni ?? "";
-    
+
       const passwordTemporal = generarPasswordTemporal(
         apellidosEmpleado,
         dniEmpleado,
       );
-    
+
       await addDoc(collection(db, "usuarios"), {
         empleadoId,
         nombre,
@@ -137,7 +138,22 @@ export const useUsuarios = ({ closeModal }) => {
         passwordTemporal, // para que el DB manager la use al registrar en Firebase Auth
         fechaRegistro: serverTimestamp(),
       });
-    
+
+      await registrarBitacora({
+        usuario: user?.email || "Sistema",
+        nombre: nombreEmpleado || "Sistema",
+        coleccion: "usuarios",
+        accion: "creacion",
+        metadata: {
+          nombre,
+          correo,
+          correoPersonal,
+          rolNombre,
+          estado,
+          empleadoId,
+        },
+      });
+
       // Enviar correo con credenciales al correo personal del empleado
       try {
         await enviarCorreoCredenciales({
@@ -158,7 +174,7 @@ export const useUsuarios = ({ closeModal }) => {
         closeModal();
         return;
       }
-    
+
       resetFormulario();
       fetchUsuarios();
       closeModal();
@@ -178,6 +194,8 @@ export const useUsuarios = ({ closeModal }) => {
     e.preventDefault();
     setEnviando(true);
     try {
+      const usuarioAnterior = usuarios.find((u) => u.id === editandoId);
+
       await updateDoc(doc(db, "usuarios", editandoId), {
         empleadoId,
         nombre,
@@ -187,6 +205,30 @@ export const useUsuarios = ({ closeModal }) => {
         estado,
         ultima_modificacion: serverTimestamp(),
       });
+
+      await registrarBitacora({
+        usuario: user?.email || "Sistema",
+        nombre: nombreEmpleado || "Sistema",
+        coleccion: "usuarios",
+        accion: "actualizacion",
+        docId: editandoId,
+        metadata: {
+          nombre,
+          ...(usuarioAnterior?.correo !== correo && {
+            correoAnterior: usuarioAnterior?.correo,
+            correoNuevo: correo,
+          }),
+          ...(usuarioAnterior?.rolNombre !== rolNombre && {
+            rolAnterior: usuarioAnterior?.rolNombre,
+            rolNuevo: rolNombre,
+          }),
+          ...(usuarioAnterior?.estado !== estado && {
+            estadoAnterior: usuarioAnterior?.estado,
+            estadoNuevo: estado,
+          }),
+        },
+      });
+
       resetFormulario();
       fetchUsuarios();
       closeModal();
@@ -202,7 +244,23 @@ export const useUsuarios = ({ closeModal }) => {
   const handleEliminar = async (id) => {
     if (window.confirm("¿Estás seguro de que deseas eliminar este usuario?")) {
       try {
+        const usuarioAEliminar = usuarios.find((u) => u.id === id);
         await deleteDoc(doc(db, "usuarios", id));
+
+        await registrarBitacora({
+          usuario: user?.email || "Sistema",
+          nombre: nombreEmpleado || "Sistema",
+          coleccion: "usuarios",
+          accion: "eliminacion",
+          docId: id,
+          metadata: {
+            nombre: usuarioAEliminar?.nombre,
+            correo: usuarioAEliminar?.correo,
+            rolNombre: usuarioAEliminar?.rolNombre,
+            estado: usuarioAEliminar?.estado,
+          },
+        });
+
         fetchUsuarios();
         sileo.success("Usuario eliminado");
       } catch (error) {

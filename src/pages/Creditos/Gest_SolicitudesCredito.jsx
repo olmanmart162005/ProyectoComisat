@@ -7,6 +7,7 @@ import { Toaster } from "sileo";
 import { registrarBitacora } from "../../services/bitacora";
 import MetricCard from "../../components/common/MetricCard";
 import { CheckCircleIcon, CloseIcon, BoxIconLine } from "../../icons";
+import { formatDateForFilename } from "../../utils/formatters";
 
 import {
   solicitudColumns,
@@ -110,10 +111,7 @@ export default function Gest_SolicitudesCredito() {
             <ExportButtons
               rows={solicitudesFiltradas}
               columns={COLUMNAS_EXPORT_SOLICITUDES}
-              filename={
-                "Solicitudes de Crédito " +
-                new Date().toLocaleDateString("es-HN")
-              }
+              filename={"Solicitudes de Crédito " + formatDateForFilename()}
               sheetName="Solicitudes de Crédito"
               meta={{
                 empresa: "Comisariato San Jose",
@@ -122,7 +120,7 @@ export default function Gest_SolicitudesCredito() {
               }}
               pdfOptions={{
                 title: "Solicitudes de Crédito",
-                subtitle: new Date().toLocaleDateString("es-HN"),
+                subtitle: formatDateForFilename(),
               }}
               onExport={(formato) =>
                 registrarBitacora({

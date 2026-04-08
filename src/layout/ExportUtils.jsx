@@ -27,6 +27,11 @@ import ExcelJS from "exceljs";
 import { saveAs } from "file-saver";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import {
+  formatMoneyHNL,
+  safeFormatDate,
+  safeFormatDateTime,
+} from "../utils/formatters";
 
 // ─────────────────────────────────────────────────────────────────
 // Helpers compartidos
@@ -64,7 +69,7 @@ function calcWidth(header, rows, col, max = 60) {
   // Las columnas currency muestran "L. #,##0.00" — el formato
   // visual es más ancho que el valor crudo numérico
   if (col.type === "currency") return Math.max(base, 16);
-  if (col.type === "number")   return Math.max(base, 10);
+  if (col.type === "number") return Math.max(base, 10);
 
   return base;
 }
@@ -73,18 +78,18 @@ function calcWidth(header, rows, col, max = 60) {
 // Constantes de estilo Excel
 // ─────────────────────────────────────────────────────────────────
 
-const HEADER_BG  = "1E40AF"; // blue-800  — encabezado de columnas
-const HEADER_FG  = "FFFFFF";
+const HEADER_BG = "1E40AF"; // blue-800  — encabezado de columnas
+const HEADER_FG = "FFFFFF";
 const ALT_ROW_BG = "EFF6FF"; // blue-50   — filas alternas
 const BORDER_CLR = "BFDBFE"; // blue-200  — bordes de datos
-const TOTAL_BG   = "DBEAFE"; // blue-100  — fila de totales
-const META_BG    = "1E3A8A"; // blue-900  — bloque de empresa (título)
-const META_SUB   = "1D4ED8"; // blue-700  — subtítulo empresa
+const TOTAL_BG = "DBEAFE"; // blue-100  — fila de totales
+const META_BG = "1E3A8A"; // blue-900  — bloque de empresa (título)
+const META_SUB = "1D4ED8"; // blue-700  — subtítulo empresa
 
 // ── Formatos de número ─────────────────────────────────────────
 // "L. #,##0.00" muestra el símbolo de lempira directamente en la celda
-const NUM_FMT  = "#,##0";
-const CURR_FMT = '"L. "#,##0.00';   // ← formato correcto con símbolo
+const NUM_FMT = "#,##0";
+const CURR_FMT = '"L. "#,##0.00'; // ← formato correcto con símbolo
 const DATE_FMT = "dd/mm/yyyy";
 
 // ─────────────────────────────────────────────────────────────────
@@ -106,10 +111,7 @@ export async function exportToExcel(
   meta = {},
 ) {
   const { empresa = "", usuario = "", extra = "" } = meta;
-  const fechaGen = new Date().toLocaleDateString("es-HN");
-  const horaGen  = new Date().toLocaleTimeString("es-HN", {
-    hour: "2-digit", minute: "2-digit",
-  });
+  const fechaGen = safeFormatDateTime(new Date());
 
   const wb = new ExcelJS.Workbook();
   wb.creator = empresa || "Sistema";
@@ -126,9 +128,18 @@ export async function exportToExcel(
   if (empresa) {
     ws.mergeCells(currentRow, 1, currentRow, numCols);
     const empresaCell = ws.getCell(currentRow, 1);
-    empresaCell.value     = empresa.toUpperCase();
-    empresaCell.font      = { bold: true, size: 14, color: { argb: HEADER_FG }, name: "Arial" };
-    empresaCell.fill      = { type: "pattern", pattern: "solid", fgColor: { argb: META_BG } };
+    empresaCell.value = empresa.toUpperCase();
+    empresaCell.font = {
+      bold: true,
+      size: 14,
+      color: { argb: HEADER_FG },
+      name: "Arial",
+    };
+    empresaCell.fill = {
+      type: "pattern",
+      pattern: "solid",
+      fgColor: { argb: META_BG },
+    };
     empresaCell.alignment = { horizontal: "center", vertical: "middle" };
     ws.getRow(currentRow).height = 28;
     currentRow++;
@@ -137,9 +148,18 @@ export async function exportToExcel(
   // ── BLOQUE 2: Título del reporte (= filename humanizado) ────────
   ws.mergeCells(currentRow, 1, currentRow, numCols);
   const tituloCell = ws.getCell(currentRow, 1);
-  tituloCell.value     = sheetName;
-  tituloCell.font      = { bold: true, size: 11, color: { argb: HEADER_FG }, name: "Arial" };
-  tituloCell.fill      = { type: "pattern", pattern: "solid", fgColor: { argb: META_SUB } };
+  tituloCell.value = sheetName;
+  tituloCell.font = {
+    bold: true,
+    size: 11,
+    color: { argb: HEADER_FG },
+    name: "Arial",
+  };
+  tituloCell.fill = {
+    type: "pattern",
+    pattern: "solid",
+    fgColor: { argb: META_SUB },
+  };
   tituloCell.alignment = { horizontal: "center", vertical: "middle" };
   ws.getRow(currentRow).height = 22;
   currentRow++;
@@ -148,17 +168,26 @@ export async function exportToExcel(
   // Se muestran como pares clave-valor en filas separadas con fondo gris claro
 
   const metaItems = [
-    ["Fecha de generación:", `${fechaGen} ${horaGen}`],
+    ["Fecha de generación:", fechaGen],
     ...(usuario ? [["Generado por:", usuario]] : []),
-    ...(extra   ? [["Detalle:", extra]] : []),
+    ...(extra ? [["Detalle:", extra]] : []),
   ];
 
   for (const [label, value] of metaItems) {
     // Columna A: etiqueta
     const labelCell = ws.getCell(currentRow, 1);
-    labelCell.value     = label;
-    labelCell.font      = { bold: true, size: 9, name: "Arial", color: { argb: "374151" } };
-    labelCell.fill      = { type: "pattern", pattern: "solid", fgColor: { argb: "F3F4F6" } };
+    labelCell.value = label;
+    labelCell.font = {
+      bold: true,
+      size: 9,
+      name: "Arial",
+      color: { argb: "374151" },
+    };
+    labelCell.fill = {
+      type: "pattern",
+      pattern: "solid",
+      fgColor: { argb: "F3F4F6" },
+    };
     labelCell.alignment = { horizontal: "right", vertical: "middle" };
 
     // Columnas B en adelante: valor (merge del resto)
@@ -166,9 +195,13 @@ export async function exportToExcel(
       ws.mergeCells(currentRow, 2, currentRow, numCols);
     }
     const valueCell = ws.getCell(currentRow, 2);
-    valueCell.value     = value;
-    valueCell.font      = { size: 9, name: "Arial", color: { argb: "111827" } };
-    valueCell.fill      = { type: "pattern", pattern: "solid", fgColor: { argb: "F3F4F6" } };
+    valueCell.value = value;
+    valueCell.font = { size: 9, name: "Arial", color: { argb: "111827" } };
+    valueCell.fill = {
+      type: "pattern",
+      pattern: "solid",
+      fgColor: { argb: "F3F4F6" },
+    };
     valueCell.alignment = { horizontal: "left", vertical: "middle" };
 
     ws.getRow(currentRow).height = 16;
@@ -198,10 +231,23 @@ export async function exportToExcel(
   const headerRow = ws.addRow(columns.map((c) => c.header));
 
   headerRow.eachCell((cell) => {
-    cell.font      = { bold: true, color: { argb: HEADER_FG }, name: "Arial", size: 10 };
-    cell.fill      = { type: "pattern", pattern: "solid", fgColor: { argb: HEADER_BG } };
-    cell.alignment = { vertical: "middle", horizontal: "center", wrapText: true };
-    cell.border    = { bottom: { style: "medium", color: { argb: HEADER_FG } } };
+    cell.font = {
+      bold: true,
+      color: { argb: HEADER_FG },
+      name: "Arial",
+      size: 10,
+    };
+    cell.fill = {
+      type: "pattern",
+      pattern: "solid",
+      fgColor: { argb: HEADER_BG },
+    };
+    cell.alignment = {
+      vertical: "middle",
+      horizontal: "center",
+      wrapText: true,
+    };
+    cell.border = { bottom: { style: "medium", color: { argb: HEADER_FG } } };
   });
   headerRow.height = 20;
   currentRow++;
@@ -215,31 +261,35 @@ export async function exportToExcel(
   rows.forEach((row, rowIdx) => {
     const values = columns.map((col) => resolveValue(row, col));
     const dataRow = ws.addRow(values);
-    const isEven  = rowIdx % 2 === 1;
+    const isEven = rowIdx % 2 === 1;
 
     dataRow.eachCell({ includeEmpty: true }, (cell, colNumber) => {
       const col = columns[colNumber - 1];
 
       if (isEven) {
-        cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: ALT_ROW_BG } };
+        cell.fill = {
+          type: "pattern",
+          pattern: "solid",
+          fgColor: { argb: ALT_ROW_BG },
+        };
       }
 
-      cell.font      = { name: "Arial", size: 9 };
+      cell.font = { name: "Arial", size: 9 };
       cell.alignment = { vertical: "middle" };
-      cell.border    = { bottom: { style: "thin", color: { argb: BORDER_CLR } } };
+      cell.border = { bottom: { style: "thin", color: { argb: BORDER_CLR } } };
 
       switch (col?.type) {
         case "number":
-          cell.numFmt    = NUM_FMT;
+          cell.numFmt = NUM_FMT;
           cell.alignment = { ...cell.alignment, horizontal: "right" };
           break;
         case "currency":
-          cell.numFmt    = CURR_FMT;   // "L. #,##0.00" — símbolo en la celda
+          cell.numFmt = CURR_FMT; // "L. #,##0.00" — símbolo en la celda
           cell.alignment = { ...cell.alignment, horizontal: "right" };
           break;
         case "date":
           if (cell.value instanceof Date) {
-            cell.numFmt    = DATE_FMT;
+            cell.numFmt = DATE_FMT;
             cell.alignment = { ...cell.alignment, horizontal: "center" };
           }
           break;
@@ -262,26 +312,32 @@ export async function exportToExcel(
     const totalValues = columns.map((col, idx) => {
       if (col.type !== "currency" && col.type !== "number") return "TOTAL";
       const colLetter = ws.getColumn(idx + 1).letter;
-      return { formula: `SUM(${colLetter}${dataStartRow}:${colLetter}${dataEndRow})` };
+      return {
+        formula: `SUM(${colLetter}${dataStartRow}:${colLetter}${dataEndRow})`,
+      };
     });
 
     const totalRow = ws.addRow(totalValues);
     totalRow.eachCell({ includeEmpty: true }, (cell, colNumber) => {
       const col = columns[colNumber - 1];
-      cell.font   = { bold: true, name: "Arial", size: 9 };
+      cell.font = { bold: true, name: "Arial", size: 9 };
       cell.border = { top: { style: "medium", color: { argb: HEADER_BG } } };
-      cell.fill   = { type: "pattern", pattern: "solid", fgColor: { argb: TOTAL_BG } };
+      cell.fill = {
+        type: "pattern",
+        pattern: "solid",
+        fgColor: { argb: TOTAL_BG },
+      };
       if (col?.type === "currency") {
-        cell.numFmt    = CURR_FMT;
+        cell.numFmt = CURR_FMT;
         cell.alignment = { horizontal: "right", vertical: "middle" };
       }
       if (col?.type === "number") {
-        cell.numFmt    = NUM_FMT;
+        cell.numFmt = NUM_FMT;
         cell.alignment = { horizontal: "right", vertical: "middle" };
       }
       if (!col?.type || col.type === "text") {
         cell.alignment = { horizontal: "right", vertical: "middle" };
-        cell.font      = { ...cell.font, color: { argb: "374151" } };
+        cell.font = { ...cell.font, color: { argb: "374151" } };
       }
     });
   }
@@ -310,28 +366,25 @@ export async function exportToExcel(
  */
 export function exportToPDF(rows, columns, filename, options = {}) {
   const {
-    title       = filename,
-    subtitle    = "",
+    title = filename,
+    subtitle = "",
     orientation = "landscape",
-    meta        = {},
+    meta = {},
   } = options;
 
   const { empresa = "", usuario = "", extra = "" } = meta;
 
-  const doc   = new jsPDF({ orientation, unit: "pt", format: "a4" });
+  const doc = new jsPDF({ orientation, unit: "pt", format: "a4" });
   const pageW = doc.internal.pageSize.getWidth();
   const pageH = doc.internal.pageSize.getHeight();
-  const fechaGen = new Date().toLocaleDateString("es-HN");
-  const horaGen  = new Date().toLocaleTimeString("es-HN", {
-    hour: "2-digit", minute: "2-digit",
-  });
+  const fechaGen = safeFormatDateTime(new Date());
 
   let y = 20; // cursor vertical
 
   // ── Bloque de empresa ───────────────────────────────────────────
   if (empresa) {
     // Fondo azul oscuro para la franja de empresa
-    doc.setFillColor(30, 58, 138);   // blue-900
+    doc.setFillColor(30, 58, 138); // blue-900
     doc.rect(0, 0, pageW, 36, "F");
 
     doc.setFontSize(14);
@@ -342,7 +395,7 @@ export function exportToPDF(rows, columns, filename, options = {}) {
   }
 
   // ── Título del reporte ──────────────────────────────────────────
-  doc.setFillColor(29, 78, 216);     // blue-700
+  doc.setFillColor(29, 78, 216); // blue-700
   doc.rect(0, y, pageW, 26, "F");
 
   doc.setFontSize(12);
@@ -354,14 +407,14 @@ export function exportToPDF(rows, columns, filename, options = {}) {
   // ── Bloque de metadatos ─────────────────────────────────────────
   // Fondo gris muy claro
   const metaItems = [
-    ["Fecha de generación:", `${fechaGen}  ${horaGen}`],
+    ["Fecha de generación:", fechaGen],
     ...(subtitle ? [["Período / Detalle:", subtitle]] : []),
-    ...(extra    ? [["Detalle:",           extra]]     : []),
-    ...(usuario  ? [["Generado por:",      usuario]]   : []),
+    ...(extra ? [["Detalle:", extra]] : []),
+    ...(usuario ? [["Generado por:", usuario]] : []),
   ];
 
   const metaBlockH = metaItems.length * 14 + 10;
-  doc.setFillColor(243, 244, 246);   // gray-100
+  doc.setFillColor(243, 244, 246); // gray-100
   doc.rect(0, y, pageW, metaBlockH, "F");
 
   doc.setFontSize(8);
@@ -373,11 +426,11 @@ export function exportToPDF(rows, columns, filename, options = {}) {
 
   for (const [label, value] of metaItems) {
     doc.setFont("helvetica", "bold");
-    doc.setTextColor(55, 65, 81);   // gray-700
+    doc.setTextColor(55, 65, 81); // gray-700
     doc.text(label, labelX, metaY);
 
     doc.setFont("helvetica", "normal");
-    doc.setTextColor(17, 24, 39);   // gray-900
+    doc.setTextColor(17, 24, 39); // gray-900
     doc.text(String(value), valueX, metaY);
 
     metaY += 14;
@@ -390,13 +443,10 @@ export function exportToPDF(rows, columns, filename, options = {}) {
     columns.map((col) => {
       const val = resolveValue(row, col);
       if (col.type === "currency") {
-        return `L. ${Number(val).toLocaleString("es-HN", {
-          minimumFractionDigits: 2,
-          maximumFractionDigits: 2,
-        })}`;
+        return formatMoneyHNL(val);
       }
-      if (col.type === "date" && val instanceof Date) {
-        return val.toLocaleDateString("es-HN");
+      if (col.type === "date") {
+        return safeFormatDate(val);
       }
       return val;
     }),
@@ -412,20 +462,25 @@ export function exportToPDF(rows, columns, filename, options = {}) {
   });
 
   autoTable(doc, {
-    startY             : y,
-    head               : [columns.map((c) => c.header)],
+    startY: y,
+    head: [columns.map((c) => c.header)],
     body,
-    theme              : "grid",
-    styles             : { fontSize: 8, font: "helvetica", cellPadding: 4, overflow: "linebreak" },
-    headStyles         : {
-      fillColor        : [30, 64, 175],  // blue-800
-      textColor        : 255,
-      fontStyle        : "bold",
-      halign           : "center",
+    theme: "grid",
+    styles: {
+      fontSize: 8,
+      font: "helvetica",
+      cellPadding: 4,
+      overflow: "linebreak",
     },
-    alternateRowStyles : { fillColor: [239, 246, 255] },  // blue-50
+    headStyles: {
+      fillColor: [30, 64, 175], // blue-800
+      textColor: 255,
+      fontStyle: "bold",
+      halign: "center",
+    },
+    alternateRowStyles: { fillColor: [239, 246, 255] }, // blue-50
     columnStyles,
-    didDrawPage        : ({ pageNumber }) => {
+    didDrawPage: ({ pageNumber }) => {
       const total = doc.internal.getNumberOfPages();
       doc.setFontSize(7);
       doc.setTextColor(156, 163, 175);

@@ -7,6 +7,7 @@ import { useNombreEmpleadoActual } from "../../hooks/useNombreEmpleadoActual";
 import { useModal } from "../../hooks/useModal";
 import { Toaster } from "sileo";
 import { registrarBitacora } from "../../services/bitacora";
+import { formatDateForFilename } from "../../utils/formatters";
 
 import RoleModal from "../../components/Accesos/RoleModal";
 import { roleColumns, COLUMNAS_EXPORT_ROLES } from "./columns/roleColumns";
@@ -76,12 +77,12 @@ export default function Gest_Roles() {
           <ExportButtons
             rows={roles}
             columns={COLUMNAS_EXPORT_ROLES}
-            filename={"Roles " + new Date().toLocaleDateString("es-HN")}
+            filename={"Roles " + formatDateForFilename()}
             sheetName="Lista de Roles"
             meta={{ empresa: "Comisariato San Jose", usuario: "Sistema" }}
             pdfOptions={{
               title: "Roles",
-              subtitle: new Date().toLocaleDateString("es-HN"),
+              subtitle: formatDateForFilename(),
             }}
             onExport={(formato) =>
               registrarBitacora({

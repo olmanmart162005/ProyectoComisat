@@ -6,6 +6,7 @@ import { useAuth } from "../../auth/AuthProvider";
 import { useNombreEmpleadoActual } from "../../hooks/useNombreEmpleadoActual";
 import { registrarBitacora } from "../../services/bitacora";
 import { useHistorialEmpleados } from "./hooks/useHistorialEmpleados";
+import { formatDateForFilename } from "../../utils/formatters";
 import {
   COLUMNAS_EXPORT_HISTORIAL,
   historialEmpleadoColumns,
@@ -86,9 +87,7 @@ export default function HistorialEmpleados() {
             <ExportButtons
               rows={historialFiltrado}
               columns={COLUMNAS_EXPORT_HISTORIAL}
-              filename={
-                "Historial Empleados " + new Date().toLocaleDateString("es-HN")
-              }
+              filename={"Historial Empleados " + formatDateForFilename()}
               sheetName="Historial de Empleados"
               meta={{
                 empresa: "Comisariato San Jose",
@@ -99,7 +98,7 @@ export default function HistorialEmpleados() {
               }}
               pdfOptions={{
                 title: "Historial de Empleados",
-                subtitle: new Date().toLocaleDateString("es-HN"),
+                subtitle: formatDateForFilename(),
               }}
               onExport={(formato) =>
                 registrarBitacora({

@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
-import { db } from "../../../firebase/firebase";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { db, storage } from "../../../firebase/firebase";
 import {
   addDoc,
   collection,
@@ -8,13 +8,16 @@ import {
   getDoc,
   getDocs,
   serverTimestamp,
+  updateDoc,
 } from "firebase/firestore";
+import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 import { sileo } from "sileo";
 import { registrarBitacora } from "../../../services/bitacora";
+import { MAX_DESCRIPCION, getEstadoProducto } from "../productoUtils";
 
 // Este hook maneja toda la lógica relacionada con productos: carga, filtrado, eliminación, etc.
 
-export function useProductos({ user, nombreEmpleado }) {
+export function useProductos({ user, nombreEmpleado, cargarProductos = true }) {
   const [productos, setProductos] = useState([]);
   const [categorias, setCategorias] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -26,14 +29,7 @@ export function useProductos({ user, nombreEmpleado }) {
     undefined,
   ]);
 
-  const getEstadoVisualProducto = (producto) => {
-    if (producto.estado === "Inactivo") return "Inactivo";
-    return Number(producto.stock) === Number(producto.stockMinimo)
-      ? "Agotado"
-      : "Activo";
-  };
-
-  const fetchConfig = async () => {
+  const fetchConfig = useCallback(async () => {
     try {
       const snap = await getDoc(doc(db, "configuracion", "creditoComisariato"));
       if (snap.exists()) {
@@ -43,9 +39,9 @@ export function useProductos({ user, nombreEmpleado }) {
     } catch (error) {
       console.error("Error al cargar configuración:", error);
     }
-  };
+  }, []);
 
-  const fetchCategorias = async () => {
+  const fetchCategorias = useCallback(async () => {
     try {
       const querySnapshot = await getDocs(collection(db, "categoria"));
       const docs = querySnapshot.docs.map((item) => ({
@@ -57,9 +53,9 @@ export function useProductos({ user, nombreEmpleado }) {
       console.error("Error al cargar categorías:", error);
       sileo.error("No se pudieron cargar las categorías.");
     }
-  };
+  }, []);
 
-  const fetchProductos = async () => {
+  const fetchProductos = useCallback(async () => {
     setLoading(true);
     try {
       const querySnapshot = await getDocs(collection(db, "productos"));
@@ -74,17 +70,19 @@ export function useProductos({ user, nombreEmpleado }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchConfig();
     fetchCategorias();
-    fetchProductos();
-  }, []);
+    if (cargarProductos) {
+      fetchProductos();
+    }
+  }, [cargarProductos, fetchConfig, fetchCategorias, fetchProductos]);
 
   const totalProductos = productos.length;
   const productosActivos = productos.filter(
-    (p) => getEstadoVisualProducto(p) === "Activo",
+    (p) => getEstadoProducto(p.stock, p.stockMinimo, p.estado) === "Activo",
   ).length;
   const stockTotal = productos.reduce(
     (acc, p) => acc + (Number(p.stock) || 0),
@@ -94,7 +92,7 @@ export function useProductos({ user, nombreEmpleado }) {
   // Lógica de filtrado
   const productosFiltrados = useMemo(() => {
     return productos.filter((p) => {
-      const estadoVisual = getEstadoVisualProducto(p);
+      const estadoVisual = getEstadoProducto(p.stock, p.stockMinimo, p.estado);
       const coincideEstado = filtroEstadoProducto
         ? estadoVisual === filtroEstadoProducto
         : true;
@@ -142,7 +140,162 @@ export function useProductos({ user, nombreEmpleado }) {
       ? `Filtros activos: ${partes.join(" | ")}`
       : "Catálogo Completo";
   }, [filtroCategoria, categorias, filtroEstadoProducto, filtroStockRange]);
-// ------------------------------------------------------------
+  // ------------------------------------------------------------
+  const subirImagen = async (archivo) => {
+    const imagenRef = ref(storage, `productos/${Date.now()}_${archivo.name}`);
+    await uploadBytes(imagenRef, archivo);
+    return getDownloadURL(imagenRef);
+  };
+
+  const guardarProducto = async ({
+    nombre,
+    descripcion,
+    precioContado,
+    stock,
+    stockMinimo,
+    categoriaId,
+    categoriaNombre,
+    estado,
+    archivoImagen,
+    porcentajeAumento: porcentajeAumentoForm = porcentajeAumento,
+    onSuccess,
+  }) => {
+    if (!archivoImagen) {
+      sileo.error("La imagen del producto es obligatoria.");
+      return;
+    }
+
+    if ((descripcion || "").length > MAX_DESCRIPCION) {
+      sileo.error(
+        `La descripción no puede superar ${MAX_DESCRIPCION} caracteres.`,
+      );
+      return;
+    }
+
+    const imagenUrl = await subirImagen(archivoImagen);
+    const precioContadoNum = Number(precioContado) || 0;
+    const precioCreditoNum = Number(
+      (precioContadoNum * (1 + Number(porcentajeAumentoForm || 0))).toFixed(2),
+    );
+    const estadoFinal = getEstadoProducto(stock, stockMinimo, estado);
+
+    const docRef = await addDoc(collection(db, "productos"), {
+      nombre: nombre.trim(),
+      descripcion: (descripcion || "").slice(0, MAX_DESCRIPCION),
+      precioContado: precioContadoNum,
+      precioCredito: precioCreditoNum,
+      stock: Number(stock) || 0,
+      stockMinimo: Number(stockMinimo) || 0,
+      categoriaId,
+      categoriaNombre,
+      estado: estadoFinal,
+      imagenUrl,
+      fechaRegistro: serverTimestamp(),
+      ultimaModificacion: serverTimestamp(),
+    });
+
+    await registrarBitacora({
+      usuario: user?.email ?? "desconocido",
+      nombre: nombreEmpleado || user?.email || "desconocido",
+      coleccion: "productos",
+      accion: "creacion",
+      docId: docRef.id,
+      metadata: {
+        nombre: nombre.trim(),
+        categoriaNombre,
+        precioContado: precioContadoNum,
+        precioCredito: precioCreditoNum,
+        stock: Number(stock) || 0,
+        stockMinimo: Number(stockMinimo) || 0,
+        estado: estadoFinal,
+      },
+    });
+
+    sileo.success("Producto creado con éxito");
+    await onSuccess?.();
+  };
+
+  const actualizarProducto = async ({
+    editandoId,
+    editandoData,
+    nombre,
+    descripcion,
+    precioContado,
+    stock,
+    stockMinimo,
+    categoriaId,
+    categoriaNombre,
+    estado,
+    archivoImagen,
+    imagenUrlActual,
+    porcentajeAumento: porcentajeAumentoForm = porcentajeAumento,
+    onSuccess,
+  }) => {
+    if (!editandoId) return;
+
+    if ((descripcion || "").length > MAX_DESCRIPCION) {
+      sileo.error(
+        `La descripción no puede superar ${MAX_DESCRIPCION} caracteres.`,
+      );
+      return;
+    }
+
+    let imagenUrl = imagenUrlActual || "";
+    if (archivoImagen) {
+      imagenUrl = await subirImagen(archivoImagen);
+    }
+
+    const precioContadoNum = Number(precioContado) || 0;
+    const precioCreditoNum = Number(
+      (precioContadoNum * (1 + Number(porcentajeAumentoForm || 0))).toFixed(2),
+    );
+    const estadoFinal = getEstadoProducto(stock, stockMinimo, estado);
+
+    const datosActualizados = {
+      nombre: nombre.trim(),
+      descripcion: (descripcion || "").slice(0, MAX_DESCRIPCION),
+      precioContado: precioContadoNum,
+      precioCredito: precioCreditoNum,
+      stock: Number(stock) || 0,
+      stockMinimo: Number(stockMinimo) || 0,
+      categoriaId,
+      categoriaNombre,
+      estado: estadoFinal,
+      imagenUrl,
+      ultimaModificacion: serverTimestamp(),
+    };
+
+    await updateDoc(doc(db, "productos", editandoId), datosActualizados);
+
+    await registrarBitacora({
+      usuario: user?.email ?? "desconocido",
+      nombre: nombreEmpleado || user?.email || "desconocido",
+      coleccion: "productos",
+      accion: "actualizacion",
+      docId: editandoId,
+      metadata: {
+        nombreAnterior: editandoData?.nombre,
+        nombreNuevo: datosActualizados.nombre,
+        categoriaAnterior: editandoData?.categoriaNombre,
+        categoriaNueva: datosActualizados.categoriaNombre,
+        precioContadoAnterior: editandoData?.precioContado,
+        precioContadoNuevo: datosActualizados.precioContado,
+        precioCreditoAnterior: editandoData?.precioCredito,
+        precioCreditoNuevo: datosActualizados.precioCredito,
+        stockAnterior: editandoData?.stock,
+        stockNuevo: datosActualizados.stock,
+        stockMinimoAnterior: editandoData?.stockMinimo,
+        stockMinimoNuevo: datosActualizados.stockMinimo,
+        estadoAnterior: editandoData?.estado,
+        estadoNuevo: datosActualizados.estado,
+        imagenActualizada: Boolean(archivoImagen),
+      },
+    });
+
+    sileo.success("Producto actualizado con éxito");
+    await onSuccess?.();
+  };
+
   const handleEliminar = async (id) => {
     if (window.confirm("¿Estás seguro de que deseas eliminar este producto?")) {
       try {
@@ -207,5 +360,8 @@ export function useProductos({ user, nombreEmpleado }) {
     setFiltroStockRange,
     fetchProductos,
     handleEliminar,
+    guardarProducto,
+    actualizarProducto,
+    getEstadoProducto,
   };
 }

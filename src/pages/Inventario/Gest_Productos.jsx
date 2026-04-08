@@ -1,10 +1,8 @@
-import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 import DataTable from "../../components/ui/table/DataTable";
 import ExportButtons from "../../layout/Exportbuttons";
 import MetricCard from "../../components/common/MetricCard";
-import ProductModal from "../../components/inventario/ProductModal";
-import { useModal } from "../../hooks/useModal";
 import { useAuth } from "../../auth/AuthProvider";
 import { useNombreEmpleadoActual } from "../../hooks/useNombreEmpleadoActual";
 import { BoxIconLine, CheckCircleIcon, CloseIcon, PlusIcon } from "../../icons";
@@ -15,10 +13,12 @@ import {
 import { useProductos } from "./hooks/useProductos";
 import { registrarBitacora } from "../../services/bitacora";
 import ProductosFiltersDropdown from "../../components/inventario/ProductosFiltersDropdown";
+import { formatDateForFilename } from "../../utils/formatters";
 
 export default function Gest_Productos() {
   const { user } = useAuth();
   const nombreEmpleado = useNombreEmpleadoActual();
+  const navigate = useNavigate();
   const {
     productos,
     categorias,
@@ -35,20 +35,19 @@ export default function Gest_Productos() {
     setFiltroEstadoProducto,
     filtroStockRange,
     setFiltroStockRange,
-    fetchProductos,
     handleEliminar,
   } = useProductos({ user, nombreEmpleado });
 
-  const { isOpen, openModal, closeModal } = useModal();
-  const [editandoData, setEditandoData] = useState(null);
-
   const columns = productColumns({
-    onEdit: (producto) => {
-      setEditandoData(producto);
-      openModal();
-    },
+    onView: (producto) =>
+      navigate("/productos/detalle", {
+        state: { producto },
+      }),
+    onEdit: (producto) =>
+      navigate("/productos/editar", {
+        state: { producto },
+      }),
     onEliminar: handleEliminar,
-    categorias,
   });
 
   return (
@@ -59,8 +58,7 @@ export default function Gest_Productos() {
         </h2>
         <button
           onClick={() => {
-            setEditandoData(null);
-            openModal();
+            navigate("/productos/nuevo");
           }}
           className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-5 py-2.5 rounded-lg shadow-sm transition flex items-center gap-2"
         >
@@ -96,17 +94,6 @@ export default function Gest_Productos() {
         />
       </div>
 
-      <ProductModal
-        isOpen={isOpen}
-        onClose={closeModal}
-        editandoData={editandoData}
-        categorias={categorias}
-        porcentajeAumento={porcentajeAumento}
-        user={user}
-        nombreEmpleado={nombreEmpleado}
-        onSuccess={fetchProductos}
-      />
-
       <DataTable columns={columns} data={productosFiltrados} loading={loading}>
         <DataTable.Toolbar searchPlaceholder="Buscar producto...">
           <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto sm:ml-auto items-stretch sm:items-center">
@@ -124,10 +111,7 @@ export default function Gest_Productos() {
           <ExportButtons
             rows={productosFiltrados}
             columns={COLUMNAS_EXPORT_PRODUCTOS}
-            filename={
-              "Productos Seleccionados " +
-              new Date().toLocaleDateString("es-HN")
-            }
+            filename={"Productos Seleccionados " + formatDateForFilename()}
             meta={{
               empresa: "Comisariato San Jose",
               usuario: nombreEmpleado || "Sistema",
@@ -135,7 +119,7 @@ export default function Gest_Productos() {
             }}
             pdfOptions={{
               title: "Productos Seleccionados",
-              subtitle: new Date().toLocaleDateString("es-HN"),
+              subtitle: formatDateForFilename(),
             }}
             onExport={(formato) =>
               registrarBitacora({

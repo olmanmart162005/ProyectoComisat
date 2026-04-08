@@ -1,6 +1,7 @@
 import { useState } from "react";
 
 import DataTable from "../../components/ui/table/DataTable";
+import ConfirmDeleteModal from "../../components/common/ConfirmDeleteModal";
 import ExportButtons from "../../layout/Exportbuttons";
 import { useAuth } from "../../auth/AuthProvider";
 import { useNombreEmpleadoActual } from "../../hooks/useNombreEmpleadoActual";
@@ -20,19 +21,39 @@ import { useCategorias } from "./hooks/useCategorias";
 export default function Gest_Categorias() {
   Toaster.position = "top-right";
 
-  const { categorias, loading, fetchCategorias, handleEliminar } =
-    useCategorias();
   const { isOpen, openModal, closeModal } = useModal();
   const { user } = useAuth();
   const nombreEmpleado = useNombreEmpleadoActual();
+  const { categorias, loading, fetchCategorias, handleEliminar } =
+    useCategorias({ user, nombreEmpleado });
   const [editandoData, setEditandoData] = useState(null);
+  const [categoriaAEliminar, setCategoriaAEliminar] = useState(null);
+  const [eliminando, setEliminando] = useState(false);
+
+  const abrirEliminarCategoria = (catId) => {
+    const cat = categorias.find((item) => item.id === catId) || null;
+    setCategoriaAEliminar(cat);
+  };
+
+  const cerrarEliminarCategoria = () => {
+    if (eliminando) return;
+    setCategoriaAEliminar(null);
+  };
+
+  const confirmarEliminarCategoria = async () => {
+    if (!categoriaAEliminar?.id) return;
+    setEliminando(true);
+    const ok = await handleEliminar(categoriaAEliminar.id);
+    setEliminando(false);
+    if (ok) setCategoriaAEliminar(null);
+  };
 
   const columns = categoryColumns({
     onEdit: (cat) => {
       setEditandoData(cat);
       openModal();
     },
-    onEliminar: handleEliminar,
+    onEliminar: abrirEliminarCategoria,
   });
 
   return (
@@ -91,6 +112,15 @@ export default function Gest_Categorias() {
         <DataTable.Table />
         <DataTable.Pagination />
       </DataTable>
+
+      <ConfirmDeleteModal
+        isOpen={Boolean(categoriaAEliminar)}
+        onClose={cerrarEliminarCategoria}
+        onConfirm={confirmarEliminarCategoria}
+        itemName={categoriaAEliminar?.nombre}
+        message="¿Deseas eliminar la categoría"
+        loading={eliminando}
+      />
     </div>
   );
 }

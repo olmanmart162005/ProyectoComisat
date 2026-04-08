@@ -83,16 +83,18 @@ export function useComentariosProducto({ productoId, user, nombreEmpleado }) {
   }, [cargarDatos]);
 
   const estadisticas = useMemo(() => {
-    const visibles = comentarios.filter(
+    const comentariosVisibles = comentarios.filter(
       (comentario) => comentario.visible !== false,
-    ).length;
+    );
+
+    const visibles = comentariosVisibles.length;
     const ocultos = comentarios.length - visibles;
     const promedio =
-      comentarios.length > 0
-        ? comentarios.reduce(
+      visibles > 0
+        ? comentariosVisibles.reduce(
             (acc, comentario) => acc + (Number(comentario.estrellas) || 0),
             0,
-          ) / comentarios.length
+          ) / visibles
         : 0;
 
     return {

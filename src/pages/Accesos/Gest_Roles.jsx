@@ -1,6 +1,7 @@
 import { useState } from "react";
 
 import DataTable from "../../components/ui/table/DataTable";
+import ConfirmDeleteModal from "../../components/common/ConfirmDeleteModal";
 import ExportButtons from "../../layout/Exportbuttons";
 import { useAuth } from "../../auth/AuthProvider";
 import { useNombreEmpleadoActual } from "../../hooks/useNombreEmpleadoActual";
@@ -24,13 +25,33 @@ export default function Gest_Roles() {
     nombreEmpleado,
   });
   const [editandoData, setEditandoData] = useState(null);
+  const [rolAEliminar, setRolAEliminar] = useState(null);
+  const [eliminando, setEliminando] = useState(false);
+
+  const abrirEliminarRol = (rolId) => {
+    const rol = roles.find((item) => item.id === rolId) || null;
+    setRolAEliminar(rol);
+  };
+
+  const cerrarEliminarRol = () => {
+    if (eliminando) return;
+    setRolAEliminar(null);
+  };
+
+  const confirmarEliminarRol = async () => {
+    if (!rolAEliminar?.id) return;
+    setEliminando(true);
+    const ok = await handleEliminar(rolAEliminar.id);
+    setEliminando(false);
+    if (ok) setRolAEliminar(null);
+  };
 
   const columns = roleColumns({
     onEdit: (rol) => {
       setEditandoData(rol);
       openModal();
     },
-    onEliminar: handleEliminar,
+    onEliminar: abrirEliminarRol,
   });
 
   return (
@@ -101,6 +122,15 @@ export default function Gest_Roles() {
         <DataTable.Table />
         <DataTable.Pagination />
       </DataTable>
+
+      <ConfirmDeleteModal
+        isOpen={Boolean(rolAEliminar)}
+        onClose={cerrarEliminarRol}
+        onConfirm={confirmarEliminarRol}
+        itemName={rolAEliminar?.nombre}
+        message="¿Deseas eliminar el rol"
+        loading={eliminando}
+      />
     </div>
   );
 }

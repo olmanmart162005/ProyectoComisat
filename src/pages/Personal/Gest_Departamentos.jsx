@@ -1,6 +1,8 @@
 import { useMemo } from "react";
+import { useState } from "react";
 
 import DataTable from "../../components/ui/table/DataTable";
+import ConfirmDeleteModal from "../../components/common/ConfirmDeleteModal";
 import ExportButtons from "../../layout/Exportbuttons";
 import { useAuth } from "../../auth/AuthProvider";
 import { useNombreEmpleadoActual } from "../../hooks/useNombreEmpleadoActual";
@@ -34,6 +36,26 @@ export default function Gest_Departamentos() {
     handleUpdate,
     handleEliminar,
   } = useDepartamentos({ closeModal });
+  const [departamentoAEliminar, setDepartamentoAEliminar] = useState(null);
+  const [eliminando, setEliminando] = useState(false);
+
+  const abrirEliminarDepartamento = (depId) => {
+    const dep = departamentos.find((item) => item.id === depId) || null;
+    setDepartamentoAEliminar(dep);
+  };
+
+  const cerrarEliminarDepartamento = () => {
+    if (eliminando) return;
+    setDepartamentoAEliminar(null);
+  };
+
+  const confirmarEliminarDepartamento = async () => {
+    if (!departamentoAEliminar?.id) return;
+    setEliminando(true);
+    const ok = await handleEliminar(departamentoAEliminar.id);
+    setEliminando(false);
+    if (ok) setDepartamentoAEliminar(null);
+  };
 
   const columns = useMemo(
     () =>
@@ -43,7 +65,7 @@ export default function Gest_Departamentos() {
           setNombre(dep.nombre || "");
           openModal();
         },
-        onEliminar: handleEliminar,
+        onEliminar: abrirEliminarDepartamento,
       }),
     [openModal, setEditandoId, setNombre, handleEliminar],
   );
@@ -115,6 +137,15 @@ export default function Gest_Departamentos() {
         <DataTable.Table />
         <DataTable.Pagination />
       </DataTable>
+
+      <ConfirmDeleteModal
+        isOpen={Boolean(departamentoAEliminar)}
+        onClose={cerrarEliminarDepartamento}
+        onConfirm={confirmarEliminarDepartamento}
+        itemName={departamentoAEliminar?.nombre}
+        message="¿Deseas eliminar el departamento"
+        loading={eliminando}
+      />
     </div>
   );
 }

@@ -13,6 +13,10 @@ import {
 } from "firebase/firestore";
 import { sileo } from "sileo";
 import { registrarBitacora } from "../../../services/bitacora";
+import {
+  generarPasswordTemporal,
+  enviarCorreoCredenciales,
+} from "../../../services/credencialesEmail";
 
 export const generarNuevoCodigo = (listaEmpleados, listaHistorial = []) => {
   const anioActual = new Date().getFullYear().toString();
@@ -130,67 +134,303 @@ export function useEmpleados({ user, nombreEmpleado }) {
   }, [filtroDepartamento, filtroEstado, departamentos]);
 
   const handleEliminar = async (id) => {
-    if (window.confirm("¿Estás seguro de que deseas eliminar este empleado?")) {
-      try {
-        const empleadoAEliminar = empleados.find((e) => e.id === id);
+    try {
+      const empleadoAEliminar = empleados.find((e) => e.id === id);
 
-        // ── Paso 1: eliminar todos los usuarios vinculados al empleado ──
-        const qUsuarios = query(
-          collection(db, "usuarios"),
-          where("empleadoId", "==", id),
-        );
-        const snapUsuarios = await getDocs(qUsuarios);
+      // ── Paso 1: eliminar todos los usuarios vinculados al empleado ──
+      const qUsuarios = query(
+        collection(db, "usuarios"),
+        where("empleadoId", "==", id),
+      );
+      const snapUsuarios = await getDocs(qUsuarios);
 
-        await Promise.all(
-          snapUsuarios.docs.map((d) => deleteDoc(doc(db, "usuarios", d.id))),
-        );
+      await Promise.all(
+        snapUsuarios.docs.map((d) => deleteDoc(doc(db, "usuarios", d.id))),
+      );
 
-        // ── Paso 2: mover el empleado a historialEmpleados ──
-        if (empleadoAEliminar) {
-          await addDoc(collection(db, "historialEmpleados"), {
-            codigoEmpleado: empleadoAEliminar.codigoEmpleado,
-            nombres: empleadoAEliminar.nombres,
-            apellidos: empleadoAEliminar.apellidos,
-            correo: empleadoAEliminar.correo,
-            dni: empleadoAEliminar.dni,
-            telefono: empleadoAEliminar.telefono,
-            departamentoId: empleadoAEliminar.departamentoId,
-            departamentoNombre: empleadoAEliminar.departamentoNombre,
-            salario: empleadoAEliminar.salario,
-            fechaInicio: empleadoAEliminar.fechaInicio,
-            fechaRegistro: empleadoAEliminar.fechaRegistro,
-            empleadoId: id,
-            fechaBaja: serverTimestamp(),
-            bajadoPor: user.email,
-            nombreBajadoPor: nombreEmpleado,
-            usuariosEliminados: snapUsuarios.docs.length,
-          });
-        }
-
-        // ── Paso 3: eliminar el empleado ──
-        await deleteDoc(doc(db, "empleados", id));
-
-        // ── Paso 4: bitácora ──
-        await registrarBitacora({
-          usuario: user.email,
-          nombre: nombreEmpleado,
-          coleccion: "empleados",
-          accion: "eliminacion",
-          docId: id,
-          metadata: {
-            nombreCompleto: `${empleadoAEliminar?.nombres} ${empleadoAEliminar?.apellidos}`,
-            codigoEmpleado: empleadoAEliminar?.codigoEmpleado,
-            departamentoNombre: empleadoAEliminar?.departamentoNombre,
-            usuariosEliminados: snapUsuarios.docs.length,
-          },
+      // ── Paso 2: mover el empleado a historialEmpleados ──
+      if (empleadoAEliminar) {
+        await addDoc(collection(db, "historialEmpleados"), {
+          codigoEmpleado: empleadoAEliminar.codigoEmpleado,
+          nombres: empleadoAEliminar.nombres,
+          apellidos: empleadoAEliminar.apellidos,
+          correo: empleadoAEliminar.correo,
+          dni: empleadoAEliminar.dni,
+          telefono: empleadoAEliminar.telefono,
+          departamentoId: empleadoAEliminar.departamentoId,
+          departamentoNombre: empleadoAEliminar.departamentoNombre,
+          salario: empleadoAEliminar.salario,
+          fechaInicio: empleadoAEliminar.fechaInicio,
+          fechaRegistro: empleadoAEliminar.fechaRegistro,
+          empleadoId: id,
+          fechaBaja: serverTimestamp(),
+          bajadoPor: user?.email ?? "desconocido",
+          nombreBajadoPor: nombreEmpleado || user?.email || "desconocido",
+          usuariosEliminados: snapUsuarios.docs.length,
         });
-
-        fetchEmpleados();
-        sileo.success("Empleado eliminado correctamente");
-      } catch (error) {
-        console.error("Error al eliminar", error);
-        sileo.error("Error al eliminar");
       }
+
+      // ── Paso 3: eliminar el empleado ──
+      await deleteDoc(doc(db, "empleados", id));
+
+      // ── Paso 4: bitácora ──
+      await registrarBitacora({
+        usuario: user?.email ?? "desconocido",
+        nombre: nombreEmpleado || user?.email || "desconocido",
+        coleccion: "empleados",
+        accion: "eliminacion",
+        docId: id,
+        metadata: {
+          nombreCompleto: `${empleadoAEliminar?.nombres} ${empleadoAEliminar?.apellidos}`,
+          codigoEmpleado: empleadoAEliminar?.codigoEmpleado,
+          departamentoNombre: empleadoAEliminar?.departamentoNombre,
+          usuariosEliminados: snapUsuarios.docs.length,
+        },
+      });
+
+      fetchEmpleados();
+      sileo.success("Empleado eliminado correctamente");
+      return true;
+    } catch (error) {
+      console.error("Error al eliminar", error);
+      sileo.error("Error al eliminar");
+      return false;
+    }
+  };
+
+  const getRolEmpleadoId = async () => {
+    try {
+      const q = query(
+        collection(db, "roles"),
+        where("nombre", "==", "Empleado"),
+      );
+      const snap = await getDocs(q);
+      if (!snap.empty) return snap.docs[0].id;
+      return "";
+    } catch (error) {
+      console.error("Error al buscar rol Empleado:", error);
+      return "";
+    }
+  };
+
+  const syncUsuarioConEmpleado = async ({
+    empleadoIdDoc,
+    empleadoNombres,
+    empleadoApellidos,
+    empleadoCorreo,
+    empleadoEstado,
+    empleadoDni,
+  }) => {
+    const q = query(
+      collection(db, "usuarios"),
+      where("empleadoId", "==", empleadoIdDoc),
+    );
+    const snap = await getDocs(q);
+
+    const payloadBase = {
+      empleadoId: empleadoIdDoc,
+      nombre: `${empleadoNombres} ${empleadoApellidos}`.trim(),
+      correo: empleadoCorreo,
+      correoPersonal: empleadoCorreo,
+      estado: empleadoEstado,
+    };
+
+    if (!snap.empty) {
+      await Promise.all(
+        snap.docs.map((d) =>
+          updateDoc(doc(db, "usuarios", d.id), {
+            ...payloadBase,
+            ultimaModificacion: serverTimestamp(),
+          }),
+        ),
+      );
+      return;
+    }
+
+    const rolEmpleadoId = await getRolEmpleadoId();
+    const password = generarPasswordTemporal(empleadoApellidos, empleadoDni);
+
+    await addDoc(collection(db, "usuarios"), {
+      ...payloadBase,
+      rolId: rolEmpleadoId,
+      rolNombre: "Empleado",
+      primerLoginHecho: false,
+      passwordTemporal: password,
+      fechaRegistro: serverTimestamp(),
+    });
+
+    try {
+      await enviarCorreoCredenciales({
+        nombre: `${empleadoNombres} ${empleadoApellidos}`.trim(),
+        correoInstitucional: empleadoCorreo,
+        passwordGenerada: password,
+        correoDestino: empleadoCorreo,
+      });
+    } catch (emailErr) {
+      console.error("Usuario creado pero falló el correo:", emailErr);
+      sileo.warning({
+        title: "Empleado creado",
+        description:
+          "El usuario se generó, pero no se pudo enviar el correo de credenciales.",
+      });
+    }
+  };
+
+  const guardarEmpleado = async ({
+    codigoEmpleado,
+    nombres,
+    apellidos,
+    correo,
+    dni,
+    telefono,
+    departamentoId,
+    departamentoNombre,
+    salario,
+    fechaInicio,
+    estado,
+    onSuccess,
+  }) => {
+    try {
+      const docRef = await addDoc(collection(db, "empleados"), {
+        codigoEmpleado,
+        nombres,
+        apellidos,
+        correo,
+        dni,
+        telefono,
+        departamentoId,
+        departamentoNombre,
+        salario: parseFloat(salario),
+        fechaInicio: new Date(fechaInicio),
+        estado,
+        fechaRegistro: serverTimestamp(),
+      });
+
+      await syncUsuarioConEmpleado({
+        empleadoIdDoc: docRef.id,
+        empleadoNombres: nombres,
+        empleadoApellidos: apellidos,
+        empleadoCorreo: correo,
+        empleadoEstado: estado,
+        empleadoDni: dni,
+      });
+
+      await registrarBitacora({
+        usuario: user?.email ?? "desconocido",
+        nombre: nombreEmpleado || user?.email || "desconocido",
+        coleccion: "empleados",
+        accion: "creacion",
+        docId: docRef.id,
+        metadata: {
+          nombreCompleto: `${nombres} ${apellidos}`,
+          codigoEmpleado,
+          departamentoNombre,
+          estado,
+        },
+      });
+
+      await fetchEmpleados();
+      await fetchHistorialEmpleados();
+      sileo.success("Empleado creado con éxito");
+      await onSuccess?.();
+      return true;
+    } catch (error) {
+      console.error("Error al guardar", error);
+      sileo.error("Error al guardar");
+      return false;
+    }
+  };
+
+  const actualizarEmpleado = async ({
+    editandoId,
+    codigoEmpleado,
+    nombres,
+    apellidos,
+    correo,
+    dni,
+    telefono,
+    departamentoId,
+    departamentoNombre,
+    salario,
+    fechaInicio,
+    estado,
+    onSuccess,
+  }) => {
+    if (!editandoId) return false;
+
+    try {
+      const empleadoAnterior = empleados.find((emp) => emp.id === editandoId);
+
+      await updateDoc(doc(db, "empleados", editandoId), {
+        codigoEmpleado,
+        nombres,
+        apellidos,
+        correo,
+        dni,
+        telefono,
+        departamentoId,
+        departamentoNombre,
+        salario: parseFloat(salario),
+        fechaInicio: new Date(fechaInicio),
+        estado,
+        ultimaModificacion: serverTimestamp(),
+      });
+
+      await syncUsuarioConEmpleado({
+        empleadoIdDoc: editandoId,
+        empleadoNombres: nombres,
+        empleadoApellidos: apellidos,
+        empleadoCorreo: correo,
+        empleadoEstado: estado,
+      });
+
+      const fechaAnterior = (() => {
+        if (!empleadoAnterior?.fechaInicio) return "";
+        try {
+          const date = empleadoAnterior.fechaInicio.toDate
+            ? empleadoAnterior.fechaInicio.toDate()
+            : new Date(empleadoAnterior.fechaInicio);
+          return date.toISOString().split("T")[0];
+        } catch {
+          return "";
+        }
+      })();
+
+      await registrarBitacora({
+        usuario: user?.email ?? "desconocido",
+        nombre: nombreEmpleado || user?.email || "desconocido",
+        coleccion: "empleados",
+        accion: "actualizacion",
+        docId: editandoId,
+        metadata: {
+          nombreCompleto: `${nombres} ${apellidos}`,
+          ...(empleadoAnterior?.estado !== estado && {
+            estadoAnterior: empleadoAnterior?.estado,
+            estadoNuevo: estado,
+          }),
+          ...(empleadoAnterior?.salario !== parseFloat(salario) && {
+            salarioAnterior: empleadoAnterior?.salario,
+            salarioNuevo: parseFloat(salario),
+          }),
+          ...(empleadoAnterior?.departamentoNombre !== departamentoNombre && {
+            departamentoAnterior: empleadoAnterior?.departamentoNombre,
+            departamentoNuevo: departamentoNombre,
+          }),
+          ...(fechaAnterior !== fechaInicio && {
+            fechaInicioAnterior: fechaAnterior || "Sin registro",
+            fechaInicioNueva: fechaInicio,
+          }),
+        },
+      });
+
+      await fetchEmpleados();
+      sileo.success("Empleado actualizado");
+      await onSuccess?.();
+      return true;
+    } catch (error) {
+      console.error("Error al actualizar", error);
+      sileo.error("Error al actualizar");
+      return false;
     }
   };
 
@@ -208,6 +448,8 @@ export function useEmpleados({ user, nombreEmpleado }) {
     setFiltroDepartamento,
     filtroEstado,
     setFiltroEstado,
+    guardarEmpleado,
+    actualizarEmpleado,
     handleEliminar,
     fetchEmpleados,
   };

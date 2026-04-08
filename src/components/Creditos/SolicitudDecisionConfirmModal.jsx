@@ -65,13 +65,7 @@ export default function SolicitudDecisionConfirmModal({
         </div>
 
         <div className="flex gap-3 pt-1">
-          <button
-            onClick={onClose}
-            disabled={procesando}
-            className="flex-1 p-2 rounded-md font-bold text-sm border border-gray-300 dark:border-white/10 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-white/5 transition disabled:opacity-60"
-          >
-            Cancelar
-          </button>
+     
           <button
             onClick={onConfirm}
             disabled={procesando}

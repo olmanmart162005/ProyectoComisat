@@ -126,6 +126,28 @@ export default function SolicitudDetalle() {
               <p className="text-xl font-black text-gray-800 dark:text-gray-100 tracking-tight">
                 {lps(fin.totalCredito)}
               </p>
+
+              <div className="mt-3 pt-3 border-t border-gray-200 dark:border-white/10">
+                <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
+                  <p className="font-medium text-gray-600 dark:text-gray-300">
+                    <span className="text-gray-500 dark:text-gray-400">
+                      Plazo:
+                    </span>{" "}
+                    <span className="font-bold text-gray-900 dark:text-white/90">
+                      {Number(fin.plazoCuotas ?? solicitud.plazoCuotas ?? 0)} meses
+                    </span>
+                  </p>
+
+                  <p className="font-medium text-gray-600 dark:text-gray-300">
+                    <span className="text-gray-500 dark:text-gray-400">
+                      Cuota mensual:
+                    </span>{" "}
+                    <span className="font-bold text-blue-700 dark:text-blue-400">
+                      {lps(fin.cuotaMensual ?? solicitud.cuotaMensual ?? 0)}
+                    </span>
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
 

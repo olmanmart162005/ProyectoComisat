@@ -1,7 +1,8 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 import DataTable from "../../components/ui/table/DataTable";
-import { useModal } from "../../hooks/useModal";
+import ConfirmDeleteModal from "../../components/common/ConfirmDeleteModal";
 import { Toaster } from "sileo";
 
 import MetricCard from "../../components/common/MetricCard";
@@ -13,21 +14,20 @@ import { registrarBitacora } from "../../services/bitacora";
 import { formatDateForFilename } from "../../utils/formatters";
 import EmpleadosFiltersDropdown from "../../components/Personal/EmpleadosFiltersDropdown";
 
-import EmpleadoModal from "../../components/Personal/EmpleadoModal";
 import {
   empleadoColumns,
   COLUMNAS_EXPORT_EMPLEADOS,
 } from "./columns/empleadoColumns";
-import { useEmpleados, generarNuevoCodigo } from "./hooks/useEmpleados";
+import { useEmpleados } from "./hooks/useEmpleados";
 
 export default function Gest_Empleados() {
   Toaster.position = "top-right";
+  const navigate = useNavigate();
 
   const { user } = useAuth();
   const nombreEmpleado = useNombreEmpleadoActual();
   const {
     empleados,
-    historialEmpleados,
     departamentos,
     loading,
     totalEmpleados,
@@ -40,36 +40,38 @@ export default function Gest_Empleados() {
     filtroEstado,
     setFiltroEstado,
     handleEliminar,
-    fetchEmpleados,
   } = useEmpleados({ user, nombreEmpleado });
+  const [empleadoAEliminar, setEmpleadoAEliminar] = useState(null);
+  const [eliminando, setEliminando] = useState(false);
 
-  const { isOpen, openModal, closeModal } = useModal();
-  const [editandoData, setEditandoData] = useState(null);
-  const [codigoNuevo, setCodigoNuevo] = useState("");
-  const [soloVista, setSoloVista] = useState(false);
-
-  const abrirDetalle = (emp) => {
-    setEditandoData(emp);
-    setSoloVista(true);
-    openModal();
+  const abrirEliminarEmpleado = (empId) => {
+    const emp = empleados.find((item) => item.id === empId) || null;
+    setEmpleadoAEliminar(emp);
   };
 
-  const abrirEdicion = (emp) => {
-    setEditandoData(emp);
-    setSoloVista(false);
-    openModal();
+  const cerrarEliminarEmpleado = () => {
+    if (eliminando) return;
+    setEmpleadoAEliminar(null);
   };
 
-  const cerrarModalEmpleado = () => {
-    setEditandoData(null);
-    setSoloVista(false);
-    closeModal();
+  const confirmarEliminarEmpleado = async () => {
+    if (!empleadoAEliminar?.id) return;
+    setEliminando(true);
+    const ok = await handleEliminar(empleadoAEliminar.id);
+    setEliminando(false);
+    if (ok) setEmpleadoAEliminar(null);
   };
 
   const columns = empleadoColumns({
-    onView: abrirDetalle,
-    onEdit: abrirEdicion,
-    onEliminar: handleEliminar,
+    onView: (empleado) =>
+      navigate("/empleados/detalle", {
+        state: { empleado },
+      }),
+    onEdit: (empleado) =>
+      navigate("/empleados/editar", {
+        state: { empleado },
+      }),
+    onEliminar: abrirEliminarEmpleado,
     departamentos,
   });
 
@@ -81,11 +83,7 @@ export default function Gest_Empleados() {
         </h2>
         <button
           onClick={() => {
-            setEditandoData(null);
-            setSoloVista(false);
-            const nuevoCod = generarNuevoCodigo(empleados, historialEmpleados);
-            setCodigoNuevo(nuevoCod);
-            openModal();
+            navigate("/empleados/nuevo");
           }}
           className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-5 py-2.5 rounded-lg shadow-sm transition flex items-center gap-2"
         >
@@ -132,19 +130,6 @@ export default function Gest_Empleados() {
         />
       </div>
 
-      <EmpleadoModal
-        isOpen={isOpen}
-        onClose={cerrarModalEmpleado}
-        editandoData={editandoData}
-        departamentos={departamentos}
-        user={user}
-        nombreEmpleado={nombreEmpleado}
-        onSuccess={fetchEmpleados}
-        codigoNuevo={codigoNuevo}
-        empleados={empleados}
-        soloVista={soloVista}
-      />
-
       <DataTable columns={columns} data={empleadosFiltrados} loading={loading}>
         <DataTable.Toolbar searchPlaceholder="Buscar empleado...">
           <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto sm:ml-auto items-stretch sm:items-center">
@@ -187,6 +172,15 @@ export default function Gest_Empleados() {
         <DataTable.Table />
         <DataTable.Pagination />
       </DataTable>
+
+      <ConfirmDeleteModal
+        isOpen={Boolean(empleadoAEliminar)}
+        onClose={cerrarEliminarEmpleado}
+        onConfirm={confirmarEliminarEmpleado}
+        itemName={`${empleadoAEliminar?.nombres ?? ""} ${empleadoAEliminar?.apellidos ?? ""}`.trim()}
+        message="¿Deseas eliminar al empleado"
+        loading={eliminando}
+      />
     </div>
   );
 }

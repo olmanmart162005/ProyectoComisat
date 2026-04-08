@@ -15,7 +15,6 @@ import { getStorage } from "firebase/storage";
     Puedes obtenerlos en la consola de Firebase
 */
 
-
 // Inicializa Firebase
 const app = initializeApp(firebaseConfig);
 

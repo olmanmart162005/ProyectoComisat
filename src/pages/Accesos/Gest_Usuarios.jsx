@@ -1,6 +1,7 @@
 import { useState } from "react";
 
 import DataTable from "../../components/ui/table/DataTable";
+import ConfirmDeleteModal from "../../components/common/ConfirmDeleteModal";
 import ExportButtons from "../../layout/Exportbuttons";
 import MetricCard from "../../components/common/MetricCard";
 import { useModal } from "../../hooks/useModal";
@@ -26,6 +27,8 @@ export default function Gest_Usuarios() {
   const { user } = useAuth();
   const nombreEmpleado = useNombreEmpleadoActual();
   const [soloVista, setSoloVista] = useState(false);
+  const [usuarioAEliminar, setUsuarioAEliminar] = useState(null);
+  const [eliminando, setEliminando] = useState(false);
 
   const {
     empleados,
@@ -93,10 +96,28 @@ export default function Gest_Usuarios() {
     closeModal();
   };
 
+  const abrirEliminarUsuario = (uId) => {
+    const usuario = usuarios.find((item) => item.id === uId) || null;
+    setUsuarioAEliminar(usuario);
+  };
+
+  const cerrarEliminarUsuario = () => {
+    if (eliminando) return;
+    setUsuarioAEliminar(null);
+  };
+
+  const confirmarEliminarUsuario = async () => {
+    if (!usuarioAEliminar?.id) return;
+    setEliminando(true);
+    const ok = await handleEliminar(usuarioAEliminar.id);
+    setEliminando(false);
+    if (ok) setUsuarioAEliminar(null);
+  };
+
   const columns = usuarioColumns({
     onView: abrirDetalle,
     onEdit: abrirEdicion,
-    onEliminar: handleEliminar,
+    onEliminar: abrirEliminarUsuario,
   });
 
   return (
@@ -223,6 +244,15 @@ export default function Gest_Usuarios() {
         <DataTable.Table />
         <DataTable.Pagination />
       </DataTable>
+
+      <ConfirmDeleteModal
+        isOpen={Boolean(usuarioAEliminar)}
+        onClose={cerrarEliminarUsuario}
+        onConfirm={confirmarEliminarUsuario}
+        itemName={usuarioAEliminar?.nombre}
+        message="¿Deseas eliminar al usuario"
+        loading={eliminando}
+      />
     </div>
   );
 }

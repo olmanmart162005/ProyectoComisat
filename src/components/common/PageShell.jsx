@@ -20,6 +20,7 @@ export default function PageShell({
   description,
   pageTitle,
   breadcrumbCurrent,
+  breadcrumbItems,
   showPageTitle = true,
   contentClassName = "min-h-screen rounded-2xl border border-gray-200 bg-white px-5 py-7 dark:border-gray-800 dark:bg-white/[0.03] xl:px-10 xl:py-12",
   children,
@@ -47,7 +48,37 @@ export default function PageShell({
                 {homeLabel}
               </Link>
             </li>
-            {breadcrumbCurrent ? (
+
+            {Array.isArray(breadcrumbItems) && breadcrumbItems.length > 0 ? (
+              breadcrumbItems.map((item, index) => (
+                <li
+                  key={`${item}-${index}`}
+                  className={`inline-flex items-center gap-1.5 text-sm ${
+                    index === breadcrumbItems.length - 1
+                      ? "font-medium text-brand-600 dark:text-brand-400"
+                      : "text-gray-500 dark:text-gray-400"
+                  }`}
+                >
+                  <svg
+                    className="stroke-current text-gray-400 dark:text-gray-500"
+                    width="17"
+                    height="16"
+                    viewBox="0 0 17 16"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M6.0765 12.667L10.2432 8.50033L6.0765 4.33366"
+                      stroke="currentColor"
+                      strokeWidth="1.2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                  <span>{item}</span>
+                </li>
+              ))
+            ) : breadcrumbCurrent ? (
               <li className="inline-flex items-center gap-1.5 text-sm font-medium text-brand-600 dark:text-brand-400">
                 <svg
                   className="stroke-current text-gray-400 dark:text-gray-500"

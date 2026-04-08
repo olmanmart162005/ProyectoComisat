@@ -35,6 +35,8 @@ import PagosMensuales from "../pages/Creditos/PagosMensuales";
 import HistorialCreditos from "../pages/Gestion/HistorialCreditos";
 import EmpleadosPerfil from "../pages/Creditos/EmpleadosPerfil";
 import PerfilEmpleadoDetalle from "../pages/Creditos/PerfilEmpleadoDetalle";
+import EmpleadoDetalle from "../pages/Personal/EmpleadoDetalle";
+import EmpleadoFormulario from "../pages/Personal/EmpleadoFormulario";
 import Gest_Categorias from "../pages/Inventario/Gest_Categorias";
 import Departamentos from "../pages/Personal/Gest_Departamentos";
 import Gest_Bitacora from "../pages/Gestion/Gest_Bitacora";
@@ -134,6 +136,30 @@ export default function AppRouter() {
             element={
               <RoleRoute roles={["Administrador", "Recursos Humanos"]}>
                 <Gest_Empleados />
+              </RoleRoute>
+            }
+          />
+          <Route
+            path="empleados/nuevo"
+            element={
+              <RoleRoute roles={["Administrador", "Recursos Humanos"]}>
+                <EmpleadoFormulario />
+              </RoleRoute>
+            }
+          />
+          <Route
+            path="empleados/editar"
+            element={
+              <RoleRoute roles={["Administrador", "Recursos Humanos"]}>
+                <EmpleadoFormulario />
+              </RoleRoute>
+            }
+          />
+          <Route
+            path="empleados/detalle"
+            element={
+              <RoleRoute roles={["Administrador", "Recursos Humanos"]}>
+                <EmpleadoDetalle />
               </RoleRoute>
             }
           />

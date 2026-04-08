@@ -7,7 +7,11 @@ type BadgeColor =
   | "warning"
   | "info"
   | "light"
-  | "dark";
+  | "dark"
+  | "purple"
+  | "teal"
+  | "pink"
+  | "indigo";
 
 interface BadgeProps {
   variant?: BadgeVariant; // Light or solid variant
@@ -49,6 +53,10 @@ const Badge: React.FC<BadgeProps> = ({
       info: "bg-blue-light-50 text-blue-light-500 dark:bg-blue-light-500/15 dark:text-blue-light-500",
       light: "bg-gray-100 text-gray-700 dark:bg-white/5 dark:text-white/80",
       dark: "bg-gray-500 text-white dark:bg-white/5 dark:text-white",
+      purple: "bg-purple-100 text-purple-700 dark:bg-purple-500/15 dark:text-purple-400",
+      teal: "bg-teal-100 text-teal-700 dark:bg-teal-500/15 dark:text-teal-400",
+      pink: "bg-pink-100 text-pink-700 dark:bg-pink-500/15 dark:text-pink-400",
+      indigo: "bg-indigo-100 text-indigo-700 dark:bg-indigo-500/15 dark:text-indigo-400",
     },
     solid: {
       primary: "bg-brand-500 text-white dark:text-white",
@@ -58,6 +66,10 @@ const Badge: React.FC<BadgeProps> = ({
       info: "bg-blue-light-500 text-white dark:text-white",
       light: "bg-gray-400 dark:bg-white/5 text-white dark:text-white/80",
       dark: "bg-gray-700 text-white dark:text-white",
+      purple: "bg-purple-600 text-white dark:text-white",
+      teal: "bg-teal-600 text-white dark:text-white",
+      pink: "bg-pink-600 text-white dark:text-white",
+      indigo: "bg-indigo-600 text-white dark:text-white",
     },
   };
 

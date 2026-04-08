@@ -8,6 +8,7 @@ import { registrarBitacora } from "../../services/bitacora";
 import MetricCard from "../../components/common/MetricCard";
 import { CheckCircleIcon, CloseIcon, BoxIconLine } from "../../icons";
 import { formatDateForFilename } from "../../utils/formatters";
+import SolicitudesFiltersDropdown from "../../components/creditos/SolicitudesFiltersDropdown";
 
 import {
   solicitudColumns,
@@ -89,24 +90,10 @@ export default function Gest_SolicitudesCredito() {
       >
         <DataTable.Toolbar searchPlaceholder="Buscar por empleado...">
           <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto sm:ml-auto">
-            <select
-              value={filtroEstadoSolicitud}
-              onChange={(e) => setFiltroEstadoSolicitud(e.target.value)}
-              className="w-full sm:w-56 p-2 border border-gray-300 rounded-md text-sm text-gray-900 focus:ring-blue-500 focus:border-blue-500 dark:bg-white/5 dark:border-white/10 dark:text-gray-100"
-            >
-              <option value="" className="bg-white text-gray-900">
-                Estado
-              </option>
-              <option value="pendiente" className="bg-white text-gray-900">
-                Pendiente
-              </option>
-              <option value="aprobado" className="bg-white text-gray-900">
-                Aprobado
-              </option>
-              <option value="rechazado" className="bg-white text-gray-900">
-                Rechazado
-              </option>
-            </select>
+            <SolicitudesFiltersDropdown
+              filtroEstadoSolicitud={filtroEstadoSolicitud}
+              setFiltroEstadoSolicitud={setFiltroEstadoSolicitud}
+            />
 
             <ExportButtons
               rows={solicitudesFiltradas}

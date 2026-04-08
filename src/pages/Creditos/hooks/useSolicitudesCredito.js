@@ -13,8 +13,6 @@ import {
 } from "firebase/firestore";
 import { registrarBitacora } from "../../../services/bitacora";
 
-
-
 const getEmpleadoKey = (s) => {
   if (!s) return "";
   return String(
@@ -26,7 +24,6 @@ const getEmpleadoKey = (s) => {
     .trim()
     .toLowerCase();
 };
-
 
 // este hook maneja toda la lógica relacionada con solicitudes de crédito: carga, filtrado, selección, etc.
 export function useSolicitudesCredito({ user, nombreEmpleado, isOpen }) {
@@ -268,12 +265,43 @@ export function useSolicitudesCredito({ user, nombreEmpleado, isOpen }) {
       if (!filtroEstadoSolicitud) return true;
 
       const estado = String(s.estado ?? "").toLowerCase();
-      return estado === filtroEstadoSolicitud;
+
+      if (filtroEstadoSolicitud === "pendiente") {
+        return estado === "pendiente";
+      }
+
+      if (filtroEstadoSolicitud === "rechazado") {
+        return estado === "rechazado";
+      }
+
+      if (filtroEstadoSolicitud === "aprobado_activo") {
+        const estadoCredito = String(s.estadoCredito ?? "").toLowerCase();
+        return estado === "aprobado" && estadoCredito === "activo";
+      }
+
+      if (filtroEstadoSolicitud === "aprobado_pagado") {
+        const estadoCredito = String(s.estadoCredito ?? "").toLowerCase();
+        return estado === "aprobado" && estadoCredito === "pagado";
+      }
+
+      if (filtroEstadoSolicitud === "aprobado") {
+        return estado === "aprobado";
+      }
+
+      return true;
     });
   }, [solicitudes, filtroEstadoSolicitud]);
 
+  const etiquetaFiltroEstado = {
+    pendiente: "Pendiente",
+    aprobado: "Aprobado",
+    aprobado_activo: "Activo",
+    aprobado_pagado: "Pagado",
+    rechazado: "Rechazado",
+  };
+
   const textoFiltrosPdf = filtroEstadoSolicitud
-    ? `Estado: ${filtroEstadoSolicitud}`
+    ? `Estado: ${etiquetaFiltroEstado[filtroEstadoSolicitud] ?? filtroEstadoSolicitud}`
     : "Listado Completo";
 
   return {

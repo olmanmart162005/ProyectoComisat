@@ -153,9 +153,7 @@ export default function EmpleadoFormulario() {
               <p className="mt-2 text-3xl font-extrabold text-blue-700 dark:text-blue-300">
                 {codigoEmpleado || "Generando..."}
               </p>
-              <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
-                Se asigna automáticamente y es de solo lectura.
-              </p>
+             
             </div>
 
             <div className="rounded-xl border border-gray-200 bg-white p-5 dark:border-white/10 dark:bg-white/[0.02]">

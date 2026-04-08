@@ -248,7 +248,7 @@ export default function ProductoFormulario() {
                     : "Haz clic o arrastra la imagen"}
                 </p>
                 <p className="mt-1 text-xs text-gray-500 dark:text-gray-500">
-                  PNG, JPG o WebP · máx. 2MB
+                  PNG, JPG o WebP 
                 </p>
               </div>
             </div>

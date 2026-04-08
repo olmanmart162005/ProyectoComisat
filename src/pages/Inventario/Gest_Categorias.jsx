@@ -1,17 +1,16 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 import DataTable from "../../components/ui/table/DataTable";
 import ConfirmDeleteModal from "../../components/common/ConfirmDeleteModal";
 import ExportButtons from "../../layout/Exportbuttons";
 import { useAuth } from "../../auth/AuthProvider";
 import { useNombreEmpleadoActual } from "../../hooks/useNombreEmpleadoActual";
-import { useModal } from "../../hooks/useModal";
 import { Toaster } from "sileo";
 import { PlusIcon } from "../../icons";
 import { registrarBitacora } from "../../services/bitacora";
 import { formatDateForFilename } from "../../utils/formatters";
 
-import CategoryModal from "../../components/inventario/CategoryModal";
 import {
   categoryColumns,
   COLUMNAS_EXPORT_CATEGORIAS,
@@ -21,12 +20,11 @@ import { useCategorias } from "./hooks/useCategorias";
 export default function Gest_Categorias() {
   Toaster.position = "top-right";
 
-  const { isOpen, openModal, closeModal } = useModal();
+  const navigate = useNavigate();
   const { user } = useAuth();
   const nombreEmpleado = useNombreEmpleadoActual();
   const { categorias, loading, fetchCategorias, handleEliminar } =
     useCategorias({ user, nombreEmpleado });
-  const [editandoData, setEditandoData] = useState(null);
   const [categoriaAEliminar, setCategoriaAEliminar] = useState(null);
   const [eliminando, setEliminando] = useState(false);
 
@@ -50,8 +48,9 @@ export default function Gest_Categorias() {
 
   const columns = categoryColumns({
     onEdit: (cat) => {
-      setEditandoData(cat);
-      openModal();
+      navigate("/categorias/editar", {
+        state: { categoria: cat },
+      });
     },
     onEliminar: abrirEliminarCategoria,
   });
@@ -64,8 +63,7 @@ export default function Gest_Categorias() {
         </h2>
         <button
           onClick={() => {
-            setEditandoData(null);
-            openModal();
+            navigate("/categorias/nueva");
           }}
           className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-5 py-2.5 rounded-lg shadow-sm transition flex items-center gap-2"
         >
@@ -73,15 +71,6 @@ export default function Gest_Categorias() {
           Nueva Categoría
         </button>
       </div>
-
-      <CategoryModal
-        isOpen={isOpen}
-        onClose={closeModal}
-        editandoData={editandoData}
-        user={user}
-        nombreEmpleado={nombreEmpleado}
-        onSuccess={fetchCategorias}
-      />
 
       <DataTable columns={columns} data={categorias} loading={loading}>
         <DataTable.Toolbar searchPlaceholder="Buscar categoría...">

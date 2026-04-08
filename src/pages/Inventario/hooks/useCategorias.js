@@ -1,14 +1,27 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "../../../auth/AuthProvider";
-import { db } from "../../../firebase/firebase";
-import { collection, deleteDoc, doc, getDocs } from "firebase/firestore";
+import { db, storage } from "../../../firebase/firebase";
+import {
+  collection,
+  deleteDoc,
+  doc,
+  getDocs,
+  addDoc,
+  updateDoc,
+  serverTimestamp,
+} from "firebase/firestore";
+import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 import { sileo } from "sileo";
 import { registrarBitacora } from "../../../services/bitacora";
 import { useNombreEmpleadoActual } from "../../../hooks/useNombreEmpleadoActual";
 
-// Este hook maneja toda la lógica relacionada con categorías: carga, eliminación, etc.
+// Este hook maneja toda la lógica relacionada con categorías: carga, creación, actualización, eliminación, etc.
 
-export function useCategorias({ user, nombreEmpleado } = {}) {
+export function useCategorias({
+  user,
+  nombreEmpleado,
+  cargarCategorias = true,
+} = {}) {
   const [categorias, setCategorias] = useState([]);
   const [loading, setLoading] = useState(true);
   const { user: authUser } = useAuth();
@@ -53,8 +66,10 @@ export function useCategorias({ user, nombreEmpleado } = {}) {
   };
 
   useEffect(() => {
-    fetchCategorias();
-  }, []);
+    if (cargarCategorias) {
+      fetchCategorias();
+    }
+  }, [cargarCategorias]);
 
   const handleEliminar = async (id) => {
     try {
@@ -83,10 +98,98 @@ export function useCategorias({ user, nombreEmpleado } = {}) {
     }
   };
 
+  const subirImagen = async (archivo) => {
+    const imagenRef = ref(storage, `categorias/${Date.now()}_${archivo.name}`);
+    await uploadBytes(imagenRef, archivo);
+    return getDownloadURL(imagenRef);
+  };
+
+  const guardarCategoria = async ({ nombre, archivoImagen, onSuccess }) => {
+    if (!nombre.trim()) {
+      sileo.error("El nombre de la categoría es obligatorio.");
+      return;
+    }
+
+    if (!archivoImagen) {
+      sileo.error("La imagen de la categoría es obligatoria.");
+      return;
+    }
+
+    const imagenUrl = await subirImagen(archivoImagen);
+
+    const docRef = await addDoc(collection(db, "categoria"), {
+      nombre: nombre.trim(),
+      imagenUrl,
+      fechaRegistro: serverTimestamp(),
+      ultimaModificacion: serverTimestamp(),
+    });
+
+    await registrarBitacora({
+      usuario: usuarioActual?.email ?? "desconocido",
+      nombre: empleadoActual || usuarioActual?.email || "desconocido",
+      coleccion: "categoria",
+      accion: "creacion",
+      docId: docRef.id,
+      metadata: {
+        nombre: nombre.trim(),
+      },
+    });
+
+    sileo.success("Categoría creada con éxito");
+    await onSuccess?.();
+  };
+
+  const actualizarCategoria = async ({
+    categoriaId,
+    categoriaData,
+    nombre,
+    archivoImagen,
+    imagenUrlActual,
+    onSuccess,
+  }) => {
+    if (!categoriaId) return;
+
+    if (!nombre.trim()) {
+      sileo.error("El nombre de la categoría es obligatorio.");
+      return;
+    }
+
+    let imagenUrl = imagenUrlActual || "";
+    if (archivoImagen) {
+      imagenUrl = await subirImagen(archivoImagen);
+    }
+
+    const datosActualizados = {
+      nombre: nombre.trim(),
+      imagenUrl,
+      ultimaModificacion: serverTimestamp(),
+    };
+
+    await updateDoc(doc(db, "categoria", categoriaId), datosActualizados);
+
+    await registrarBitacora({
+      usuario: usuarioActual?.email ?? "desconocido",
+      nombre: empleadoActual || usuarioActual?.email || "desconocido",
+      coleccion: "categoria",
+      accion: "actualizacion",
+      docId: categoriaId,
+      metadata: {
+        nombreAnterior: categoriaData?.nombre,
+        nombreNuevo: datosActualizados.nombre,
+        imagenActualizada: Boolean(archivoImagen),
+      },
+    });
+
+    sileo.success("Categoría actualizada con éxito");
+    await onSuccess?.();
+  };
+
   return {
     categorias,
     loading,
     fetchCategorias,
     handleEliminar,
+    guardarCategoria,
+    actualizarCategoria,
   };
 }

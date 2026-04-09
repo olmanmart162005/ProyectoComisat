@@ -9,10 +9,10 @@ import {
   updateDoc,
   where,
 } from "firebase/firestore";
-import { sileo } from "sileo";
 
 import { db } from "../../../firebase/firebase";
 import { registrarBitacora } from "../../../services/bitacora";
+import { notify } from "../../../services/notifier";
 
 const obtenerFechaComentario = (comentario) => {
   const valor =
@@ -70,7 +70,7 @@ export function useComentariosProducto({ productoId, user, nombreEmpleado }) {
       setComentarios(docs);
     } catch (error) {
       console.error("Error al cargar comentarios del producto:", error);
-      sileo.error("No se pudieron cargar los comentarios del producto.");
+      notify.loadError("los comentarios del producto");
       setProducto(null);
       setComentarios([]);
     } finally {
@@ -143,14 +143,14 @@ export function useComentariosProducto({ productoId, user, nombreEmpleado }) {
         ),
       );
 
-      sileo.success(
+      notify.success(
         nuevaVisibilidad
           ? "Comentario restaurado con éxito"
           : "Comentario ocultado con éxito",
       );
     } catch (error) {
       console.error("Error al actualizar visibilidad:", error);
-      sileo.error("No se pudo actualizar la visibilidad del comentario.");
+      notify.updateError("la visibilidad del comentario");
     } finally {
       setProcesando(null);
     }

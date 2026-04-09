@@ -11,9 +11,14 @@ import {
   updateDoc,
 } from "firebase/firestore";
 import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
-import { sileo } from "sileo";
 import { registrarBitacora } from "../../../services/bitacora";
-import { MAX_DESCRIPCION, getEstadoProducto } from "../../../utils/productoUtils";
+import { notify } from "../../../services/notifier";
+import {
+  MAX_DESCRIPCION,
+  getEstadoProducto,
+  sanitizeDescripcionProducto,
+  sanitizeNombreProducto,
+} from "../../../utils/productoUtils";
 
 // Este hook maneja toda la lógica relacionada con productos: carga, filtrado, eliminación, etc.
 
@@ -51,7 +56,7 @@ export function useProductos({ user, nombreEmpleado, cargarProductos = true }) {
       setCategorias(docs);
     } catch (error) {
       console.error("Error al cargar categorías:", error);
-      sileo.error("No se pudieron cargar las categorías.");
+      notify.loadError("las categorías");
     }
   }, []);
 
@@ -66,7 +71,7 @@ export function useProductos({ user, nombreEmpleado, cargarProductos = true }) {
       setProductos(docs);
     } catch (error) {
       console.error("Error al cargar productos:", error);
-      sileo.error("No se pudieron cargar los productos.");
+      notify.loadError("los productos");
     } finally {
       setLoading(false);
     }
@@ -83,6 +88,9 @@ export function useProductos({ user, nombreEmpleado, cargarProductos = true }) {
   const totalProductos = productos.length;
   const productosActivos = productos.filter(
     (p) => getEstadoProducto(p.stock, p.stockMinimo, p.estado) === "Activo",
+  ).length;
+  const productosAgotados = productos.filter(
+    (p) => getEstadoProducto(p.stock, p.stockMinimo, p.estado) === "Agotado",
   ).length;
   const stockTotal = productos.reduce(
     (acc, p) => acc + (Number(p.stock) || 0),
@@ -140,6 +148,82 @@ export function useProductos({ user, nombreEmpleado, cargarProductos = true }) {
       ? `Filtros activos: ${partes.join(" | ")}`
       : "Catálogo Completo";
   }, [filtroCategoria, categorias, filtroEstadoProducto, filtroStockRange]);
+
+  const validarPayloadProducto = ({
+    nombre,
+    descripcion,
+    precioContado,
+    stock,
+    stockMinimo,
+    categoriaId,
+    archivoImagen,
+    imagenUrlActual,
+  }) => {
+    const nombreSanitizado = sanitizeNombreProducto(nombre);
+    const descripcionSanitizada = sanitizeDescripcionProducto(descripcion);
+    const stockTexto = String(stock ?? "").trim();
+    const stockMinimoTexto = String(stockMinimo ?? "").trim();
+
+    if (!nombreSanitizado.trim()) {
+      notify.error("El nombre del producto es obligatorio.");
+      return false;
+    }
+
+    if (!descripcionSanitizada.trim()) {
+      notify.error("La descripción del producto es obligatoria.");
+      return false;
+    }
+
+    if (descripcionSanitizada.length > MAX_DESCRIPCION) {
+      notify.error(
+        `La descripción no puede superar ${MAX_DESCRIPCION} caracteres.`,
+      );
+      return false;
+    }
+
+    if (!categoriaId) {
+      notify.error("Selecciona una categoría válida.");
+      return false;
+    }
+
+    const precioContadoNum = Number(precioContado);
+    if (!Number.isFinite(precioContadoNum) || precioContadoNum <= 0) {
+      notify.error("El costo debe ser un número mayor que 0.");
+      return false;
+    }
+
+    if (stockTexto === "") {
+      notify.error("El stock actual es obligatorio.");
+      return false;
+    }
+
+    if (stockMinimoTexto === "") {
+      notify.error("El stock mínimo es obligatorio.");
+      return false;
+    }
+
+    const stockNum = Number(stockTexto);
+    const stockMinimoNum = Number(stockMinimoTexto);
+
+    if (!Number.isInteger(stockNum) || stockNum <= 0) {
+      notify.error("El stock actual debe ser un número entero mayor que 0.");
+      return false;
+    }
+
+    if (!Number.isInteger(stockMinimoNum) || stockMinimoNum < 0) {
+      notify.error(
+        "El stock mínimo debe ser un número entero mayor o igual a 0.",
+      );
+      return false;
+    }
+
+    if (!archivoImagen && !imagenUrlActual) {
+      notify.error("La imagen del producto es obligatoria.");
+      return false;
+    }
+
+    return true;
+  };
   // ------------------------------------------------------------
   const subirImagen = async (archivo) => {
     const imagenRef = ref(storage, `productos/${Date.now()}_${archivo.name}`);
@@ -160,59 +244,73 @@ export function useProductos({ user, nombreEmpleado, cargarProductos = true }) {
     porcentajeAumento: porcentajeAumentoForm = porcentajeAumento,
     onSuccess,
   }) => {
-    if (!archivoImagen) {
-      sileo.error("La imagen del producto es obligatoria.");
+    if (
+      !validarPayloadProducto({
+        nombre,
+        descripcion,
+        precioContado,
+        stock,
+        stockMinimo,
+        categoriaId,
+        archivoImagen,
+      })
+    ) {
       return;
     }
 
-    if ((descripcion || "").length > MAX_DESCRIPCION) {
-      sileo.error(
-        `La descripción no puede superar ${MAX_DESCRIPCION} caracteres.`,
+    try {
+      const nombreSanitizado = sanitizeNombreProducto(nombre).trim();
+      const descripcionSanitizada =
+        sanitizeDescripcionProducto(descripcion).trim();
+      const imagenUrl = await subirImagen(archivoImagen);
+      const precioContadoNum = Number(precioContado);
+      const stockNum = Number(String(stock ?? "").trim());
+      const stockMinimoNum = Number(String(stockMinimo ?? "").trim());
+      const precioCreditoNum = Number(
+        (precioContadoNum * (1 + Number(porcentajeAumentoForm || 0))).toFixed(
+          2,
+        ),
       );
-      return;
-    }
+      const estadoFinal = getEstadoProducto(stockNum, stockMinimoNum, estado);
 
-    const imagenUrl = await subirImagen(archivoImagen);
-    const precioContadoNum = Number(precioContado) || 0;
-    const precioCreditoNum = Number(
-      (precioContadoNum * (1 + Number(porcentajeAumentoForm || 0))).toFixed(2),
-    );
-    const estadoFinal = getEstadoProducto(stock, stockMinimo, estado);
-
-    const docRef = await addDoc(collection(db, "productos"), {
-      nombre: nombre.trim(),
-      descripcion: (descripcion || "").slice(0, MAX_DESCRIPCION),
-      precioContado: precioContadoNum,
-      precioCredito: precioCreditoNum,
-      stock: Number(stock) || 0,
-      stockMinimo: Number(stockMinimo) || 0,
-      categoriaId,
-      categoriaNombre,
-      estado: estadoFinal,
-      imagenUrl,
-      fechaRegistro: serverTimestamp(),
-      ultimaModificacion: serverTimestamp(),
-    });
-
-    await registrarBitacora({
-      usuario: user?.email ?? "desconocido",
-      nombre: nombreEmpleado || user?.email || "desconocido",
-      coleccion: "productos",
-      accion: "creacion",
-      docId: docRef.id,
-      metadata: {
-        nombre: nombre.trim(),
-        categoriaNombre,
+      const docRef = await addDoc(collection(db, "productos"), {
+        nombre: nombreSanitizado,
+        descripcion: descripcionSanitizada,
         precioContado: precioContadoNum,
         precioCredito: precioCreditoNum,
-        stock: Number(stock) || 0,
-        stockMinimo: Number(stockMinimo) || 0,
+        stock: stockNum,
+        stockMinimo: stockMinimoNum,
+        categoriaId,
+        categoriaNombre,
         estado: estadoFinal,
-      },
-    });
+        imagenUrl,
+        fechaRegistro: serverTimestamp(),
+        ultimaModificacion: serverTimestamp(),
+      });
 
-    sileo.success("Producto creado con éxito");
-    await onSuccess?.();
+      await registrarBitacora({
+        usuario: user?.email ?? "desconocido",
+        nombre: nombreEmpleado || user?.email || "desconocido",
+        coleccion: "productos",
+        accion: "creacion",
+        docId: docRef.id,
+        metadata: {
+          nombre: nombreSanitizado,
+          categoriaNombre,
+          precioContado: precioContadoNum,
+          precioCredito: precioCreditoNum,
+          stock: stockNum,
+          stockMinimo: stockMinimoNum,
+          estado: estadoFinal,
+        },
+      });
+
+      notify.created("Producto");
+      await onSuccess?.();
+    } catch (error) {
+      console.error("Error al guardar producto:", error);
+      notify.saveError("el producto");
+    }
   };
 
   const actualizarProducto = async ({
@@ -233,67 +331,84 @@ export function useProductos({ user, nombreEmpleado, cargarProductos = true }) {
   }) => {
     if (!editandoId) return;
 
-    if ((descripcion || "").length > MAX_DESCRIPCION) {
-      sileo.error(
-        `La descripción no puede superar ${MAX_DESCRIPCION} caracteres.`,
-      );
+    if (
+      !validarPayloadProducto({
+        nombre,
+        descripcion,
+        precioContado,
+        stock,
+        stockMinimo,
+        categoriaId,
+        archivoImagen,
+        imagenUrlActual,
+      })
+    ) {
       return;
     }
 
-    let imagenUrl = imagenUrlActual || "";
-    if (archivoImagen) {
-      imagenUrl = await subirImagen(archivoImagen);
+    try {
+      let imagenUrl = imagenUrlActual || "";
+      if (archivoImagen) {
+        imagenUrl = await subirImagen(archivoImagen);
+      }
+
+      const precioContadoNum = Number(precioContado);
+      const stockNum = Number(String(stock ?? "").trim());
+      const stockMinimoNum = Number(String(stockMinimo ?? "").trim());
+      const precioCreditoNum = Number(
+        (precioContadoNum * (1 + Number(porcentajeAumentoForm || 0))).toFixed(
+          2,
+        ),
+      );
+      const estadoFinal = getEstadoProducto(stockNum, stockMinimoNum, estado);
+
+      const datosActualizados = {
+        nombre: sanitizeNombreProducto(nombre).trim(),
+        descripcion: sanitizeDescripcionProducto(descripcion).trim(),
+        precioContado: precioContadoNum,
+        precioCredito: precioCreditoNum,
+        stock: stockNum,
+        stockMinimo: stockMinimoNum,
+        categoriaId,
+        categoriaNombre,
+        estado: estadoFinal,
+        imagenUrl,
+        ultimaModificacion: serverTimestamp(),
+      };
+
+      await updateDoc(doc(db, "productos", editandoId), datosActualizados);
+
+      await registrarBitacora({
+        usuario: user?.email ?? "desconocido",
+        nombre: nombreEmpleado || user?.email || "desconocido",
+        coleccion: "productos",
+        accion: "actualizacion",
+        docId: editandoId,
+        metadata: {
+          nombreAnterior: editandoData?.nombre,
+          nombreNuevo: datosActualizados.nombre,
+          categoriaAnterior: editandoData?.categoriaNombre,
+          categoriaNueva: datosActualizados.categoriaNombre,
+          precioContadoAnterior: editandoData?.precioContado,
+          precioContadoNuevo: datosActualizados.precioContado,
+          precioCreditoAnterior: editandoData?.precioCredito,
+          precioCreditoNuevo: datosActualizados.precioCredito,
+          stockAnterior: editandoData?.stock,
+          stockNuevo: datosActualizados.stock,
+          stockMinimoAnterior: editandoData?.stockMinimo,
+          stockMinimoNuevo: datosActualizados.stockMinimo,
+          estadoAnterior: editandoData?.estado,
+          estadoNuevo: datosActualizados.estado,
+          imagenActualizada: Boolean(archivoImagen),
+        },
+      });
+
+      notify.updated("Producto");
+      await onSuccess?.();
+    } catch (error) {
+      console.error("Error al actualizar producto:", error);
+      notify.updateError("el producto");
     }
-
-    const precioContadoNum = Number(precioContado) || 0;
-    const precioCreditoNum = Number(
-      (precioContadoNum * (1 + Number(porcentajeAumentoForm || 0))).toFixed(2),
-    );
-    const estadoFinal = getEstadoProducto(stock, stockMinimo, estado);
-
-    const datosActualizados = {
-      nombre: nombre.trim(),
-      descripcion: (descripcion || "").slice(0, MAX_DESCRIPCION),
-      precioContado: precioContadoNum,
-      precioCredito: precioCreditoNum,
-      stock: Number(stock) || 0,
-      stockMinimo: Number(stockMinimo) || 0,
-      categoriaId,
-      categoriaNombre,
-      estado: estadoFinal,
-      imagenUrl,
-      ultimaModificacion: serverTimestamp(),
-    };
-
-    await updateDoc(doc(db, "productos", editandoId), datosActualizados);
-
-    await registrarBitacora({
-      usuario: user?.email ?? "desconocido",
-      nombre: nombreEmpleado || user?.email || "desconocido",
-      coleccion: "productos",
-      accion: "actualizacion",
-      docId: editandoId,
-      metadata: {
-        nombreAnterior: editandoData?.nombre,
-        nombreNuevo: datosActualizados.nombre,
-        categoriaAnterior: editandoData?.categoriaNombre,
-        categoriaNueva: datosActualizados.categoriaNombre,
-        precioContadoAnterior: editandoData?.precioContado,
-        precioContadoNuevo: datosActualizados.precioContado,
-        precioCreditoAnterior: editandoData?.precioCredito,
-        precioCreditoNuevo: datosActualizados.precioCredito,
-        stockAnterior: editandoData?.stock,
-        stockNuevo: datosActualizados.stock,
-        stockMinimoAnterior: editandoData?.stockMinimo,
-        stockMinimoNuevo: datosActualizados.stockMinimo,
-        estadoAnterior: editandoData?.estado,
-        estadoNuevo: datosActualizados.estado,
-        imagenActualizada: Boolean(archivoImagen),
-      },
-    });
-
-    sileo.success("Producto actualizado con éxito");
-    await onSuccess?.();
   };
 
   const handleEliminar = async (id) => {
@@ -333,11 +448,11 @@ export function useProductos({ user, nombreEmpleado, cargarProductos = true }) {
       });
 
       await fetchProductos();
-      sileo.info("Producto eliminado y movido al historial");
+      notify.info("Producto eliminado y movido al historial.");
       return true;
     } catch (error) {
       console.error("Error al eliminar", error);
-      sileo.error("Error al eliminar");
+      notify.deleteError("el producto");
       return false;
     }
   };
@@ -349,6 +464,7 @@ export function useProductos({ user, nombreEmpleado, cargarProductos = true }) {
     porcentajeAumento,
     totalProductos,
     productosActivos,
+    productosAgotados,
     stockTotal,
     productosFiltrados,
     textoFiltrosPdf,
@@ -365,4 +481,3 @@ export function useProductos({ user, nombreEmpleado, cargarProductos = true }) {
     getEstadoProducto,
   };
 }
-

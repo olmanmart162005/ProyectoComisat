@@ -13,9 +13,9 @@ import {
 
 import { db } from "../../../firebase/firebase";
 import { registrarBitacora } from "../../../services/bitacora";
+import { notify } from "../../../services/notifier";
 
-
-// Este hook maneja toda la lógica relacionada con el detalle de una solicitud de crédito: carga, aprobación/rechazo, historial, etc. 
+// Este hook maneja toda la lógica relacionada con el detalle de una solicitud de crédito: carga, aprobación/rechazo, historial, etc.
 
 const estadosHistorial = ["aprobado", "aceptado", "rechazado", "cancelado"];
 
@@ -29,7 +29,6 @@ const toMillis = (fecha) => {
   const parsed = new Date(fecha).getTime();
   return Number.isNaN(parsed) ? 0 : parsed;
 };
-
 
 export function useSolicitudDetalle({
   solicitudId,
@@ -221,10 +220,10 @@ export function useSolicitudDetalle({
         },
       });
 
-      alert(`Solicitud ${nuevoEstado} con éxito`);
+      notify.success(`Solicitud ${nuevoEstado} con éxito`);
     } catch (err) {
       console.error("Error al procesar:", err);
-      alert("Error al procesar la solicitud");
+      notify.error("Error al procesar la solicitud");
     } finally {
       setProcesando(false);
     }

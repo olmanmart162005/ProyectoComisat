@@ -1,6 +1,6 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 import { useAuth } from "../auth/AuthProvider";
-import { Toaster } from "sileo";
+import AppToaster from "../components/common/AppToaster";
 
 import ProtectedRoute from "../auth/ProtectedRoute";
 import { ActiveRoute } from "../auth/ActiveRoute";
@@ -54,7 +54,7 @@ export default function AppRouter() {
 
   return (
     <>
-      <Toaster position="top-center" />
+      <AppToaster />
       <Routes>
         {/* Pública */}
         <Route
@@ -332,7 +332,7 @@ export default function AppRouter() {
           <Route
             path="pagos-mensuales"
             element={
-              <RoleRoute roles={["Oficial de Credito"]}>
+              <RoleRoute roles={["Administrador", "Oficial de Credito"]}>
                 <PagosMensuales />
               </RoleRoute>
             }

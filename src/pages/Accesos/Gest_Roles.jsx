@@ -6,7 +6,6 @@ import ConfirmDeleteModal from "../../components/common/ConfirmDeleteModal";
 import ExportButtons from "../../layout/Exportbuttons";
 import { useAuth } from "../../auth/AuthProvider";
 import { useNombreEmpleadoActual } from "../../hooks/useNombreEmpleadoActual";
-import { Toaster } from "sileo";
 import { registrarBitacora } from "../../services/bitacora";
 import { formatDateForFilename } from "../../utils/formatters";
 
@@ -15,7 +14,6 @@ import { useRoles } from "./hooks/useRoles";
 
 export default function Gest_Roles() {
   const navigate = useNavigate();
-  Toaster.position = "top-right";
 
   const { user } = useAuth();
   const nombreEmpleado = useNombreEmpleadoActual();

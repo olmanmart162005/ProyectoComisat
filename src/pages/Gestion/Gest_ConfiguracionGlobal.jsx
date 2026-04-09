@@ -1,9 +1,10 @@
+import { useState } from "react";
 import { useAuth } from "../../auth/AuthProvider";
 import { useNombreEmpleadoActual } from "../../hooks/useNombreEmpleadoActual";
 import { useModal } from "../../hooks/useModal";
-import { Toaster } from "sileo";
 import { CreditPercentIcon, PercentIcon, TrashBinIcon } from "../../icons";
 
+import ConfirmDeleteModal from "../../components/common/ConfirmDeleteModal";
 import CuotaModal from "../../components/Gestion/CuotaModal";
 import { useParametrosGlobales } from "./hooks/useParametrosGlobales";
 
@@ -11,6 +12,8 @@ export default function Gest_ConfiguracionGlobal() {
   const { user } = useAuth();
   const nombreEmpleado = useNombreEmpleadoActual();
   const { isOpen, openModal, closeModal } = useModal();
+  const [cuotaAEliminar, setCuotaAEliminar] = useState(null);
+  const [eliminandoCuota, setEliminandoCuota] = useState(false);
 
   const {
     config,
@@ -36,7 +39,27 @@ export default function Gest_ConfiguracionGlobal() {
     handleEliminar,
   } = useParametrosGlobales({ user, nombreEmpleado, closeModal });
 
-  Toaster.position = "top-right";
+  const abrirEliminarCuota = (cuotaId) => {
+    const cuota =
+      cuotas.find((item) => String(item.id) === String(cuotaId)) || null;
+    setCuotaAEliminar(cuota);
+  };
+
+  const cerrarEliminarCuota = () => {
+    if (eliminandoCuota) return;
+    setCuotaAEliminar(null);
+  };
+
+  const confirmarEliminarCuota = async () => {
+    if (!cuotaAEliminar?.id) return;
+    setEliminandoCuota(true);
+    try {
+      await handleEliminar(String(cuotaAEliminar.id));
+      setCuotaAEliminar(null);
+    } finally {
+      setEliminandoCuota(false);
+    }
+  };
 
   // ─── Render ───────────────────────────────────────────────────────────────
 
@@ -150,10 +173,11 @@ export default function Gest_ConfiguracionGlobal() {
         <div className="flex items-center justify-between mb-4">
           <div>
             <h3 className="text-sm font-semibold text-gray-700 dark:text-white/80">
-              Configuración web
+              Inactividad de sesión
             </h3>
             <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
-              Ajustes generales del comportamiento de la sesión.
+              Ajustes relacionados con la seguridad y el cierre automático de
+              sesión por inactividad.
             </p>
           </div>
         </div>
@@ -229,7 +253,7 @@ export default function Gest_ConfiguracionGlobal() {
                   key={cuota.id}
                   cuota={cuota}
                   onToggle={handleToggleCuota}
-                  onEliminar={handleEliminar}
+                  onEliminar={abrirEliminarCuota}
                 />
               ))}
             </div>
@@ -247,6 +271,15 @@ export default function Gest_ConfiguracionGlobal() {
         setCuotaEstado={setCuotaEstado}
         enviandoCuota={enviandoCuota}
         onSubmit={handleSubmitCuota}
+      />
+
+      <ConfirmDeleteModal
+        isOpen={Boolean(cuotaAEliminar)}
+        onClose={cerrarEliminarCuota}
+        onConfirm={confirmarEliminarCuota}
+        itemName={cuotaAEliminar?.nombre || cuotaAEliminar?.id}
+        message="¿Deseas eliminar la cuota"
+        loading={eliminandoCuota}
       />
     </div>
   );

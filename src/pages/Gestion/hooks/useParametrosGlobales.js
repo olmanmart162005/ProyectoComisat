@@ -11,6 +11,7 @@ import {
   deleteDoc,
 } from "firebase/firestore";
 import { registrarBitacora } from "../../../services/bitacora";
+import { notify } from "../../../services/notifier";
 
 // ─── Constants ─────────────────────────────────────────────────────────────
 const CONFIG_COL = "configuracion";
@@ -68,7 +69,7 @@ export const useParametrosGlobales = ({ user, nombreEmpleado, closeModal }) => {
       }
     } catch (e) {
       console.error(e);
-      alert("No se pudo cargar la configuración.");
+      notify.loadError("la configuración");
     } finally {
       setLoadingConfig(false);
     }
@@ -82,7 +83,7 @@ export const useParametrosGlobales = ({ user, nombreEmpleado, closeModal }) => {
       }
     } catch (e) {
       console.error(e);
-      alert("No se pudo cargar la configuración web.");
+      notify.loadError("la configuración web");
     }
   };
 
@@ -98,7 +99,7 @@ export const useParametrosGlobales = ({ user, nombreEmpleado, closeModal }) => {
       setCuotas(docs);
     } catch (e) {
       console.error(e);
-      alert("No se pudieron cargar las cuotas.");
+      notify.loadError("las cuotas");
     } finally {
       setLoadingCuotas(false);
     }
@@ -114,7 +115,7 @@ export const useParametrosGlobales = ({ user, nombreEmpleado, closeModal }) => {
     const pA = parseFloat(porcentajeAumento);
     const pL = parseFloat(porcentajeLimite);
     if (isNaN(pA) || isNaN(pL))
-      return alert("Ingresa valores numéricos válidos.");
+      return notify.warning("Ingresa valores numéricos válidos.");
     setGuardando(true);
     try {
       await setDoc(
@@ -181,12 +182,12 @@ export const useParametrosGlobales = ({ user, nombreEmpleado, closeModal }) => {
 
       await fetchConfig();
       await fetchConfiguracionWeb();
-      alert(
+      notify.success(
         "Parámetros guardados correctamente. Precios de crédito actualizados.",
       );
     } catch (e) {
       console.error(e);
-      alert("Error al guardar.");
+      notify.saveError("la configuración");
     } finally {
       setGuardando(false);
     }
@@ -215,7 +216,7 @@ export const useParametrosGlobales = ({ user, nombreEmpleado, closeModal }) => {
       fetchCuotas();
     } catch (e) {
       console.error(e);
-      alert("Error al cambiar estado.");
+      notify.updateError("el estado de la cuota");
     }
   };
 
@@ -223,7 +224,7 @@ export const useParametrosGlobales = ({ user, nombreEmpleado, closeModal }) => {
     e.preventDefault();
     const meses = Number(cuotaNumero);
     if (!Number.isInteger(meses) || meses <= 0)
-      return alert("Ingresa un número válido.");
+      return notify.warning("Ingresa un número válido.");
     setEnviandoCuota(true);
     try {
       await setDoc(
@@ -250,16 +251,16 @@ export const useParametrosGlobales = ({ user, nombreEmpleado, closeModal }) => {
 
       await fetchCuotas();
       closeModal();
+      notify.created("Cuota");
     } catch (e) {
       console.error(e);
-      alert("Error al guardar la cuota.");
+      notify.saveError("la cuota");
     } finally {
       setEnviandoCuota(false);
     }
   };
 
   const handleEliminar = async (id) => {
-    if (!window.confirm("¿Eliminar esta cuota?")) return;
     try {
       await deleteDoc(doc(db, CONFIG_COL, CONFIG_DOC, "cuotas", id));
 
@@ -275,9 +276,10 @@ export const useParametrosGlobales = ({ user, nombreEmpleado, closeModal }) => {
       });
 
       fetchCuotas();
+      notify.deleted("Cuota");
     } catch (e) {
       console.error(e);
-      alert("Error al eliminar.");
+      notify.deleteError("la cuota");
     }
   };
 

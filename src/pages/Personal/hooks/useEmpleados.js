@@ -11,8 +11,8 @@ import {
   updateDoc,
   where,
 } from "firebase/firestore";
-import { sileo } from "sileo";
 import { registrarBitacora } from "../../../services/bitacora";
+import { notify } from "../../../services/notifier";
 import {
   generarPasswordTemporal,
   enviarCorreoCredenciales,
@@ -57,7 +57,7 @@ export function useEmpleados({ user, nombreEmpleado }) {
       setDepartamentos(docs);
     } catch (error) {
       console.error("Error al cargar departamentos:", error);
-      sileo.error("No se pudieron cargar los departamentos.");
+      notify.loadError("los departamentos");
     }
   };
 
@@ -72,7 +72,7 @@ export function useEmpleados({ user, nombreEmpleado }) {
       setEmpleados(docs);
     } catch (error) {
       console.error("Error al cargar empleados:", error);
-      sileo.error("No se pudieron cargar los empleados.");
+      notify.loadError("los empleados");
     } finally {
       setLoading(false);
     }
@@ -190,11 +190,11 @@ export function useEmpleados({ user, nombreEmpleado }) {
       });
 
       fetchEmpleados();
-      sileo.success("Empleado eliminado correctamente");
+      notify.deleted("Empleado");
       return true;
     } catch (error) {
       console.error("Error al eliminar", error);
-      sileo.error("Error al eliminar");
+      notify.deleteError("el empleado");
       return false;
     }
   };
@@ -269,7 +269,7 @@ export function useEmpleados({ user, nombreEmpleado }) {
       });
     } catch (emailErr) {
       console.error("Usuario creado pero falló el correo:", emailErr);
-      sileo.warning({
+      notify.warning({
         title: "Empleado creado",
         description:
           "El usuario se generó, pero no se pudo enviar el correo de credenciales.",
@@ -332,12 +332,12 @@ export function useEmpleados({ user, nombreEmpleado }) {
 
       await fetchEmpleados();
       await fetchHistorialEmpleados();
-      sileo.success("Empleado creado con éxito");
+      notify.created("Empleado");
       await onSuccess?.();
       return true;
     } catch (error) {
       console.error("Error al guardar", error);
-      sileo.error("Error al guardar");
+      notify.saveError("el empleado");
       return false;
     }
   };
@@ -425,12 +425,12 @@ export function useEmpleados({ user, nombreEmpleado }) {
       });
 
       await fetchEmpleados();
-      sileo.success("Empleado actualizado");
+      notify.updated("Empleado");
       await onSuccess?.();
       return true;
     } catch (error) {
       console.error("Error al actualizar", error);
-      sileo.error("Error al actualizar");
+      notify.updateError("el empleado");
       return false;
     }
   };
@@ -455,4 +455,3 @@ export function useEmpleados({ user, nombreEmpleado }) {
     fetchEmpleados,
   };
 }
-

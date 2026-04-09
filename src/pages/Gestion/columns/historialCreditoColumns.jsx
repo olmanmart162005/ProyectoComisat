@@ -4,6 +4,31 @@ import { EyeIcon } from "../../../icons";
 
 const lps = (n) => `L. ${Number(n ?? 0).toLocaleString("es-HN")}`;
 
+const COLUMNAS_EXPORT_HISTORIAL_CREDITOS = [
+  {
+    key: "empleado",
+    header: "Empleado",
+    type: "text",
+    getValue: (row) =>
+      `${row.empleadoNombres ?? ""} ${row.empleadoApellidos ?? ""}`.trim() ||
+      "---",
+  },
+  { key: "productoNombre", header: "Artículo", type: "text" },
+  {
+    key: "progreso",
+    header: "Progreso",
+    type: "text",
+    getValue: (row) => {
+      const pagadas = Number(row.cuotasPagadas ?? 0);
+      const total = Number(row.datosFinancierosHistoricos?.plazoCuotas ?? 0);
+      return `${pagadas} de ${total} cuotas`;
+    },
+  },
+  { key: "saldoPendiente", header: "Saldo Pendiente", type: "currency" },
+  { key: "fechaAutoriza", header: "Fecha Autorización", type: "date" },
+  { key: "estadoCredito", header: "Estado", type: "text" },
+];
+
 const estadoCreditoColor = {
   Activo: "success",
   Pagado: "info",
@@ -105,4 +130,4 @@ export function historialCreditoColumns({ onVerCuotas }) {
   );
 }
 
-export { lps, estadoCreditoColor };
+export { lps, estadoCreditoColor, COLUMNAS_EXPORT_HISTORIAL_CREDITOS };

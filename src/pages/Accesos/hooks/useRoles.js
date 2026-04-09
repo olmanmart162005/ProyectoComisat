@@ -9,8 +9,8 @@ import {
   updateDoc,
   serverTimestamp,
 } from "firebase/firestore";
-import { sileo } from "sileo";
 import { registrarBitacora } from "../../../services/bitacora";
+import { notify } from "../../../services/notifier";
 
 export function useRoles({ user, nombreEmpleado, cargarRoles = true }) {
   const [roles, setRoles] = useState([]);
@@ -24,7 +24,7 @@ export function useRoles({ user, nombreEmpleado, cargarRoles = true }) {
       setRoles(docs);
     } catch (error) {
       console.error("Error al cargar roles:", error);
-      sileo.error("No se pudieron cargar los roles.");
+      notify.loadError("los roles");
     } finally {
       setLoading(false);
     }
@@ -54,11 +54,11 @@ export function useRoles({ user, nombreEmpleado, cargarRoles = true }) {
         },
       });
       await fetchRoles();
-      sileo.success("Rol creado con éxito");
+      notify.created("Rol");
       onSuccess?.();
     } catch (error) {
       console.error("Error al guardar rol", error);
-      sileo.error("Error al guardar el rol");
+      notify.saveError("el rol");
       throw error;
     }
   };
@@ -92,11 +92,11 @@ export function useRoles({ user, nombreEmpleado, cargarRoles = true }) {
         },
       });
       await fetchRoles();
-      sileo.success("Rol actualizado con éxito");
+      notify.updated("Rol");
       onSuccess?.();
     } catch (error) {
       console.error("Error al actualizar rol", error);
-      sileo.error("Error al actualizar el rol");
+      notify.updateError("el rol");
       throw error;
     }
   };
@@ -117,11 +117,11 @@ export function useRoles({ user, nombreEmpleado, cargarRoles = true }) {
         },
       });
       fetchRoles();
-      sileo.success("Rol eliminado");
+      notify.deleted("Rol");
       return true;
     } catch (error) {
       console.error("Error al eliminar", error);
-      sileo.error("Error al eliminar");
+      notify.deleteError("el rol");
       return false;
     }
   };

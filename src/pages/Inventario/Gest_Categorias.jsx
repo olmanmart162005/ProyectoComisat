@@ -6,7 +6,6 @@ import ConfirmDeleteModal from "../../components/common/ConfirmDeleteModal";
 import ExportButtons from "../../layout/Exportbuttons";
 import { useAuth } from "../../auth/AuthProvider";
 import { useNombreEmpleadoActual } from "../../hooks/useNombreEmpleadoActual";
-import { Toaster } from "sileo";
 import { PlusIcon } from "../../icons";
 import { registrarBitacora } from "../../services/bitacora";
 import { formatDateForFilename } from "../../utils/formatters";
@@ -18,8 +17,6 @@ import {
 import { useCategorias } from "./hooks/useCategorias";
 
 export default function Gest_Categorias() {
-  Toaster.position = "top-right";
-
   const navigate = useNavigate();
   const { user } = useAuth();
   const nombreEmpleado = useNombreEmpleadoActual();

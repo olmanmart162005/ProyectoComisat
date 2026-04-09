@@ -7,7 +7,6 @@ import ConfirmDeleteModal from "../../components/common/ConfirmDeleteModal";
 import ExportButtons from "../../layout/Exportbuttons";
 import { useAuth } from "../../auth/AuthProvider";
 import { useNombreEmpleadoActual } from "../../hooks/useNombreEmpleadoActual";
-import { Toaster } from "sileo";
 import { registrarBitacora } from "../../services/bitacora";
 
 import {
@@ -18,7 +17,6 @@ import { useDepartamentos } from "./hooks/useDepartamentos";
 
 export default function Gest_Departamentos() {
   const navigate = useNavigate();
-  Toaster.position = "top-right";
 
   const { user } = useAuth();
   const nombreEmpleado = useNombreEmpleadoActual();
@@ -56,7 +54,7 @@ export default function Gest_Departamentos() {
         },
         onEliminar: abrirEliminarDepartamento,
       }),
-    [navigate],
+    [navigate, departamentos],
   );
 
   return (

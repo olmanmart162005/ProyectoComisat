@@ -12,6 +12,7 @@ import {
   where,
 } from "firebase/firestore";
 import { registrarBitacora } from "../../../services/bitacora";
+import { notify } from "../../../services/notifier";
 
 const getEmpleadoKey = (s) => {
   if (!s) return "";
@@ -102,7 +103,6 @@ export function useSolicitudesCredito({ user, nombreEmpleado, isOpen }) {
       };
 
       const estadosHistorial = ["Aprobado", "Rechazado"];
-
       setLoadingHistorial(true);
       try {
         const empleadoId = solicitudSeleccionada.empleadoId;
@@ -234,11 +234,11 @@ export function useSolicitudesCredito({ user, nombreEmpleado, isOpen }) {
         },
       });
 
-      alert(`Solicitud ${nuevoEstado} con éxito`);
+      notify.success(`Solicitud ${nuevoEstado} con éxito`);
       fetchSolicitudes();
     } catch (err) {
       console.error("Error al procesar:", err);
-      alert("Error al procesar la solicitud");
+      notify.error("Error al procesar la solicitud");
     } finally {
       setProcesando(false);
     }

@@ -6,8 +6,10 @@ import PageShell from "../../components/common/PageShell";
 import { useAuth } from "../../auth/AuthProvider";
 import { useNombreEmpleadoActual } from "../../hooks/useNombreEmpleadoActual";
 import { useCategorias } from "./hooks/useCategorias";
-
-const MAX_NOMBRE_CATEGORIA = 35;
+import {
+  MAX_NOMBRE_CATEGORIA,
+  sanitizeNombreCategoria,
+} from "../../utils/productoUtils";
 
 export default function CategoriaFormulario() {
   const location = useLocation();
@@ -180,7 +182,12 @@ export default function CategoriaFormulario() {
               value={nombre}
               maxLength={MAX_NOMBRE_CATEGORIA}
               onChange={(e) =>
-                setNombre((e.target.value || "").slice(0, MAX_NOMBRE_CATEGORIA))
+                setNombre(
+                  sanitizeNombreCategoria(e.target.value || "").slice(
+                    0,
+                    MAX_NOMBRE_CATEGORIA,
+                  ),
+                )
               }
               placeholder="ej: Electrodomésticos"
               required

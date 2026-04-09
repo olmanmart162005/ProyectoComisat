@@ -5,7 +5,6 @@ import DataTable from "../../components/ui/table/DataTable";
 import ConfirmDeleteModal from "../../components/common/ConfirmDeleteModal";
 import ExportButtons from "../../layout/Exportbuttons";
 import MetricCard from "../../components/common/MetricCard";
-import { Toaster } from "sileo";
 import { useAuth } from "../../auth/AuthProvider";
 import { useNombreEmpleadoActual } from "../../hooks/useNombreEmpleadoActual";
 import { registrarBitacora } from "../../services/bitacora";
@@ -19,8 +18,6 @@ import {
 } from "./columns/usuarioColumns";
 
 export default function Gest_Usuarios() {
-  Toaster.position = "top-right";
-
   const navigate = useNavigate();
   const { user } = useAuth();
   const nombreEmpleado = useNombreEmpleadoActual();

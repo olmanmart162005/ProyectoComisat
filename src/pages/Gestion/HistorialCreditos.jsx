@@ -1,15 +1,23 @@
 import DataTable from "../../components/ui/table/DataTable";
 import MetricCard from "../../components/common/MetricCard";
+import ExportButtons from "../../layout/Exportbuttons";
 import { useModal } from "../../hooks/useModal";
 import CuotasModal from "../../components/Gestion/CuotasModal";
 import { BoxIconLine, CheckCircleIcon, GroupIcon } from "../../icons";
+import { useAuth } from "../../auth/AuthProvider";
+import { useNombreEmpleadoActual } from "../../hooks/useNombreEmpleadoActual";
+import { registrarBitacora } from "../../services/bitacora";
+import { formatDateForFilename } from "../../utils/formatters";
 import {
+  COLUMNAS_EXPORT_HISTORIAL_CREDITOS,
   historialCreditoColumns,
   lps,
 } from "./columns/historialCreditoColumns";
 import { MESES, useHistorialCreditos } from "./hooks/useHistorialCreditos";
 
 export default function HistorialCreditos() {
+  const { user } = useAuth();
+  const nombreEmpleado = useNombreEmpleadoActual();
   const { isOpen, openModal, closeModal } = useModal();
   const {
     creditos,
@@ -114,6 +122,36 @@ export default function HistorialCreditos() {
                   </option>
                 ))}
               </select>
+
+              <ExportButtons
+                rows={creditos}
+                columns={COLUMNAS_EXPORT_HISTORIAL_CREDITOS}
+                filename={"Historial Creditos " + formatDateForFilename()}
+                sheetName="Historial de Créditos"
+                meta={{
+                  empresa: "Comisariato San Jose",
+                  usuario: nombreEmpleado || "Sistema",
+                  extra: `Mes: ${mesFiltro} | Año: ${anioFiltro}`,
+                }}
+                pdfOptions={{
+                  title: "Historial de Créditos",
+                  subtitle: formatDateForFilename(),
+                }}
+                onExport={(formato) =>
+                  registrarBitacora({
+                    usuario: user?.email,
+                    nombre: nombreEmpleado,
+                    coleccion: "creditos",
+                    accion: "exportar",
+                    metadata: {
+                      formato,
+                      totalRegistros: creditos.length,
+                      mesFiltro,
+                      anioFiltro,
+                    },
+                  })
+                }
+              />
             </div>
           </DataTable.Toolbar>
           <DataTable.Table emptyMessage="Sin créditos para el período seleccionado." />

@@ -14,7 +14,7 @@ import {
   getDoc,
   updateDoc,
 } from "firebase/firestore";
-import { sileo, Toaster } from "sileo";
+import { notify } from "../services/notifier";
 
 const AuthContext = createContext();
 
@@ -58,16 +58,26 @@ export const AuthProvider = ({ children }) => {
       }
 
       // Si no existe en Firestore, lo tratamos como inactivo
-      return { rolNombre: "Usuario", estado: "Inactivo", primerLoginHecho: false, correoPersonal: "", usuarioDocId: null };
+      return {
+        rolNombre: "Usuario",
+        estado: "Inactivo",
+        primerLoginHecho: false,
+        correoPersonal: "",
+        usuarioDocId: null,
+      };
     } catch (error) {
       console.error("Error obteniendo datos del usuario:", error);
-      return { rolNombre: "Usuario", estado: "Inactivo", primerLoginHecho: false, correoPersonal: "", usuarioDocId: null };
+      return {
+        rolNombre: "Usuario",
+        estado: "Inactivo",
+        primerLoginHecho: false,
+        correoPersonal: "",
+        usuarioDocId: null,
+      };
     }
   };
 
   useEffect(() => {
-    Toaster.position = "top-right";
-
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setLoading(true);
 
@@ -94,7 +104,7 @@ export const AuthProvider = ({ children }) => {
           setUsuarioDocId(null);
 
           if (estadoActual === "inactivo") {
-            sileo.error({
+            notify.error({
               title: "Cuenta Inactiva",
               description:
                 "Tu cuenta está inactiva. Contacta al administrador.",
@@ -114,13 +124,13 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   // En AuthProvider.jsx — actualizar la función para aceptar el parámetro
-   const marcarPrimerLogin = async (docId) => {
-     const id = docId || usuarioDocId; // usa el que llegue, o el del estado si ya existe
-     if (!id) return;
-     await updateDoc(doc(db, "usuarios", id), { primerLoginHecho: true });
-     setPrimerLoginHecho(true);
-   };
-   
+  const marcarPrimerLogin = async (docId) => {
+    const id = docId || usuarioDocId; // usa el que llegue, o el del estado si ya existe
+    if (!id) return;
+    await updateDoc(doc(db, "usuarios", id), { primerLoginHecho: true });
+    setPrimerLoginHecho(true);
+  };
+
   const login = async (email, password) => {
     const userCredential = await signInWithEmailAndPassword(
       auth,
@@ -142,7 +152,17 @@ export const AuthProvider = ({ children }) => {
 
   return (
     <AuthContext.Provider
-      value={{ user, role, estado, login, logout, loading, primerLoginHecho, marcarPrimerLogin, correoPersonal }}
+      value={{
+        user,
+        role,
+        estado,
+        login,
+        logout,
+        loading,
+        primerLoginHecho,
+        marcarPrimerLogin,
+        correoPersonal,
+      }}
     >
       {!loading && children}
     </AuthContext.Provider>

@@ -10,6 +10,7 @@ import {
   serverTimestamp,
 } from "firebase/firestore";
 import { registrarBitacora } from "../../../services/bitacora";
+import { notify } from "../../../services/notifier";
 
 const getMesActual = () => {
   const now = new Date();
@@ -255,10 +256,10 @@ export const usePagosMensuales = ({ user, nombreEmpleado, closeModal }) => {
       });
 
       await fetchCreditosPendientes();
-      alert("Pagos registrados con éxito");
+      notify.success("Pagos registrados con éxito");
     } catch (err) {
       console.error("Error al procesar pagos:", err);
-      alert("Error al procesar los pagos. Intente de nuevo.");
+      notify.error("Error al procesar los pagos. Intente de nuevo.");
     } finally {
       setProcesando(false);
     }

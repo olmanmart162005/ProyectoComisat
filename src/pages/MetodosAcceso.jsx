@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthProvider";
-import { sileo, Toaster } from "sileo";
+import { notify } from "../services/notifier";
 import emailjs from "@emailjs/browser";
 
 import { encryptPassword, decryptPassword } from "../services/crypto";
@@ -19,7 +19,6 @@ import { db } from "../firebase/firebase";
 
 export default function MetodosAcceso() {
   // No usar hook para nombre, sino obtenerlo directo de Firestore antes de registrar bitácora
-  Toaster.position = "top-right";
   const { state } = useLocation();
   const navigate = useNavigate();
   const { login, marcarPrimerLogin } = useAuth();
@@ -104,17 +103,17 @@ export default function MetodosAcceso() {
       navigate("/");
     } catch (err) {
       if (err.message === "Cuenta inactiva") {
-        sileo.error({
+        notify.error({
           title: "Acceso denegado",
           description: "Tu cuenta está inactiva.",
         });
       } else if (err.code === "auth/invalid-credential") {
-        sileo.error({
+        notify.error({
           title: "Contraseña incorrecta",
           description: "Verifica tu contraseña e intenta de nuevo.",
         });
       } else {
-        sileo.error({
+        notify.error({
           title: "Error",
           description: "Ocurrió un error inesperado.",
         });
@@ -148,13 +147,13 @@ export default function MetodosAcceso() {
       setOtpExpira(expira);
       setOtpEnviado(true);
 
-      sileo.success({
+      notify.success({
         title: "Código enviado",
         description: `Revisa ${userData.correoPersonal}`,
       });
     } catch (err) {
       console.error(err);
-      sileo.error({
+      notify.error({
         title: "Error al enviar",
         description: "No se pudo enviar el código. Intenta de nuevo.",
       });
@@ -165,7 +164,7 @@ export default function MetodosAcceso() {
 
   const handleVerificarCodigo = async () => {
     if (Date.now() > otpExpira) {
-      sileo.error({
+      notify.error({
         title: "Código expirado",
         description: "El código venció. Solicita uno nuevo.",
       });
@@ -174,7 +173,7 @@ export default function MetodosAcceso() {
     }
 
     if (codigoIngresado.trim() !== otpGenerado) {
-      sileo.error({
+      notify.error({
         title: "Código incorrecto",
         description: "Verifica el código e intenta de nuevo.",
       });
@@ -185,7 +184,7 @@ export default function MetodosAcceso() {
 
     if (!encryptedPass) {
       // El usuario limpió caché o entró desde otro navegador
-      sileo.error({
+      notify.error({
         title: "Sesión no encontrada",
         description:
           "Por seguridad necesitas ingresar tu contraseña una vez más.",
@@ -249,7 +248,7 @@ export default function MetodosAcceso() {
 
       navigate("/");
     } catch (err) {
-      sileo.error({
+      notify.error({
         title: "Error",
         description: "No se pudo iniciar sesión.",
       });

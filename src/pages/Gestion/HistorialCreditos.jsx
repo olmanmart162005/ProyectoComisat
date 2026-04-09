@@ -12,12 +12,16 @@ import { useAuth } from "../../auth/AuthProvider";
 import { useNombreEmpleadoActual } from "../../hooks/useNombreEmpleadoActual";
 import { registrarBitacora } from "../../services/bitacora";
 import { formatDateForFilename } from "../../utils/formatters";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import HistorialCreditosFiltersDropdown from "../../components/Gestion/HistorialCreditosFiltersDropdown";
 import {
   COLUMNAS_EXPORT_HISTORIAL_CREDITOS,
   historialCreditoColumns,
   lps,
 } from "./columns/historialCreditoColumns";
-import { MESES, useHistorialCreditos } from "./hooks/useHistorialCreditos";
+import { useHistorialCreditos, ESTADOS_CREDITO } from "./hooks/useHistorialCreditos";
+
 export default function HistorialCreditos() {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -25,20 +29,22 @@ export default function HistorialCreditos() {
   const {
     creditos,
     loading,
-    anioFiltro,
-    setAnioFiltro,
-    mesFiltro,
-    setMesFiltro,
-    anios,
+    rangoFecha,
+    setRangoFecha,
+    rangoPersonalizado,
+    setRangoPersonalizado,
+    filtroEstado,
+    setFiltroEstado,
     totalCuotas,
     montoTotal,
     empleadosUnicos,
     creditosPagados,
   } = useHistorialCreditos();
+  const [fechaInicioDP, fechaFinDP] = rangoPersonalizado;
   const columnasCreditos = historialCreditoColumns({
     onVerCuotas: (credito) =>
       navigate("/historial-creditos/detalle", {
-        state: { credito, mesFiltro, anioFiltro },
+        state: { credito },
       }),
   });
   return (
@@ -94,32 +100,27 @@ export default function HistorialCreditos() {
         <DataTable columns={columnasCreditos} data={creditos} loading={loading}>
           <DataTable.Toolbar searchPlaceholder="Buscar crédito por empleado, artículo o saldo...">
             <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto sm:ml-auto">
-              <select
-                value={mesFiltro}
-                onChange={(e) => setMesFiltro(e.target.value)}
-                className="w-full sm:w-36 p-2 border border-gray-300 rounded-md text-sm text-gray-900 focus:ring-blue-500 focus:border-blue-500 dark:bg-white/5 dark:border-white/10 dark:text-gray-100"
-              >
-                {MESES.map((m) => (
-                  <option
-                    key={m.valor}
-                    value={m.valor}
-                    className="bg-white text-gray-900"
-                  >
-                    {m.etiqueta}
-                  </option>
-                ))}
-              </select>
-              <select
-                value={anioFiltro}
-                onChange={(e) => setAnioFiltro(e.target.value)}
-                className="w-full sm:w-28 p-2 border border-gray-300 rounded-md text-sm text-gray-900 focus:ring-blue-500 focus:border-blue-500 dark:bg-white/5 dark:border-white/10 dark:text-gray-100"
-              >
-                {anios.map((a) => (
-                  <option key={a} value={a} className="bg-white text-gray-900">
-                    {a}
-                  </option>
-                ))}
-              </select>
+              <HistorialCreditosFiltersDropdown
+                estados={ESTADOS_CREDITO}
+                filtroEstado={filtroEstado}
+                setFiltroEstado={setFiltroEstado}
+                rangoFecha={rangoFecha}
+                setRangoFecha={setRangoFecha}
+                setRangoPersonalizado={setRangoPersonalizado}
+                datePickerNode={
+                  <DatePicker
+                    selectsRange
+                    startDate={fechaInicioDP}
+                    endDate={fechaFinDP}
+                    onChange={(rango) => setRangoPersonalizado(rango)}
+                    placeholderText="Seleccionar rango"
+                    dateFormat="dd/MM/yyyy"
+                    locale="es"
+                    isClearable
+                    className="w-full p-2.5 border border-gray-300 rounded-lg text-sm text-gray-900 focus:ring-blue-500 focus:border-blue-500 dark:bg-white/5 dark:border-white/10 dark:text-gray-100"
+                  />
+                }
+              />
               <ExportButtons
                 rows={creditos}
                 columns={COLUMNAS_EXPORT_HISTORIAL_CREDITOS}
@@ -128,7 +129,7 @@ export default function HistorialCreditos() {
                 meta={{
                   empresa: "Comisariato San Jose",
                   usuario: nombreEmpleado || "Sistema",
-                  extra: `Mes: ${mesFiltro} | Año: ${anioFiltro}`,
+                  extra: `Rango: ${rangoFecha || "Todas"} | Estado: ${filtroEstado || "Todos"}`,
                 }}
                 pdfOptions={{
                   title: "Historial de Créditos",
@@ -143,8 +144,8 @@ export default function HistorialCreditos() {
                     metadata: {
                       formato,
                       totalRegistros: creditos.length,
-                      mesFiltro,
-                      anioFiltro,
+                      rangoFecha,
+                      filtroEstado,
                     },
                   })
                 }

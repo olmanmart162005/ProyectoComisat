@@ -38,6 +38,8 @@ export function historialCreditoColumns({ onVerCuotas }) {
       {
         id: "empleado",
         header: "Empleado",
+        accessorFn: (row) =>
+          `${row.empleadoNombres ?? ""} ${row.empleadoApellidos ?? ""}`.trim(),
         cell: ({ row }) => (
           <span className="block font-medium text-gray-800 text-theme-sm dark:text-white/90">
             {`${row.original.empleadoNombres ?? ""} ${row.original.empleadoApellidos ?? ""}`.trim()}
@@ -71,6 +73,7 @@ export function historialCreditoColumns({ onVerCuotas }) {
       {
         id: "saldo",
         header: "Saldo Pendiente",
+        accessorFn: (row) => String(row.saldoPendiente ?? 0),
         cell: ({ row }) => (
           <span className="block font-medium text-gray-800 text-theme-sm dark:text-white/90">
             {lps(row.original.saldoPendiente)}
@@ -125,4 +128,4 @@ export function historialCreditoColumns({ onVerCuotas }) {
     [onVerCuotas],
   );
 }
-export { lps, estadoCreditoColor, COLUMNAS_EXPORT_HISTORIAL_CREDITOS };
+export { lps, estadoCreditoColor, COLUMNAS_EXPORT_HISTORIAL_CREDITOS };

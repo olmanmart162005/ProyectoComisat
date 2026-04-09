@@ -225,36 +225,36 @@ export default function DashboardOficial() {
     [creditosOrdenados],
   );
 
-  const topDeudores = useMemo(
-    () =>
-      [...creditosActivos]
-        .sort(
-          (a, b) =>
-            Number(
-              b.saldoPendiente ??
-                b.datosFinancierosHistoricos?.totalCredito ??
-                0,
-            ) -
-            Number(
-              a.saldoPendiente ??
-                a.datosFinancierosHistoricos?.totalCredito ??
-                0,
-            ),
-        )
-        .slice(0, 5)
-        .map((credito) => ({
-          name:
-            `${credito.empleadoNombres ?? ""} ${credito.empleadoApellidos ?? ""}`.trim() ||
-            credito.productoNombre ||
-            "Sin nombre",
-          saldo: Number(
-            credito.saldoPendiente ??
-              credito.datosFinancierosHistoricos?.totalCredito ??
-              0,
-          ),
-        })),
-    [creditosActivos],
-  );
+  const topDeudores = useMemo(() => {
+    const mapaEmpleados = new Map();
+
+    creditosActivos.forEach((credito) => {
+      const nombre =
+        `${credito.empleadoNombres ?? ""} ${credito.empleadoApellidos ?? ""}`.trim() ||
+        credito.productoNombre ||
+        "Sin nombre";
+
+      const key = String(
+        credito.empleadoId ?? credito.empleadoUid ?? nombre
+      ).trim().toLowerCase();
+
+      const saldo = Number(
+        credito.saldoPendiente ??
+        credito.datosFinancierosHistoricos?.totalCredito ??
+        0,
+      );
+
+      if (mapaEmpleados.has(key)) {
+        mapaEmpleados.get(key).saldo += saldo;
+      } else {
+        mapaEmpleados.set(key, { name: nombre, saldo });
+      }
+    });
+
+    return [...mapaEmpleados.values()]
+      .sort((a, b) => b.saldo - a.saldo)
+      .slice(0, 5);
+  }, [creditosActivos]);
 
   const tendenciaMensual = useMemo(() => {
     const meses =

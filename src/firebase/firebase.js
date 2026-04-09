@@ -14,14 +14,13 @@ import { getStorage } from "firebase/storage";
     Debes reemplazar estos valores con los de tu proyecto de Firebase
     Puedes obtenerlos en la consola de Firebase */ 
 const firebaseConfig = {
-  apiKey: "AIzaSyCmwypHciuDjPmRj7UIVCWb0JuoEZkPcgg",
-  authDomain: "comisariatoazucarera.firebaseapp.com",
-  projectId: "comisariatoazucarera",
-  storageBucket: "comisariatoazucarera.firebasestorage.app",
-  messagingSenderId: "527894657764",
-  appId: "1:527894657764:web:9873e9286a274e39c74af1"
+  apiKey: "AIzaSyCcPhd-O3x05Z6xFFAcCVwEhf1gJMqWyjs",
+  authDomain: "comisariatoproyecto.firebaseapp.com",
+  projectId: "comisariatoproyecto",
+  storageBucket: "comisariatoproyecto.firebasestorage.app",
+  messagingSenderId: "424513949619",
+  appId: "1:424513949619:web:b6fb960ebea0badc8b05c6"
 };
-
 
 // Inicializa Firebase
 const app = initializeApp(firebaseConfig);

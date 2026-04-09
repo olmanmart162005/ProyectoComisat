@@ -7,7 +7,7 @@ import PageShell from "../../components/common/PageShell";
 import { useAuth } from "../../auth/AuthProvider";
 import { useNombreEmpleadoActual } from "../../hooks/useNombreEmpleadoActual";
 import { generarNuevoCodigo, useEmpleados } from "./hooks/useEmpleados";
-import { formatDateForInput } from "./empleadoUtils";
+import { formatDateForInput, parseDateValue } from "./empleadoUtils";
 
 export default function EmpleadoFormulario() {
   const location = useLocation();
@@ -39,9 +39,7 @@ export default function EmpleadoFormulario() {
   const [fechaInicio, setFechaInicio] = useState("");
   const [estado, setEstado] = useState("Activo");
 
-  const fechaInicioSeleccionada = fechaInicio
-    ? new Date(`${fechaInicio}T00:00:00`)
-    : null;
+  const fechaInicioSeleccionada = parseDateValue(fechaInicio);
 
   const resetFormulario = () => {
     const codigoNuevo = generarNuevoCodigo(empleados, historialEmpleados);

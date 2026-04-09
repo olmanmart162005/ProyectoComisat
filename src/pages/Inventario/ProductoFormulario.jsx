@@ -6,7 +6,11 @@ import PageShell from "../../components/common/PageShell";
 import { useAuth } from "../../auth/AuthProvider";
 import { useNombreEmpleadoActual } from "../../hooks/useNombreEmpleadoActual";
 import { useProductos } from "./hooks/useProductos";
-import { MAX_DESCRIPCION, getEstadoProducto } from "./productoUtils";
+import {
+  MAX_DESCRIPCION,
+  MAX_NOMBRE_PRODUCTO,
+  getEstadoProducto,
+} from "./productoUtils";
 
 export default function ProductoFormulario() {
   const location = useLocation();
@@ -51,14 +55,8 @@ export default function ProductoFormulario() {
     setImagenUrlActual("");
     setBusquedaCategoria("");
     setMostrarSugerenciasCategoria(false);
-    if (categorias.length > 0) {
-      setCategoriaId(categorias[0].id);
-      setCategoriaNombre(categorias[0].nombre || "");
-      setBusquedaCategoria(categorias[0].nombre || "");
-    } else {
-      setCategoriaId("");
-      setCategoriaNombre("");
-    }
+    setCategoriaId("");
+    setCategoriaNombre("");
   };
 
   useEffect(() => {
@@ -106,13 +104,6 @@ export default function ProductoFormulario() {
     }
   }, [estado, stock, stockMinimo]);
 
-  useEffect(() => {
-    if (modoEdicion || categorias.length === 0 || categoriaId) return;
-    setCategoriaId(categorias[0].id);
-    setCategoriaNombre(categorias[0].nombre || "");
-    setBusquedaCategoria(categorias[0].nombre || "");
-  }, [categorias, categoriaId, modoEdicion]);
-
   const categoriasFiltradas = categorias.filter((cat) =>
     `${cat.nombre ?? ""}`
       .toLowerCase()
@@ -148,6 +139,10 @@ export default function ProductoFormulario() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!categoriaId) {
+      setMostrarSugerenciasCategoria(true);
+      return;
+    }
     setEnviando(true);
     try {
       const payload = {
@@ -220,50 +215,62 @@ export default function ProductoFormulario() {
                 <img
                   src={previewImagen}
                   alt={nombre || "Preview"}
-                  className="h-full w-full rounded-lg object-cover opacity-40 transition-opacity group-hover:opacity-25"
+                  className="h-full w-full rounded-lg object-cover opacity-100 transition-opacity group-hover:opacity-95"
                 />
               ) : (
                 <div className="absolute inset-0 bg-gradient-to-br from-white/80 via-white/60 to-transparent dark:from-gray-900/70 dark:via-gray-900/45" />
               )}
 
-              <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-4">
-                <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-blue-50 text-blue-600 transition-transform group-hover:scale-105 dark:bg-blue-500/10 dark:text-blue-400">
-                  <svg
-                    className="h-5 w-5"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={1.8}
-                      d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                    />
-                  </svg>
+              {(!previewImagen || isDragActive) && (
+                <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-4">
+                  <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-blue-50 text-blue-600 transition-transform group-hover:scale-105 dark:bg-blue-500/10 dark:text-blue-400">
+                    <svg
+                      className="h-5 w-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={1.8}
+                        d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                      />
+                    </svg>
+                  </div>
+                  <p className="text-sm font-semibold text-gray-700 dark:text-gray-200">
+                    {isDragActive
+                      ? "Suelta la imagen aquí"
+                      : "Haz clic o arrastra la imagen"}
+                  </p>
+                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-500">
+                    PNG, JPG o WebP
+                  </p>
                 </div>
-                <p className="text-sm font-semibold text-gray-700 dark:text-gray-200">
-                  {isDragActive
-                    ? "Suelta la imagen aquí"
-                    : "Haz clic o arrastra la imagen"}
-                </p>
-                <p className="mt-1 text-xs text-gray-500 dark:text-gray-500">
-                  PNG, JPG o WebP 
-                </p>
-              </div>
+              )}
             </div>
           </div>
 
           <div className="lg:col-span-7 flex flex-col gap-5 self-stretch">
             <div>
-              <label className="mb-1.5 ml-1 block text-[10px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500">
-                Nombre del Producto
-              </label>
+              <div className="mb-1.5 ml-1 flex items-end justify-between gap-3">
+                <label className="block text-[10px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500">
+                  Nombre del Producto
+                </label>
+                <span className="text-[9px] font-bold uppercase text-gray-400 dark:text-gray-500">
+                  {nombre.length} / {MAX_NOMBRE_PRODUCTO}
+                </span>
+              </div>
               <input
                 type="text"
                 required
                 value={nombre}
-                onChange={(e) => setNombre(e.target.value)}
+                maxLength={MAX_NOMBRE_PRODUCTO}
+                onChange={(e) =>
+                  setNombre(
+                    (e.target.value || "").slice(0, MAX_NOMBRE_PRODUCTO),
+                  )
+                }
                 placeholder="Ej. Cafetera"
                 className="w-full rounded-lg border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-gray-900 outline-none transition-all focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 dark:border-white/10 dark:bg-white/[0.02] dark:text-white"
               />
@@ -282,11 +289,9 @@ export default function ProductoFormulario() {
                     onChange={(e) => {
                       const valor = e.target.value;
                       setBusquedaCategoria(valor);
+                      setCategoriaId("");
+                      setCategoriaNombre("");
                       setMostrarSugerenciasCategoria(true);
-                      if (!valor) {
-                        setCategoriaId("");
-                        setCategoriaNombre("");
-                      }
                     }}
                     onKeyDown={(e) => {
                       if (e.key !== "Enter") return;
@@ -420,13 +425,15 @@ export default function ProductoFormulario() {
                   Costo
                 </label>
                 <input
-                  type="number"
+                  type="text"
+                  inputMode="decimal"
                   required
                   min="0"
                   value={precioContado}
                   onChange={(e) => {
-                    if (e.target.value === "" || Number(e.target.value) >= 0) {
-                      setPrecioContado(e.target.value);
+                    const valor = e.target.value.replace(",", ".");
+                    if (/^\d*(?:\.\d{0,2})?$/.test(valor)) {
+                      setPrecioContado(valor);
                     }
                   }}
                   placeholder="3500"
@@ -438,7 +445,8 @@ export default function ProductoFormulario() {
                   Venta
                 </label>
                 <input
-                  type="number"
+                  type="text"
+                  inputMode="decimal"
                   required
                   min="0"
                   value={precioCredito}

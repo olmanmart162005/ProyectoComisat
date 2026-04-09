@@ -7,6 +7,8 @@ import { useAuth } from "../../auth/AuthProvider";
 import { useNombreEmpleadoActual } from "../../hooks/useNombreEmpleadoActual";
 import { useCategorias } from "./hooks/useCategorias";
 
+const MAX_NOMBRE_CATEGORIA = 35;
+
 export default function CategoriaFormulario() {
   const location = useLocation();
   const navigate = useNavigate();
@@ -128,48 +130,58 @@ export default function CategoriaFormulario() {
                 <img
                   src={previewImagen}
                   alt={nombre || "Preview"}
-                  className="h-full w-full rounded-lg object-cover opacity-40 transition-opacity group-hover:opacity-25"
+                  className="h-full w-full rounded-lg object-cover opacity-100 transition-opacity group-hover:opacity-95"
                 />
               ) : (
                 <div className="absolute inset-0 bg-gradient-to-br from-white/80 via-white/60 to-transparent dark:from-gray-900/70 dark:via-gray-900/45" />
               )}
 
-              <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-4">
-                <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-blue-50 text-blue-600 transition-transform group-hover:scale-105 dark:bg-blue-500/10 dark:text-blue-400">
-                  <svg
-                    className="h-5 w-5"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={1.8}
-                      d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                    />
-                  </svg>
+              {(!previewImagen || isDragActive) && (
+                <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-4">
+                  <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-blue-50 text-blue-600 transition-transform group-hover:scale-105 dark:bg-blue-500/10 dark:text-blue-400">
+                    <svg
+                      className="h-5 w-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={1.8}
+                        d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                      />
+                    </svg>
+                  </div>
+                  <p className="text-sm font-semibold text-gray-700 dark:text-gray-200">
+                    {isDragActive
+                      ? "Suelta la imagen aquí"
+                      : "Haz clic o arrastra la imagen"}
+                  </p>
+                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-500">
+                    PNG, JPEG o WebP
+                  </p>
                 </div>
-                <p className="text-sm font-semibold text-gray-700 dark:text-gray-200">
-                  {isDragActive
-                    ? "Suelta la imagen aquí"
-                    : "Haz clic o arrastra la imagen"}
-                </p>
-                <p className="mt-1 text-xs text-gray-500 dark:text-gray-500">
-                  PNG, JPEG o WebP
-                </p>
-              </div>
+              )}
             </div>
           </div>
 
           <div className="w-full lg:flex-1 space-y-2.5">
-            <label className="block text-[10px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500">
-              Nombre de la Categoría *
-            </label>
+            <div className="flex items-end justify-between gap-3">
+              <label className="block text-[10px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500">
+                Nombre de la Categoría *
+              </label>
+              <span className="text-[9px] font-bold uppercase text-gray-400 dark:text-gray-500">
+                {nombre.length} / {MAX_NOMBRE_CATEGORIA}
+              </span>
+            </div>
             <input
               type="text"
               value={nombre}
-              onChange={(e) => setNombre(e.target.value)}
+              maxLength={MAX_NOMBRE_CATEGORIA}
+              onChange={(e) =>
+                setNombre((e.target.value || "").slice(0, MAX_NOMBRE_CATEGORIA))
+              }
               placeholder="ej: Electrodomésticos"
               required
               disabled={enviando}

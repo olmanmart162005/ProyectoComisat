@@ -95,12 +95,19 @@ export function empleadoColumns({ onView, onEdit, onEliminar, departamentos }) {
         </div>
       ),
     },
-    { accessorKey: "correo", header: "Correo" },
-    { accessorKey: "dni", header: "DNI" },
     {
-      accessorKey: "telefono",
-      header: "Teléfono",
-      cell: (info) => info.getValue() || "-",
+      id: "contacto",
+      header: "Contacto",
+      cell: ({ row }) => (
+        <div className="flex flex-col gap-0.5">
+          <span className="text-sm text-gray-800 dark:text-white/90">
+            {row.original.correo}
+          </span>
+          <span className="text-xs text-gray-500 dark:text-gray-400">
+            {row.original.telefono || "—"}
+          </span>
+        </div>
+      ),
     },
     { accessorKey: "departamentoNombre", header: "Departamento" },
     {

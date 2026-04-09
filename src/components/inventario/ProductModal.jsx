@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { Modal } from "../ui/modal";
-
-const MAX_DESCRIPCION = 150;
+import {
+  MAX_DESCRIPCION,
+  MAX_NOMBRE_PRODUCTO,
+} from "../../pages/Inventario/productoUtils";
 
 const formatMoney = (value) => {
   const num = Number(value);
@@ -162,6 +164,10 @@ export default function ProductModal({
     const selectedCat = categorias.find((c) => c.id === selectedId);
     setCategoriaId(selectedId);
     setCategoriaNombre(selectedCat ? selectedCat.nombre || "" : "");
+  };
+
+  const handleNombreChange = (e) => {
+    setNombre((e.target.value || "").slice(0, MAX_NOMBRE_PRODUCTO));
   };
 
   const handleImagenChange = (e) => {
@@ -365,14 +371,20 @@ export default function ProductModal({
             {/* Campos - Columna derecha */}
             <div className="col-span-2 grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-400">
-                  Nombre
-                </label>
+                <div className="mb-1 flex items-end justify-between gap-3">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-400">
+                    Nombre
+                  </label>
+                  <span className="text-xs text-gray-500 dark:text-gray-400">
+                    {nombre.length}/{MAX_NOMBRE_PRODUCTO}
+                  </span>
+                </div>
                 <input
                   type="text"
                   required
                   value={nombre}
-                  onChange={(e) => setNombre(e.target.value)}
+                  maxLength={MAX_NOMBRE_PRODUCTO}
+                  onChange={handleNombreChange}
                   placeholder="Ej. Cafetera"
                   className="mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white"
                 />
@@ -408,13 +420,15 @@ export default function ProductModal({
                   Precio Contado (L.)
                 </label>
                 <input
-                  type="number"
+                  type="text"
+                  inputMode="decimal"
                   required
                   min="0"
                   value={precioContado}
                   onChange={(e) => {
-                    if (e.target.value === "" || Number(e.target.value) >= 0)
-                      setPrecioContado(e.target.value);
+                    const valor = e.target.value.replace(",", ".");
+                    if (/^\d*(?:\.\d{0,2})?$/.test(valor))
+                      setPrecioContado(valor);
                   }}
                   placeholder="3500"
                   className="mt-1 block w-full border border-gray-300 rounded-md p-2 shadow-sm focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white"
@@ -426,7 +440,8 @@ export default function ProductModal({
                   Precio Crédito (L.)
                 </label>
                 <input
-                  type="number"
+                  type="text"
+                  inputMode="decimal"
                   required
                   min="0"
                   value={precioCredito}

@@ -176,7 +176,8 @@ export const useUsuarios = ({ closeModal, user, nombreEmpleado }) => {
         rolNombre,
         estado,
         primerLoginHecho: false,
-        passwordTemporal, // para que el DB manager la use al registrar en Firebase Auth
+        passwordTemporal,
+        registradoEnAuth: false,
         fechaRegistro: serverTimestamp(),
       });
 

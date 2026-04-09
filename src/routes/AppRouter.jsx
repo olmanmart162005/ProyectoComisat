@@ -45,6 +45,7 @@ import DepartamentoFormulario from "../pages/Personal/DepartamentoFormulario";
 import UsuarioFormulario from "../pages/Accesos/UsuarioFormulario";
 import UsuarioDetalle from "../pages/Accesos/UsuarioDetalle";
 import Gest_Bitacora from "../pages/Gestion/Gest_Bitacora";
+import Gest_Activaciones from "../pages/Accesos/Gest_Activaciones";
 import HistorialProductos from "../pages/Gestion/HistorialProductos";
 import HistorialEmpleados from "../pages/Gestion/HistorialEmpleados";
 
@@ -385,6 +386,15 @@ export default function AppRouter() {
             }
           />
         </Route>
+        // Agregar como ruta hija dentro del bloque de rutas protegidas
+        <Route
+          path="activaciones"
+          element={
+            <RoleRoute roles={["DB Manager"]}>
+              <Gest_Activaciones />
+            </RoleRoute>
+          }
+        />
 
         {/* 404 */}
         <Route path="*" element={<Navigate to="/noencontrado" replace />} />

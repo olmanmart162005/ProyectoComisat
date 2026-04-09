@@ -80,7 +80,7 @@ export default function Gest_Empleados() {
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
-            xmlns="http:
+            xmlns="http://www.w3.org/2000/svg"
           >
             <path
               strokeLinecap="round"
@@ -166,6 +166,6 @@ export default function Gest_Empleados() {
         message="¿Deseas eliminar al empleado"
         loading={eliminando}
       />
-    </div>
+    </div>    
   );
-}
+}

@@ -1,14 +1,37 @@
+import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { doc, getDoc } from "firebase/firestore";
 
 import Badge from "../../components/ui/badge/Badge";
 import PageShell from "../../components/common/PageShell";
 import { ChevronLeftIcon } from "../../icons";
 import { safeFormatDate } from "../../utils/formatters";
+import { db } from "../../firebase/firebase";
 
 export default function UsuarioDetalle() {
   const { state } = useLocation();
   const navigate = useNavigate();
   const usuario = state?.usuario ?? null;
+  const [correoPersonalFallback, setCorreoPersonalFallback] = useState("");
+
+  useEffect(() => {
+    const cargarCorreoPersonal = async () => {
+      if (!usuario?.empleadoId || usuario?.correoPersonal) return;
+
+      try {
+        const empleadoSnap = await getDoc(
+          doc(db, "empleados", usuario.empleadoId),
+        );
+        if (empleadoSnap.exists()) {
+          setCorreoPersonalFallback(empleadoSnap.data()?.correo ?? "");
+        }
+      } catch (error) {
+        console.error("Error al cargar correo personal del empleado:", error);
+      }
+    };
+
+    cargarCorreoPersonal();
+  }, [usuario]);
 
   if (!usuario) {
     return (
@@ -25,6 +48,8 @@ export default function UsuarioDetalle() {
   }
 
   const nombreCompleto = usuario.nombre || "Usuario";
+  const correoPersonalMostrado =
+    usuario.correoPersonal || correoPersonalFallback || "—";
 
   return (
     <PageShell
@@ -128,7 +153,7 @@ export default function UsuarioDetalle() {
                       Correo personal
                     </span>
                     <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">
-                      {usuario.correoPersonal || "—"}
+                      {correoPersonalMostrado}
                     </span>
                   </div>
                 </div>
@@ -178,10 +203,7 @@ export default function UsuarioDetalle() {
                       Última modificación
                     </span>
                     <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">
-                      {safeFormatDate(
-                        usuario.ultima_modificacion ||
-                          usuario.ultimaModificacion,
-                      )}
+                      {safeFormatDate(usuario.ultimaModificacion)}
                     </span>
                   </div>
                 </div>

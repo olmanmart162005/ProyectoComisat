@@ -249,11 +249,12 @@ export const useUsuarios = ({ closeModal, user, nombreEmpleado }) => {
       await updateDoc(doc(db, "usuarios", editandoId), {
         empleadoId,
         nombre,
+        correoPersonal,
         correo: correoInstitucional,
         rolId,
         rolNombre,
         estado,
-        ultima_modificacion: serverTimestamp(),
+        ultimaModificacion: serverTimestamp(),
       });
 
       await registrarBitacora({
@@ -267,6 +268,10 @@ export const useUsuarios = ({ closeModal, user, nombreEmpleado }) => {
           ...(usuarioAnterior?.correo !== correoInstitucional && {
             correoAnterior: usuarioAnterior?.correo,
             correoNuevo: correoInstitucional,
+          }),
+          ...(usuarioAnterior?.correoPersonal !== correoPersonal && {
+            correoPersonalAnterior: usuarioAnterior?.correoPersonal,
+            correoPersonalNuevo: correoPersonal,
           }),
           ...(usuarioAnterior?.rolNombre !== rolNombre && {
             rolAnterior: usuarioAnterior?.rolNombre,

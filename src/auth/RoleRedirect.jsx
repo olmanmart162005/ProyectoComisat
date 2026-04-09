@@ -7,6 +7,7 @@ const ROLE_HOME = {
   "Oficial de Credito": "/dashboard-oficial",
   "Recursos Humanos": "/dashboard-rrhh",
   Empleado: "/descarga-app",
+  "DB Manager": "/activaciones"
 };
 
 export const RoleRedirect = () => {

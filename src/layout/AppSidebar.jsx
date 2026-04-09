@@ -93,6 +93,12 @@ const navItems = [
     path: "/configuracion",
     allowedRoles: ["Administrador"],
   },
+  {
+  name: "Activaciones",
+  icon: <ShieldCheck />,   // ya está importado
+  path: "/activaciones",
+  allowedRoles: ["DB Manager"],
+},
 ];
 
 // ── Grupos colapsables ─────────────────────────────────────────────
@@ -270,7 +276,7 @@ const AppSidebar = () => {
     ["/empleados", "/departamentos", "/empleados-perfil"].includes(item.path),
   );
   const accesosItems = visibleNavItems.filter((item) =>
-    ["/usuarios", "/roles"].includes(item.path),
+    ["/usuarios", "/roles", "/activaciones"].includes(item.path),
   );
   const creditosItems = visibleNavItems.filter((item) =>
     ["/solicitudes-reservas", "/pagos-mensuales"].includes(item.path),

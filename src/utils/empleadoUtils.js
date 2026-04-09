@@ -1,7 +1,7 @@
 import {
   formatMoneyHNL,
   safeFormatDate as safeFormatDateShared,
-} from "../../utils/formatters";
+} from "./formatters";
 
 export const safeFormatDate = safeFormatDateShared;
 export const formatSalary = formatMoneyHNL;

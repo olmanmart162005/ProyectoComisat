@@ -1,30 +1,28 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 import DataTable from "../../components/ui/table/DataTable";
 import ConfirmDeleteModal from "../../components/common/ConfirmDeleteModal";
 import ExportButtons from "../../layout/Exportbuttons";
 import { useAuth } from "../../auth/AuthProvider";
 import { useNombreEmpleadoActual } from "../../hooks/useNombreEmpleadoActual";
-import { useModal } from "../../hooks/useModal";
 import { Toaster } from "sileo";
 import { registrarBitacora } from "../../services/bitacora";
 import { formatDateForFilename } from "../../utils/formatters";
 
-import RoleModal from "../../components/Accesos/RoleModal";
 import { roleColumns, COLUMNAS_EXPORT_ROLES } from "./columns/roleColumns";
 import { useRoles } from "./hooks/useRoles";
 
 export default function Gest_Roles() {
+  const navigate = useNavigate();
   Toaster.position = "top-right";
 
   const { user } = useAuth();
   const nombreEmpleado = useNombreEmpleadoActual();
-  const { isOpen, openModal, closeModal } = useModal();
   const { roles, loading, fetchRoles, handleEliminar } = useRoles({
     user,
     nombreEmpleado,
   });
-  const [editandoData, setEditandoData] = useState(null);
   const [rolAEliminar, setRolAEliminar] = useState(null);
   const [eliminando, setEliminando] = useState(false);
 
@@ -48,8 +46,7 @@ export default function Gest_Roles() {
 
   const columns = roleColumns({
     onEdit: (rol) => {
-      setEditandoData(rol);
-      openModal();
+      navigate("/roles/editar", { state: { rol } });
     },
     onEliminar: abrirEliminarRol,
   });
@@ -61,11 +58,8 @@ export default function Gest_Roles() {
           Roles
         </h2>
         <button
-          onClick={() => {
-            setEditandoData(null);
-            openModal();
-          }}
-          className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-5 py-2.5 rounded-lg shadow-sm transition flex items-center gap-2"
+          onClick={() => navigate("/roles/nuevo")}
+          className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-5 py-2.5 rounded-lg shadow-sm transition inline-flex items-center gap-2"
         >
           <svg
             className="w-5 h-5"
@@ -83,15 +77,6 @@ export default function Gest_Roles() {
           Nuevo Rol
         </button>
       </div>
-
-      <RoleModal
-        isOpen={isOpen}
-        onClose={closeModal}
-        editandoData={editandoData}
-        user={user}
-        nombreEmpleado={nombreEmpleado}
-        onSuccess={fetchRoles}
-      />
 
       <DataTable columns={columns} data={roles} loading={loading}>
         <DataTable.Toolbar searchPlaceholder="Buscar rol...">

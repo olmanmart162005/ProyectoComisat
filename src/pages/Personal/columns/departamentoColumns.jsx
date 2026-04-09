@@ -6,6 +6,7 @@ import { MoreDotIcon, PencilIcon, TrashBinIcon } from "../../../icons";
 
 const COLUMNAS_EXPORT_DEPARTAMENTOS = [
   { key: "nombre", header: "Nombre", type: "text" },
+  { key: "descripcion", header: "Descripción", type: "text" },
 ];
 
 export function departamentoColumns({ onEdit, onEliminar }) {
@@ -64,6 +65,21 @@ export function departamentoColumns({ onEdit, onEliminar }) {
           {info.getValue()}
         </span>
       ),
+    },
+    {
+      accessorKey: "descripcion",
+      header: "Descripción",
+      cell: (info) => {
+        const valor = info.getValue();
+        return (
+          <span
+            title={valor}
+            className="block max-w-xs truncate text-sm text-gray-600 dark:text-gray-400"
+          >
+            {valor || "—"}
+          </span>
+        );
+      },
     },
     {
       id: "acciones",

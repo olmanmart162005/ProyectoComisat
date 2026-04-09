@@ -14,11 +14,14 @@ import { useAuth } from "../../../auth/AuthProvider";
 import { useNombreEmpleadoActual } from "../../../hooks/useNombreEmpleadoActual";
 import { registrarBitacora } from "../../../services/bitacora";
 
-export const useDepartamentos = ({ closeModal }) => {
+export const useDepartamentos = ({
+  closeModal,
+  cargarDepartamentos = true,
+}) => {
   const { user } = useAuth();
   const nombreEmpleado = useNombreEmpleadoActual();
   const [departamentos, setDepartamentos] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(cargarDepartamentos);
   const [editandoId, setEditandoId] = useState(null);
   const [enviando, setEnviando] = useState(false);
   const [nombre, setNombre] = useState("");
@@ -38,7 +41,9 @@ export const useDepartamentos = ({ closeModal }) => {
   };
 
   useEffect(() => {
-    fetchDepartamentos();
+    if (cargarDepartamentos) {
+      fetchDepartamentos();
+    }
   }, []);
 
   const handleSubmit = async (e) => {
@@ -47,6 +52,7 @@ export const useDepartamentos = ({ closeModal }) => {
     try {
       const nuevoDepartamento = await addDoc(collection(db, "departamentos"), {
         nombre,
+        descripcion: "",
         fechaRegistro: serverTimestamp(),
       });
 
@@ -105,6 +111,46 @@ export const useDepartamentos = ({ closeModal }) => {
     }
   };
 
+  const actualizarDepartamento = async ({
+    editandoId,
+    nombre,
+    descripcion,
+    nombreAnterior,
+    onSuccess,
+  }) => {
+    try {
+      await updateDoc(doc(db, "departamentos", editandoId), {
+        nombre,
+        descripcion,
+        ultimaModificacion: serverTimestamp(),
+      });
+
+      await registrarBitacora({
+        usuario: user?.email ?? "desconocido",
+        nombre: nombreEmpleado,
+        coleccion: "departamentos",
+        accion: "actualizacion",
+        docId: editandoId,
+        metadata: {
+          nombre,
+          descripcion,
+          ...(nombreAnterior !== nombre && {
+            nombreAnterior,
+            nombreNuevo: nombre,
+          }),
+        },
+      });
+
+      fetchDepartamentos();
+      sileo.success("Departamento actualizado con éxito");
+      onSuccess?.();
+    } catch (error) {
+      console.error("Error al actualizar departamento", error);
+      sileo.error("Error al actualizar el departamento");
+      throw error;
+    }
+  };
+
   const handleEliminar = async (id) => {
     try {
       const departamentoAEliminar = departamentos.find((d) => d.id === id);
@@ -119,6 +165,7 @@ export const useDepartamentos = ({ closeModal }) => {
         docId: id,
         metadata: {
           nombre: departamentoAEliminar?.nombre,
+          descripcion: departamentoAEliminar?.descripcion,
           id,
         },
       });
@@ -143,6 +190,7 @@ export const useDepartamentos = ({ closeModal }) => {
     setNombre,
     handleSubmit,
     handleUpdate,
+    actualizarDepartamento,
     handleEliminar,
     fetchDepartamentos,
   };

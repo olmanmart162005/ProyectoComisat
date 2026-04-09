@@ -13,7 +13,7 @@ import {
 import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 import { sileo } from "sileo";
 import { registrarBitacora } from "../../../services/bitacora";
-import { MAX_DESCRIPCION, getEstadoProducto } from "../productoUtils";
+import { MAX_DESCRIPCION, getEstadoProducto } from "../../../utils/productoUtils";
 
 // Este hook maneja toda la lógica relacionada con productos: carga, filtrado, eliminación, etc.
 
@@ -365,3 +365,4 @@ export function useProductos({ user, nombreEmpleado, cargarProductos = true }) {
     getEstadoProducto,
   };
 }
+

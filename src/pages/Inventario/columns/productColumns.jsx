@@ -4,7 +4,7 @@ import Badge from "../../../components/ui/badge/Badge";
 import { Dropdown } from "../../../components/ui/dropdown/Dropdown";
 import { DropdownItem } from "../../../components/ui/dropdown/DropdownItem";
 import { EyeIcon, MoreDotIcon, PencilIcon, TrashBinIcon } from "../../../icons";
-import { getEstadoProducto } from "../productoUtils";
+import { getEstadoProducto } from "../../../utils/productoUtils";
 
 function ProductoAcciones({ producto, onView, onEdit, onEliminar }) {
   const [isOpen, setIsOpen] = useState(false);

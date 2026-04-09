@@ -10,7 +10,7 @@ import {
   MAX_DESCRIPCION,
   MAX_NOMBRE_PRODUCTO,
   getEstadoProducto,
-} from "./productoUtils";
+} from "../../utils/productoUtils";
 
 export default function ProductoFormulario() {
   const location = useLocation();

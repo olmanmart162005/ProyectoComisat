@@ -1,7 +1,7 @@
 import {
   formatMoneyHNL,
   safeFormatDate as safeFormatDateShared,
-} from "../../utils/formatters";
+} from "./formatters";
 
 export const MAX_DESCRIPCION = 250;
 export const MAX_NOMBRE_PRODUCTO = 35;

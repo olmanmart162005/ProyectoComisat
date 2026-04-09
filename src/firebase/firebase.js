@@ -16,6 +16,7 @@ import { getStorage } from "firebase/storage";
 */
 
 
+
 // Inicializa Firebase
 const app = initializeApp(firebaseConfig);
 

@@ -1,16 +1,15 @@
 import { useMemo } from "react";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 import DataTable from "../../components/ui/table/DataTable";
 import ConfirmDeleteModal from "../../components/common/ConfirmDeleteModal";
 import ExportButtons from "../../layout/Exportbuttons";
 import { useAuth } from "../../auth/AuthProvider";
 import { useNombreEmpleadoActual } from "../../hooks/useNombreEmpleadoActual";
-import { useModal } from "../../hooks/useModal";
 import { Toaster } from "sileo";
 import { registrarBitacora } from "../../services/bitacora";
 
-import DepartamentoModal from "../../components/Personal/DepartamentoModal";
 import {
   departamentoColumns,
   COLUMNAS_EXPORT_DEPARTAMENTOS,
@@ -18,24 +17,16 @@ import {
 import { useDepartamentos } from "./hooks/useDepartamentos";
 
 export default function Gest_Departamentos() {
+  const navigate = useNavigate();
   Toaster.position = "top-right";
 
-  const { isOpen, openModal, closeModal } = useModal();
   const { user } = useAuth();
   const nombreEmpleado = useNombreEmpleadoActual();
 
-  const {
-    departamentos,
-    loading,
-    editandoId,
-    setEditandoId,
-    enviando,
-    nombre,
-    setNombre,
-    handleSubmit,
-    handleUpdate,
-    handleEliminar,
-  } = useDepartamentos({ closeModal });
+  const { departamentos, loading, handleEliminar } = useDepartamentos({
+    closeModal: () => {},
+  });
+
   const [departamentoAEliminar, setDepartamentoAEliminar] = useState(null);
   const [eliminando, setEliminando] = useState(false);
 
@@ -61,13 +52,11 @@ export default function Gest_Departamentos() {
     () =>
       departamentoColumns({
         onEdit: (dep) => {
-          setEditandoId(dep.id);
-          setNombre(dep.nombre || "");
-          openModal();
+          navigate("/departamentos/editar", { state: { departamento: dep } });
         },
         onEliminar: abrirEliminarDepartamento,
       }),
-    [openModal, setEditandoId, setNombre, handleEliminar],
+    [navigate],
   );
 
   return (
@@ -77,12 +66,8 @@ export default function Gest_Departamentos() {
           Departamentos
         </h2>
         <button
-          onClick={() => {
-            setEditandoId(null);
-            setNombre("");
-            openModal();
-          }}
-          className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-5 py-2.5 rounded-lg shadow-sm transition flex items-center gap-2"
+          onClick={() => navigate("/departamentos/nuevo")}
+          className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-5 py-2.5 rounded-lg shadow-sm transition inline-flex items-center gap-2"
         >
           <svg
             className="w-5 h-5"
@@ -100,16 +85,6 @@ export default function Gest_Departamentos() {
           Nuevo Departamento
         </button>
       </div>
-
-      <DepartamentoModal
-        isOpen={isOpen}
-        onClose={closeModal}
-        editandoId={editandoId}
-        nombre={nombre}
-        setNombre={setNombre}
-        enviando={enviando}
-        onSubmit={editandoId ? handleUpdate : handleSubmit}
-      />
 
       <DataTable columns={columns} data={departamentos} loading={loading}>
         <DataTable.Toolbar searchPlaceholder="Buscar departamento...">

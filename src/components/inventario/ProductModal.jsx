@@ -4,7 +4,7 @@ import { Modal } from "../ui/modal";
 import {
   MAX_DESCRIPCION,
   MAX_NOMBRE_PRODUCTO,
-} from "../../pages/Inventario/productoUtils";
+} from "../../utils/productoUtils";
 
 const formatMoney = (value) => {
   const num = Number(value);

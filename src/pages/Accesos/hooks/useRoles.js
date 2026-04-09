@@ -1,12 +1,20 @@
 import { useEffect, useState } from "react";
 import { db } from "../../../firebase/firebase";
-import { collection, deleteDoc, doc, getDocs } from "firebase/firestore";
+import {
+  collection,
+  deleteDoc,
+  doc,
+  getDocs,
+  addDoc,
+  updateDoc,
+  serverTimestamp,
+} from "firebase/firestore";
 import { sileo } from "sileo";
 import { registrarBitacora } from "../../../services/bitacora";
 
-export function useRoles({ user, nombreEmpleado }) {
+export function useRoles({ user, nombreEmpleado, cargarRoles = true }) {
   const [roles, setRoles] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(cargarRoles);
 
   const fetchRoles = async () => {
     setLoading(true);
@@ -23,8 +31,75 @@ export function useRoles({ user, nombreEmpleado }) {
   };
 
   useEffect(() => {
-    fetchRoles();
+    if (cargarRoles) {
+      fetchRoles();
+    }
   }, []);
+
+  const guardarRol = async ({ nombre, descripcion, onSuccess }) => {
+    try {
+      await addDoc(collection(db, "roles"), {
+        nombre,
+        descripcion,
+        fechaRegistro: serverTimestamp(),
+      });
+      await registrarBitacora({
+        usuario: user.email,
+        nombre: nombreEmpleado,
+        coleccion: "roles",
+        accion: "creacion",
+        metadata: {
+          nombre,
+          descripcion,
+        },
+      });
+      await fetchRoles();
+      sileo.success("Rol creado con éxito");
+      onSuccess?.();
+    } catch (error) {
+      console.error("Error al guardar rol", error);
+      sileo.error("Error al guardar el rol");
+      throw error;
+    }
+  };
+
+  const actualizarRol = async ({
+    editandoId,
+    nombre,
+    descripcion,
+    nombreAnterior,
+    onSuccess,
+  }) => {
+    try {
+      await updateDoc(doc(db, "roles", editandoId), {
+        nombre,
+        descripcion,
+        ultimaModificacion: serverTimestamp(),
+      });
+      await registrarBitacora({
+        usuario: user.email,
+        nombre: nombreEmpleado,
+        coleccion: "roles",
+        accion: "actualizacion",
+        docId: editandoId,
+        metadata: {
+          nombre,
+          descripcion,
+          ...(nombreAnterior !== nombre && {
+            nombreAnterior,
+            nombreNuevo: nombre,
+          }),
+        },
+      });
+      await fetchRoles();
+      sileo.success("Rol actualizado con éxito");
+      onSuccess?.();
+    } catch (error) {
+      console.error("Error al actualizar rol", error);
+      sileo.error("Error al actualizar el rol");
+      throw error;
+    }
+  };
 
   const handleEliminar = async (id) => {
     try {
@@ -38,6 +113,7 @@ export function useRoles({ user, nombreEmpleado }) {
         docId: id,
         metadata: {
           nombre: rolAEliminar?.nombre,
+          descripcion: rolAEliminar?.descripcion,
         },
       });
       fetchRoles();
@@ -54,6 +130,8 @@ export function useRoles({ user, nombreEmpleado }) {
     roles,
     loading,
     fetchRoles,
+    guardarRol,
+    actualizarRol,
     handleEliminar,
   };
 }

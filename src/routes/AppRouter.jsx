@@ -23,6 +23,7 @@ import DescargaApp from "../pages/DescargaApp";
 // Pantallas generales
 import Gest_Empleados from "../pages/Personal/Gest_Empleados";
 import Gest_Roles from "../pages/Accesos/Gest_Roles";
+import RolesFormulario from "../pages/Accesos/RolesFormulario";
 import Gest_Productos from "../pages/Inventario/Gest_Productos";
 import ProductoDetalle from "../pages/Inventario/ProductoDetalle";
 import ProductoFormulario from "../pages/Inventario/ProductoFormulario";
@@ -40,6 +41,7 @@ import EmpleadoFormulario from "../pages/Personal/EmpleadoFormulario";
 import Gest_Categorias from "../pages/Inventario/Gest_Categorias";
 import CategoriaFormulario from "../pages/Inventario/CategoriaFormulario";
 import Departamentos from "../pages/Personal/Gest_Departamentos";
+import DepartamentoFormulario from "../pages/Personal/DepartamentoFormulario";
 import UsuarioFormulario from "../pages/Accesos/UsuarioFormulario";
 import UsuarioDetalle from "../pages/Accesos/UsuarioDetalle";
 import Gest_Bitacora from "../pages/Gestion/Gest_Bitacora";
@@ -175,10 +177,42 @@ export default function AppRouter() {
             }
           />
           <Route
+            path="departamentos/nuevo"
+            element={
+              <RoleRoute roles={["Administrador", "Recursos Humanos"]}>
+                <DepartamentoFormulario />
+              </RoleRoute>
+            }
+          />
+          <Route
+            path="departamentos/editar"
+            element={
+              <RoleRoute roles={["Administrador", "Recursos Humanos"]}>
+                <DepartamentoFormulario />
+              </RoleRoute>
+            }
+          />
+          <Route
             path="roles"
             element={
               <RoleRoute roles={["Administrador"]}>
                 <Gest_Roles />
+              </RoleRoute>
+            }
+          />
+          <Route
+            path="roles/nuevo"
+            element={
+              <RoleRoute roles={["Administrador"]}>
+                <RolesFormulario />
+              </RoleRoute>
+            }
+          />
+          <Route
+            path="roles/editar"
+            element={
+              <RoleRoute roles={["Administrador"]}>
+                <RolesFormulario />
               </RoleRoute>
             }
           />

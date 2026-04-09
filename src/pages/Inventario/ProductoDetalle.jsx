@@ -8,7 +8,7 @@ import {
   getEstadoProducto,
   getEstadoProductoColor,
   safeFormatDate,
-} from "./productoUtils";
+} from "../../utils/productoUtils";
 
 export default function ProductoDetalle() {
   const { state } = useLocation();

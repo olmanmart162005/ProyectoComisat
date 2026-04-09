@@ -7,7 +7,7 @@ import PageShell from "../../components/common/PageShell";
 import { useAuth } from "../../auth/AuthProvider";
 import { useNombreEmpleadoActual } from "../../hooks/useNombreEmpleadoActual";
 import { generarNuevoCodigo, useEmpleados } from "./hooks/useEmpleados";
-import { formatDateForInput, parseDateValue } from "./empleadoUtils";
+import { formatDateForInput, parseDateValue } from "../../utils/empleadoUtils";
 
 export default function EmpleadoFormulario() {
   const location = useLocation();

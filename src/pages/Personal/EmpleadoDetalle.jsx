@@ -7,7 +7,7 @@ import {
   formatDateDisplay,
   formatSalary,
   getEstadoEmpleadoColor,
-} from "./empleadoUtils";
+} from "../../utils/empleadoUtils";
 
 export default function EmpleadoDetalle() {
   const { state } = useLocation();

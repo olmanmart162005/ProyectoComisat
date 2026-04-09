@@ -17,7 +17,7 @@ import {
   generarPasswordTemporal,
   enviarCorreoCredenciales,
 } from "../../../services/credencialesEmail";
-import { parseDateValue } from "../empleadoUtils";
+import { parseDateValue } from "../../../utils/empleadoUtils";
 
 export const generarNuevoCodigo = (listaEmpleados, listaHistorial = []) => {
   const anioActual = new Date().getFullYear().toString();
@@ -455,3 +455,4 @@ export function useEmpleados({ user, nombreEmpleado }) {
     fetchEmpleados,
   };
 }
+

@@ -18,7 +18,7 @@ export default function DepartamentoFormulario() {
   const departamento = location.state?.departamento ?? null;
   const modoEdicion = Boolean(departamento);
 
-  const { actualizarDepartamento } = useDepartamentos({
+  const { guardarDepartamento, actualizarDepartamento } = useDepartamentos({
     closeModal: () => navigate("/departamentos"),
     cargarDepartamentos: false,
   });
@@ -60,6 +60,12 @@ export default function DepartamentoFormulario() {
           nombreAnterior,
           onSuccess: () => navigate("/departamentos"),
         });
+      } else {
+        await guardarDepartamento?.({
+          nombre,
+          descripcion,
+          onSuccess: () => navigate("/departamentos"),
+        });
       }
     } finally {
       setEnviando(false);
@@ -84,7 +90,7 @@ export default function DepartamentoFormulario() {
 
   return (
     <PageShell
-      breadcrumbCurrent="Editar"
+      breadcrumbCurrent={modoEdicion ? "Editar" : "Nuevo"}
       homeLabel="Departamentos"
       homePath="/departamentos"
       contentClassName="rounded-2xl border border-gray-200 bg-white px-5 py-7 dark:border-gray-800 dark:bg-white/[0.03] xl:px-10 xl:py-12"
@@ -95,7 +101,7 @@ export default function DepartamentoFormulario() {
           <div className="space-y-2.5">
             <div className="flex items-center justify-between gap-2 mb-1.5">
               <label className="block text-[10px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500">
-                Nombre del Departamento
+                Nombre del Departamento *
               </label>
               <span className="text-[9px] font-bold uppercase text-gray-400 dark:text-gray-500">
                 {nombre.length} / {MAX_NOMBRE_DEPARTAMENTO}
@@ -157,10 +163,12 @@ export default function DepartamentoFormulario() {
             {enviando ? (
               <>
                 <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                Actualizando...
+                {modoEdicion ? "Actualizando..." : "Creando..."}
               </>
-            ) : (
+            ) : modoEdicion ? (
               "Actualizar Departamento"
+            ) : (
+              "Crear Departamento"
             )}
           </button>
         </div>

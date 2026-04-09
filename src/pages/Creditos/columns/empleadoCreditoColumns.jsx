@@ -2,6 +2,18 @@ import Badge from "../../../components/ui/badge/Badge";
 import { EyeIcon } from "../../../icons";
 import { getEstadoEmpleado } from "../hooks/useEmpleadosPerfil";
 
+const obtenerIniciales = (texto) => {
+  const limpio = String(texto ?? "").trim();
+  if (!limpio) return "--";
+
+  return limpio
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((parte) => parte.charAt(0).toUpperCase())
+    .join("");
+};
+
 const formatFecha = (valor) => {
   if (!valor) return "---";
   if (typeof valor?.toDate === "function") {
@@ -56,11 +68,27 @@ export function empleadoCreditoColumns({
       accessorFn: (row) => `${row.nombres} ${row.apellidos}`,
       id: "nombreCompleto",
       header: "Nombre",
-      cell: (info) => (
-        <span className="block font-medium text-gray-800 text-theme-sm dark:text-white/90">
-          {info.getValue()}
-        </span>
-      ),
+      cell: (info) => {
+        const nombreCompleto = info.getValue();
+
+        return (
+          <div className="flex items-center gap-2.5">
+            <div
+              title={nombreCompleto}
+              aria-label={nombreCompleto}
+              className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-100 text-[11px] font-semibold text-blue-700 dark:bg-blue-500/15 dark:text-blue-300"
+            >
+              {obtenerIniciales(nombreCompleto)}
+            </div>
+            <span
+              title={nombreCompleto}
+              className="block max-w-[220px] truncate font-medium text-gray-800 text-theme-sm dark:text-white/90"
+            >
+              {nombreCompleto}
+            </span>
+          </div>
+        );
+      },
     },
     {
       accessorKey: "departamentoNombre",

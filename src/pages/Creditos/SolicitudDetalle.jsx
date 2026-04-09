@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 import PageShell from "../../components/common/PageShell";
 import DataTable from "../../components/ui/table/DataTable";
@@ -13,6 +13,7 @@ import { useSolicitudDetalle } from "./hooks/useSolicitudDetalle";
 
 export default function SolicitudDetalle() {
   const { state } = useLocation();
+  const navigate = useNavigate();
   const solicitudId = state?.solicitud?.id;
   const { user } = useAuth();
   const nombreEmpleado = useNombreEmpleadoActual();
@@ -60,6 +61,14 @@ export default function SolicitudDetalle() {
       homeLabel="Solicitudes"
       homePath="/solicitudes-reservas"
     >
+      <button
+        type="button"
+        onClick={() => navigate("/solicitudes-reservas")}
+        className="inline-flex items-center gap-2 text-sm font-medium text-gray-500 transition hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+      >
+        &lt; Regresar a solicitudes
+      </button>
+
       {!solicitud && !loading && (
         <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-300">
           No se encontró la solicitud.

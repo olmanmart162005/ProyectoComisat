@@ -9,8 +9,8 @@ import {
   serverTimestamp,
   updateDoc,
 } from "firebase/firestore";
-import { sileo } from "sileo";
 import { registrarBitacora } from "../../../services/bitacora";
+import { notify } from "../../../services/notifier";
 import {
   generarPasswordTemporal,
   enviarCorreoCredenciales,
@@ -78,7 +78,7 @@ export const useUsuarios = ({ closeModal, user, nombreEmpleado }) => {
       setEmpleados(docs);
     } catch (error) {
       console.error("Error al cargar empleados:", error);
-      sileo.error("No se pudieron cargar los empleados.");
+      notify.loadError("los empleados");
     }
   };
 
@@ -94,7 +94,7 @@ export const useUsuarios = ({ closeModal, user, nombreEmpleado }) => {
       }
     } catch (error) {
       console.error("Error al cargar roles:", error);
-      sileo.error("No se pudieron cargar los roles.");
+      notify.loadError("los roles");
     }
   };
 
@@ -106,7 +106,7 @@ export const useUsuarios = ({ closeModal, user, nombreEmpleado }) => {
       setUsuarios(docs);
     } catch (error) {
       console.error("Error al cargar usuarios:", error);
-      sileo.error("No se pudieron cargar los usuarios.");
+      notify.loadError("los usuarios");
     } finally {
       setLoading(false);
     }
@@ -161,7 +161,7 @@ export const useUsuarios = ({ closeModal, user, nombreEmpleado }) => {
 
       const correoLocal = normalizarLocalPartCorreo(correo);
       if (!correoLocal) {
-        sileo.warning("Ingresa el usuario del correo institucional.");
+        notify.warning("Ingresa el usuario del correo institucional.");
         setEnviando(false);
         return;
       }
@@ -205,7 +205,7 @@ export const useUsuarios = ({ closeModal, user, nombreEmpleado }) => {
         });
       } catch (emailErr) {
         console.error("Usuario creado pero falló el correo:", emailErr);
-        sileo.warning({
+        notify.warning({
           title: "Usuario creado",
           description:
             "El usuario se registró, pero no se pudo enviar el correo de credenciales.",
@@ -220,13 +220,13 @@ export const useUsuarios = ({ closeModal, user, nombreEmpleado }) => {
       fetchUsuarios();
       closeModal?.();
       onSuccess?.();
-      sileo.success({
+      notify.success({
         title: "Usuario creado",
         description: "Credenciales enviadas al correo personal del empleado.",
       });
     } catch (error) {
       console.error("Error al guardar", error);
-      sileo.error("Error al guardar");
+      notify.saveError("el usuario");
     } finally {
       setEnviando(false);
     }
@@ -240,7 +240,7 @@ export const useUsuarios = ({ closeModal, user, nombreEmpleado }) => {
 
       const correoLocal = normalizarLocalPartCorreo(correo);
       if (!correoLocal) {
-        sileo.warning("Ingresa el usuario del correo institucional.");
+        notify.warning("Ingresa el usuario del correo institucional.");
         setEnviando(false);
         return;
       }
@@ -288,10 +288,10 @@ export const useUsuarios = ({ closeModal, user, nombreEmpleado }) => {
       fetchUsuarios();
       closeModal?.();
       onSuccess?.();
-      setTimeout(() => sileo.success("Usuario actualizado"), 150);
+      setTimeout(() => notify.updated("Usuario"), 150);
     } catch (error) {
       console.error("Error al actualizar", error);
-      sileo.error("Error al actualizar");
+      notify.updateError("el usuario");
     } finally {
       setEnviando(false);
     }
@@ -317,11 +317,11 @@ export const useUsuarios = ({ closeModal, user, nombreEmpleado }) => {
       });
 
       fetchUsuarios();
-      sileo.success("Usuario eliminado");
+      notify.deleted("Usuario");
       return true;
     } catch (error) {
       console.error("Error al eliminar", error);
-      sileo.error("Error al eliminar");
+      notify.deleteError("el usuario");
       return false;
     }
   };

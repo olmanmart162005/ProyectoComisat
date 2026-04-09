@@ -10,6 +10,9 @@ import {
   MAX_DESCRIPCION,
   MAX_NOMBRE_PRODUCTO,
   getEstadoProducto,
+  sanitizeDescripcionProducto,
+  sanitizeNombreProducto,
+  sanitizeTextInput,
 } from "../../utils/productoUtils";
 
 export default function ProductoFormulario() {
@@ -64,10 +67,10 @@ export default function ProductoFormulario() {
       setEditandoId(producto.id || null);
       setNombre(producto.nombre || "");
       setDescripcion(producto.descripcion || "");
-      setPrecioContado(String(producto.precioContado || ""));
-      setPrecioCredito(String(producto.precioCredito || ""));
-      setStock(String(producto.stock || ""));
-      setStockMinimo(String(producto.stockMinimo || ""));
+      setPrecioContado(String(producto.precioContado ?? ""));
+      setPrecioCredito(String(producto.precioCredito ?? ""));
+      setStock(String(producto.stock ?? ""));
+      setStockMinimo(String(producto.stockMinimo ?? ""));
       setCategoriaId(producto.categoriaId || "");
       setCategoriaNombre(producto.categoriaNombre || "");
       setBusquedaCategoria(producto.categoriaNombre || "");
@@ -139,15 +142,20 @@ export default function ProductoFormulario() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    const nombreSanitizado = sanitizeNombreProducto(nombre).trim();
+    const descripcionSanitizada =
+      sanitizeDescripcionProducto(descripcion).trim();
+
     if (!categoriaId) {
       setMostrarSugerenciasCategoria(true);
-      return;
     }
+
     setEnviando(true);
     try {
       const payload = {
-        nombre,
-        descripcion,
+        nombre: nombreSanitizado,
+        descripcion: descripcionSanitizada,
         precioContado,
         stock,
         stockMinimo,
@@ -268,7 +276,10 @@ export default function ProductoFormulario() {
                 maxLength={MAX_NOMBRE_PRODUCTO}
                 onChange={(e) =>
                   setNombre(
-                    (e.target.value || "").slice(0, MAX_NOMBRE_PRODUCTO),
+                    sanitizeNombreProducto(e.target.value || "").slice(
+                      0,
+                      MAX_NOMBRE_PRODUCTO,
+                    ),
                   )
                 }
                 placeholder="Ej. Cafetera"
@@ -287,7 +298,7 @@ export default function ProductoFormulario() {
                     required
                     value={busquedaCategoria}
                     onChange={(e) => {
-                      const valor = e.target.value;
+                      const valor = sanitizeTextInput(e.target.value || "");
                       setBusquedaCategoria(valor);
                       setCategoriaId("");
                       setCategoriaNombre("");
@@ -383,10 +394,14 @@ export default function ProductoFormulario() {
                 </span>
               </div>
               <textarea
+                required
                 value={descripcion}
                 onChange={(e) =>
                   setDescripcion(
-                    (e.target.value || "").slice(0, MAX_DESCRIPCION),
+                    sanitizeDescripcionProducto(e.target.value || "").slice(
+                      0,
+                      MAX_DESCRIPCION,
+                    ),
                   )
                 }
                 maxLength={MAX_DESCRIPCION}
@@ -487,10 +502,11 @@ export default function ProductoFormulario() {
                 <input
                   type="number"
                   required
-                  min="0"
+                  min="1"
+                  step="1"
                   value={stock}
                   onChange={(e) => {
-                    if (e.target.value === "" || Number(e.target.value) >= 0) {
+                    if (e.target.value === "" || Number(e.target.value) > 0) {
                       setStock(e.target.value);
                     }
                   }}
@@ -507,6 +523,7 @@ export default function ProductoFormulario() {
                   type="number"
                   required
                   min="0"
+                  step="1"
                   value={stockMinimo}
                   onChange={(e) => {
                     if (e.target.value === "" || Number(e.target.value) >= 0) {

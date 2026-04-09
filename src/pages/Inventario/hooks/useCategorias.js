@@ -11,9 +11,10 @@ import {
   serverTimestamp,
 } from "firebase/firestore";
 import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
-import { sileo } from "sileo";
 import { registrarBitacora } from "../../../services/bitacora";
 import { useNombreEmpleadoActual } from "../../../hooks/useNombreEmpleadoActual";
+import { notify } from "../../../services/notifier";
+import { sanitizeNombreCategoria } from "../../../utils/productoUtils";
 
 // Este hook maneja toda la lógica relacionada con categorías: carga, creación, actualización, eliminación, etc.
 
@@ -59,7 +60,7 @@ export function useCategorias({
       setCategorias(docs);
     } catch (error) {
       console.error("Error al cargar categorías:", error);
-      sileo.error("No se pudieron cargar las categorías.");
+      notify.loadError("las categorías");
     } finally {
       setLoading(false);
     }
@@ -89,11 +90,11 @@ export function useCategorias({
       });
 
       fetchCategorias();
-      sileo.success("Categoría eliminada");
+      notify.deleted("Categoría");
       return true;
     } catch (error) {
       console.error("Error al eliminar", error);
-      sileo.error("Error al eliminar");
+      notify.deleteError("la categoría");
       return false;
     }
   };
@@ -105,38 +106,45 @@ export function useCategorias({
   };
 
   const guardarCategoria = async ({ nombre, archivoImagen, onSuccess }) => {
-    if (!nombre.trim()) {
-      sileo.error("El nombre de la categoría es obligatorio.");
+    const nombreSanitizado = sanitizeNombreCategoria(nombre).trim();
+
+    if (!nombreSanitizado) {
+      notify.error("El nombre de la categoría es obligatorio.");
       return;
     }
 
     if (!archivoImagen) {
-      sileo.error("La imagen de la categoría es obligatoria.");
+      notify.error("La imagen de la categoría es obligatoria.");
       return;
     }
 
-    const imagenUrl = await subirImagen(archivoImagen);
+    try {
+      const imagenUrl = await subirImagen(archivoImagen);
 
-    const docRef = await addDoc(collection(db, "categoria"), {
-      nombre: nombre.trim(),
-      imagenUrl,
-      fechaRegistro: serverTimestamp(),
-      ultimaModificacion: serverTimestamp(),
-    });
+      const docRef = await addDoc(collection(db, "categoria"), {
+        nombre: nombreSanitizado,
+        imagenUrl,
+        fechaRegistro: serverTimestamp(),
+        ultimaModificacion: serverTimestamp(),
+      });
 
-    await registrarBitacora({
-      usuario: usuarioActual?.email ?? "desconocido",
-      nombre: empleadoActual || usuarioActual?.email || "desconocido",
-      coleccion: "categoria",
-      accion: "creacion",
-      docId: docRef.id,
-      metadata: {
-        nombre: nombre.trim(),
-      },
-    });
+      await registrarBitacora({
+        usuario: usuarioActual?.email ?? "desconocido",
+        nombre: empleadoActual || usuarioActual?.email || "desconocido",
+        coleccion: "categoria",
+        accion: "creacion",
+        docId: docRef.id,
+        metadata: {
+          nombre: nombreSanitizado,
+        },
+      });
 
-    sileo.success("Categoría creada con éxito");
-    await onSuccess?.();
+      notify.created("Categoría");
+      await onSuccess?.();
+    } catch (error) {
+      console.error("Error al guardar categoría:", error);
+      notify.saveError("la categoría");
+    }
   };
 
   const actualizarCategoria = async ({
@@ -149,39 +157,51 @@ export function useCategorias({
   }) => {
     if (!categoriaId) return;
 
-    if (!nombre.trim()) {
-      sileo.error("El nombre de la categoría es obligatorio.");
+    const nombreSanitizado = sanitizeNombreCategoria(nombre).trim();
+
+    if (!nombreSanitizado) {
+      notify.error("El nombre de la categoría es obligatorio.");
       return;
     }
 
-    let imagenUrl = imagenUrlActual || "";
-    if (archivoImagen) {
-      imagenUrl = await subirImagen(archivoImagen);
+    if (!archivoImagen && !imagenUrlActual) {
+      notify.error("La imagen de la categoría es obligatoria.");
+      return;
     }
 
-    const datosActualizados = {
-      nombre: nombre.trim(),
-      imagenUrl,
-      ultimaModificacion: serverTimestamp(),
-    };
+    try {
+      let imagenUrl = imagenUrlActual || "";
+      if (archivoImagen) {
+        imagenUrl = await subirImagen(archivoImagen);
+      }
 
-    await updateDoc(doc(db, "categoria", categoriaId), datosActualizados);
+      const datosActualizados = {
+        nombre: nombreSanitizado,
+        imagenUrl,
+        ultimaModificacion: serverTimestamp(),
+      };
 
-    await registrarBitacora({
-      usuario: usuarioActual?.email ?? "desconocido",
-      nombre: empleadoActual || usuarioActual?.email || "desconocido",
-      coleccion: "categoria",
-      accion: "actualizacion",
-      docId: categoriaId,
-      metadata: {
-        nombreAnterior: categoriaData?.nombre,
-        nombreNuevo: datosActualizados.nombre,
-        imagenActualizada: Boolean(archivoImagen),
-      },
-    });
+      await updateDoc(doc(db, "categoria", categoriaId), datosActualizados);
 
-    sileo.success("Categoría actualizada con éxito");
-    await onSuccess?.();
+      await registrarBitacora({
+        usuario: usuarioActual?.email ?? "desconocido",
+        nombre: empleadoActual || usuarioActual?.email || "desconocido",
+        coleccion: "categoria",
+        accion: "actualizacion",
+        docId: categoriaId,
+        metadata: {
+          nombreAnterior: categoriaData?.nombre,
+          nombreNuevo: datosActualizados.nombre,
+          imagenActualizada: Boolean(archivoImagen),
+        },
+      });
+
+      notify.updated("Categoría");
+      await onSuccess?.();
+    } catch (error) {
+      console.error("Error al actualizar categoría:", error);
+      notify.updateError("la categoría");
+    }
   };
 
   return {

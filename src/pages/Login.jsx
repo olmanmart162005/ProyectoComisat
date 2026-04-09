@@ -2,10 +2,9 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { db } from "../firebase/firebase";
 import { collection, query, where, getDocs } from "firebase/firestore";
-import { sileo, Toaster } from "sileo";
+import { notify } from "../services/notifier";
 
 export default function Login() {
-  Toaster.position = "top-right";
   const [email, setEmail] = useState("");
   const [buscando, setBuscando] = useState(false);
   const navigate = useNavigate();
@@ -15,11 +14,14 @@ export default function Login() {
     setBuscando(true);
 
     try {
-      const q = query(collection(db, "usuarios"), where("correo", "==", email.trim().toLowerCase()));
+      const q = query(
+        collection(db, "usuarios"),
+        where("correo", "==", email.trim().toLowerCase()),
+      );
       const snap = await getDocs(q);
 
       if (snap.empty) {
-        sileo.error({
+        notify.error({
           title: "Correo no encontrado",
           description: "Este correo no está registrado en el sistema.",
         });
@@ -30,7 +32,7 @@ export default function Login() {
       const userData = { id: docSnap.id, ...docSnap.data() };
 
       if (userData.estado?.toLowerCase() === "inactivo") {
-        sileo.error({
+        notify.error({
           title: "Cuenta inactiva",
           description: "Tu cuenta está inactiva. Contacta al administrador.",
         });
@@ -39,10 +41,12 @@ export default function Login() {
 
       // Pasa los datos del usuario a la pantalla 2 via navigation state
       navigate("/login/metodos", { state: { email, userData } });
-
     } catch (err) {
       console.error(err);
-      sileo.error({ title: "Error", description: "Ocurrió un error. Intenta de nuevo." });
+      notify.error({
+        title: "Error",
+        description: "Ocurrió un error. Intenta de nuevo.",
+      });
     } finally {
       setBuscando(false);
     }

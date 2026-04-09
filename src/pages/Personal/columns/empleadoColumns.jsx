@@ -5,6 +5,17 @@ import { Dropdown } from "../../../components/ui/dropdown/Dropdown";
 import { DropdownItem } from "../../../components/ui/dropdown/DropdownItem";
 import { EyeIcon, MoreDotIcon, PencilIcon, TrashBinIcon } from "../../../icons";
 
+const obtenerIniciales = (texto) => {
+  const limpio = String(texto ?? "").trim();
+  if (!limpio) return "--";
+
+  const partes = limpio.split(/\s+/).filter(Boolean);
+  return partes
+    .slice(0, 2)
+    .map((p) => p.charAt(0).toUpperCase())
+    .join("");
+};
+
 export const COLUMNAS_EXPORT_EMPLEADOS = [
   { key: "codigoEmpleado", header: "Código", type: "text" },
   { key: "dni", header: "DNI", type: "text" },
@@ -81,19 +92,32 @@ export function empleadoColumns({ onView, onEdit, onEliminar, departamentos }) {
       accessorFn: (row) => `${row.nombres} ${row.apellidos}`,
       id: "nombreCompleto",
       header: "Empleado",
-      cell: (info) => (
-        <div className="flex flex-col gap-1">
-          <span
-            title={info.getValue()}
-            className="block max-w-[220px] truncate font-medium text-gray-800 text-theme-sm dark:text-white/90"
-          >
-            {info.getValue()}
-          </span>
-          <span className="block whitespace-nowrap text-xs text-gray-500 dark:text-gray-400 font-mono">
-            {info.row.original.codigoEmpleado}
-          </span>
-        </div>
-      ),
+      cell: (info) => {
+        const nombreCompleto = info.getValue();
+        return (
+          <div className="flex items-center gap-2.5">
+            <div
+              title={nombreCompleto}
+              aria-label={nombreCompleto}
+              className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-100 text-[11px] font-semibold text-blue-700 dark:bg-blue-500/15 dark:text-blue-300"
+            >
+              {obtenerIniciales(nombreCompleto)}
+            </div>
+
+            <div className="flex min-w-0 flex-col gap-1">
+              <span
+                title={nombreCompleto}
+                className="block max-w-[220px] truncate font-medium text-gray-800 text-theme-sm dark:text-white/90"
+              >
+                {nombreCompleto}
+              </span>
+              <span className="block whitespace-nowrap text-xs text-gray-500 dark:text-gray-400 font-mono">
+                {info.row.original.codigoEmpleado}
+              </span>
+            </div>
+          </div>
+        );
+      },
     },
     {
       id: "contacto",

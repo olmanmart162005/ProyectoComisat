@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 
 import DataTable from "../../components/ui/table/DataTable";
 import ConfirmDeleteModal from "../../components/common/ConfirmDeleteModal";
-import { Toaster } from "sileo";
 
 import MetricCard from "../../components/common/MetricCard";
 import { GroupIcon, CheckCircleIcon, CloseIcon } from "../../icons";
@@ -21,7 +20,6 @@ import {
 import { useEmpleados } from "./hooks/useEmpleados";
 
 export default function Gest_Empleados() {
-  Toaster.position = "top-right";
   const navigate = useNavigate();
 
   const { user } = useAuth();

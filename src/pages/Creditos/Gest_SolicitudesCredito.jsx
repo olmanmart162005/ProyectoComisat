@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import ExportButtons from "../../layout/Exportbuttons";
 import { useAuth } from "../../auth/AuthProvider";
 import { useNombreEmpleadoActual } from "../../hooks/useNombreEmpleadoActual";
-import { Toaster } from "sileo";
 import { registrarBitacora } from "../../services/bitacora";
 import MetricCard from "../../components/common/MetricCard";
 import { CheckCircleIcon, CloseIcon, BoxIconLine } from "../../icons";
@@ -18,8 +17,6 @@ import {
 import { useSolicitudesCredito } from "./hooks/useSolicitudesCredito";
 
 export default function Gest_SolicitudesCredito() {
-  Toaster.position = "top-right";
-
   const { user } = useAuth();
   const nombreEmpleado = useNombreEmpleadoActual();
   const navigate = useNavigate();

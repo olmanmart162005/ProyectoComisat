@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { collection, getDocs } from "firebase/firestore";
+import { useNavigate } from "react-router-dom";
 import {
   Bar,
   BarChart,
@@ -33,8 +34,6 @@ const COLORS = [
   "#82ca9d",
   "#ffc658",
 ];
-
-const ESTADOS_CERRADOS = ["pagado", "cancelado", "finalizado"];
 
 const lps = (n) =>
   new Intl.NumberFormat("es-HN", {
@@ -90,6 +89,15 @@ const estadoBadge = (estado) => {
   return "bg-gray-100 text-gray-700 dark:bg-white/5 dark:text-gray-300";
 };
 
+const obtenerIniciales = (nombreCompleto) => {
+  const limpio = String(nombreCompleto ?? "").trim();
+  if (!limpio) return "--";
+
+  const partes = limpio.split(/\s+/).filter(Boolean);
+  const primeras = partes.slice(0, 2).map((p) => p.charAt(0).toUpperCase());
+  return primeras.join("");
+};
+
 function ChartTooltip({ active, payload, label, currency = false }) {
   if (!active || !payload?.length) return null;
 
@@ -109,10 +117,10 @@ function ChartTooltip({ active, payload, label, currency = false }) {
 }
 
 export default function DashboardOficial() {
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [creditos, setCreditos] = useState([]);
   const [cuotas, setCuotas] = useState([]);
-  const [filtroEstado, setFiltroEstado] = useState("todos");
   const [periodoResumen, setPeriodoResumen] = useState("6");
 
   useEffect(() => {
@@ -171,7 +179,7 @@ export default function DashboardOficial() {
       creditos.filter((c) => {
         const aprobado = String(c.estado ?? "").toLowerCase() === "aprobado";
         const estadoCredito = String(c.estadoCredito ?? "").toLowerCase();
-        return aprobado && !ESTADOS_CERRADOS.includes(estadoCredito);
+        return aprobado && estadoCredito === "activo";
       }),
     [creditos],
   );
@@ -212,15 +220,10 @@ export default function DashboardOficial() {
     [creditosActivos],
   );
 
-  const solicitudesRecientes = useMemo(() => {
-    const filtradas =
-      filtroEstado === "todos"
-        ? creditosOrdenados
-        : creditosOrdenados.filter(
-            (c) => String(c.estado ?? "").toLowerCase() === filtroEstado,
-          );
-    return filtradas.slice(0, 8);
-  }, [creditosOrdenados, filtroEstado]);
+  const solicitudesRecientes = useMemo(
+    () => creditosOrdenados.slice(0, 6),
+    [creditosOrdenados],
+  );
 
   const topDeudores = useMemo(
     () =>
@@ -238,7 +241,7 @@ export default function DashboardOficial() {
                 0,
             ),
         )
-        .slice(0, 6)
+        .slice(0, 5)
         .map((credito) => ({
           name:
             `${credito.empleadoNombres ?? ""} ${credito.empleadoApellidos ?? ""}`.trim() ||
@@ -252,26 +255,6 @@ export default function DashboardOficial() {
         })),
     [creditosActivos],
   );
-
-  const pagosPlanilla = useMemo(() => {
-    const agrupado = {};
-    creditosActivos.forEach((credito) => {
-      const nombre =
-        `${credito.empleadoNombres ?? ""} ${credito.empleadoApellidos ?? ""}`.trim() ||
-        "Sin nombre";
-      const cuota = Number(
-        credito.datosFinancierosHistoricos?.cuotaMensual ??
-          credito.cuotaMensual ??
-          0,
-      );
-      agrupado[nombre] = (agrupado[nombre] || 0) + cuota;
-    });
-
-    return Object.entries(agrupado)
-      .map(([name, cuota]) => ({ name, cuota }))
-      .sort((a, b) => b.cuota - a.cuota)
-      .slice(0, 8);
-  }, [creditosActivos]);
 
   const tendenciaMensual = useMemo(() => {
     const meses = Number(periodoResumen);
@@ -307,14 +290,6 @@ export default function DashboardOficial() {
 
   const periodLabel =
     periodoResumen === "6" ? "Últimos 6 meses" : "Últimos 12 meses";
-
-  const estadoFiltros = [
-    { value: "todos", label: "Todos" },
-    { value: "pendiente", label: "Pendientes" },
-    { value: "aprobado", label: "Aprobados" },
-    { value: "rechazado", label: "Rechazados" },
-    { value: "cancelado", label: "Cancelados" },
-  ];
 
   return (
     <div className="space-y-6">
@@ -362,71 +337,73 @@ export default function DashboardOficial() {
                   Solicitudes recientes
                 </h2>
                 <p className="text-sm text-gray-500 dark:text-gray-400">
-                  Revisiones más recientes desde Firebase
+                  Resumen de las solicitudes más recientes
                 </p>
               </div>
 
-              <select
-                value={filtroEstado}
-                onChange={(e) => setFiltroEstado(e.target.value)}
-                className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 outline-none transition focus:border-blue-500 dark:border-white/10 dark:bg-gray-800 dark:text-gray-200"
-              >
-                {estadoFiltros.map((estado) => (
-                  <option key={estado.value} value={estado.value}>
-                    {estado.label}
-                  </option>
-                ))}
-              </select>
+              <div className="flex items-start">
+                <button
+                  type="button"
+                  onClick={() => navigate("/solicitudes-reservas")}
+                  className="text-xs font-medium text-blue-600 transition hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+                >
+                  Ver todas
+                </button>
+              </div>
             </div>
 
-            <div className="overflow-hidden rounded-lg border border-gray-200 dark:border-white/10">
-              <div className="overflow-y-auto max-h-80">
-                <table className="w-full text-xs text-left">
-                  <thead className="sticky top-0 z-10 bg-gray-50 dark:bg-gray-900">
-                    <tr className="border-b border-gray-200 dark:border-white/10 text-gray-600 dark:text-gray-300">
-                      <th className="py-2 px-3 font-semibold">Empleado</th>
-                      <th className="py-2 px-3 font-semibold">Artículo</th>
-                      <th className="py-2 px-3 font-semibold">Monto</th>
-                      <th className="py-2 px-3 font-semibold text-center">
-                        Estado
-                      </th>
+            <div className="flex flex-col overflow-hidden rounded-lg border border-gray-200 dark:border-white/10">
+              <table className="w-full table-fixed text-left text-xs">
+                <thead className="sticky top-0 z-10">
+                  <tr className="border-b border-gray-200 bg-gray-50 text-gray-600 dark:border-white/10 dark:bg-gray-900 dark:text-gray-300">
+                    <th className="w-14 py-2 px-3 text-center font-semibold">
+                      <span className="sr-only">Empleado</span>
+                    </th>
+                    <th className="py-2 px-3 font-semibold">Artículo</th>
+                    <th className="py-2 px-3 font-semibold text-center">
+                      Estado
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100 dark:divide-white/10">
+                  {solicitudesRecientes.length === 0 ? (
+                    <tr>
+                      <td
+                        colSpan={3}
+                        className="py-6 px-3 text-center text-gray-500 dark:text-gray-400"
+                      >
+                        No hay solicitudes para mostrar.
+                      </td>
                     </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-100 dark:divide-white/10">
-                    {solicitudesRecientes.length === 0 ? (
-                      <tr>
-                        <td
-                          colSpan={4}
-                          className="py-6 px-3 text-center text-gray-500 dark:text-gray-400"
-                        >
-                          No hay solicitudes para mostrar.
-                        </td>
-                      </tr>
-                    ) : (
-                      solicitudesRecientes.map((credito, index) => (
+                  ) : (
+                    solicitudesRecientes.map((credito, index) => {
+                      const nombreEmpleado =
+                        `${credito.empleadoNombres ?? ""} ${credito.empleadoApellidos ?? ""}`.trim() ||
+                        credito.empleadoNombre ||
+                        "---";
+
+                      return (
                         <tr
                           key={
                             credito.id ?? `${credito.productoNombre}-${index}`
                           }
-                          className="text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
+                          className="text-gray-700 transition-colors hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-white/5"
                         >
-                          <td className="py-2 px-3 font-medium max-w-[140px] truncate">
-                            {`${credito.empleadoNombres ?? ""} ${credito.empleadoApellidos ?? ""}`.trim() ||
-                              credito.empleadoNombre ||
-                              "---"}
+                          <td className="py-2 px-3 text-center align-middle">
+                            <div
+                              title={nombreEmpleado}
+                              aria-label={nombreEmpleado}
+                              className="mx-auto inline-flex h-8 w-8 items-center justify-center rounded-full bg-blue-100 text-[11px] font-semibold text-blue-700 dark:bg-blue-500/15 dark:text-blue-300"
+                            >
+                              {obtenerIniciales(nombreEmpleado)}
+                            </div>
                           </td>
-                          <td className="py-2 px-3 max-w-[140px] truncate">
-                            {credito.productoNombre ?? "---"}
+                          <td className="py-2 px-3 align-middle font-medium text-gray-700 dark:text-gray-300">
+                            <span className="block whitespace-normal break-words leading-5">
+                              {credito.productoNombre ?? "---"}
+                            </span>
                           </td>
-                          <td className="py-2 px-3 font-semibold">
-                            {lps(
-                              credito.datosFinancierosHistoricos
-                                ?.totalCredito ??
-                                credito.saldoPendiente ??
-                                0,
-                            )}
-                          </td>
-                          <td className="py-2 px-3 text-center">
+                          <td className="py-2 px-3 text-center align-middle">
                             <span
                               className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${estadoBadge(credito.estado)}`}
                             >
@@ -434,11 +411,11 @@ export default function DashboardOficial() {
                             </span>
                           </td>
                         </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
             </div>
           </div>
 
@@ -505,176 +482,108 @@ export default function DashboardOficial() {
       )}
 
       {!loading && (
-        <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
-          <div className="bg-white dark:bg-gray-900 p-6 rounded-lg shadow border border-gray-200 dark:border-gray-700">
-            <div className="mb-4">
+        <div className="mt-6 bg-white dark:bg-gray-900 p-6 rounded-lg shadow border border-gray-200 dark:border-gray-700">
+          <div className="mb-4 flex items-start justify-between gap-4">
+            <div>
               <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100">
-                Pagos de planilla
+                Créditos y monto cobrado
               </h2>
               <p className="text-sm text-gray-500 dark:text-gray-400">
-                Cuota mensual por empleado
+                Tendencia mensual
               </p>
             </div>
 
-            <div className="h-72 text-gray-600 dark:text-gray-300">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart
-                  data={pagosPlanilla}
-                  margin={{ top: 4, right: 8, left: 4, bottom: 20 }}
-                >
-                  <CartesianGrid
-                    strokeDasharray="3 3"
-                    stroke="currentColor"
-                    opacity={0.12}
-                    vertical={false}
-                  />
-                  <XAxis
-                    dataKey="name"
-                    tick={{
-                      fontSize: 10,
-                      fill: "currentColor",
-                      angle: -30,
-                      textAnchor: "end",
-                    }}
-                    axisLine={false}
-                    tickLine={false}
-                    interval={0}
-                  />
-                  <YAxis
-                    tick={{ fontSize: 10, fill: "currentColor" }}
-                    tickFormatter={lpsCompacto}
-                    axisLine={false}
-                    tickLine={false}
-                  />
-                  <Tooltip content={<ChartTooltip currency />} />
-                  <Bar
-                    dataKey="cuota"
-                    name="Cuota mensual"
-                    radius={[4, 4, 0, 0]}
-                  >
-                    {pagosPlanilla.map((entry, index) => (
-                      <Cell
-                        key={`planilla-${entry.name}-${index}`}
-                        fill={COLORS[index % COLORS.length]}
-                      />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
+            <select
+              value={periodoResumen}
+              onChange={(e) => setPeriodoResumen(e.target.value)}
+              className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 outline-none transition focus:border-blue-500 dark:border-white/10 dark:bg-gray-800 dark:text-gray-200"
+            >
+              <option value="6">Últimos 6 meses</option>
+              <option value="12">Últimos 12 meses</option>
+            </select>
           </div>
 
-          <div className="bg-white dark:bg-gray-900 p-6 rounded-lg shadow border border-gray-200 dark:border-gray-700">
-            <div className="mb-4 flex items-start justify-between gap-4">
-              <div>
-                <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100">
-                  Créditos y monto cobrado
-                </h2>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  Tendencia mensual
-                </p>
-              </div>
+          <div className="mb-3 flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
+            <span>Período seleccionado: {periodLabel}</span>
+            <span>Datos reales desde Firebase</span>
+          </div>
 
-              <select
-                value={periodoResumen}
-                onChange={(e) => setPeriodoResumen(e.target.value)}
-                className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 outline-none transition focus:border-blue-500 dark:border-white/10 dark:bg-gray-800 dark:text-gray-200"
+          <div className="h-72 text-gray-600 dark:text-gray-300">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart
+                data={tendenciaMensual}
+                margin={{ top: 4, right: 8, left: 4, bottom: 4 }}
               >
-                <option value="6">Últimos 6 meses</option>
-                <option value="12">Últimos 12 meses</option>
-              </select>
-            </div>
-
-            <div className="mb-3 flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
-              <span>Período seleccionado: {periodLabel}</span>
-              <span>Datos reales desde Firebase</span>
-            </div>
-
-            <div className="h-72 text-gray-600 dark:text-gray-300">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart
-                  data={tendenciaMensual}
-                  margin={{ top: 4, right: 8, left: 4, bottom: 4 }}
-                >
-                  <defs>
-                    <linearGradient
-                      id="creditosAprobadosGradient"
-                      x1="0"
-                      y1="0"
-                      x2="0"
-                      y2="1"
-                    >
-                      <stop
-                        offset="5%"
-                        stopColor="#378ADD"
-                        stopOpacity={0.28}
-                      />
-                      <stop offset="95%" stopColor="#378ADD" stopOpacity={0} />
-                    </linearGradient>
-                    <linearGradient
-                      id="montoCobradoGradient"
-                      x1="0"
-                      y1="0"
-                      x2="0"
-                      y2="1"
-                    >
-                      <stop
-                        offset="5%"
-                        stopColor="#1D9E75"
-                        stopOpacity={0.25}
-                      />
-                      <stop offset="95%" stopColor="#1D9E75" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid
-                    strokeDasharray="3 3"
-                    stroke="currentColor"
-                    opacity={0.12}
-                    vertical={false}
-                  />
-                  <XAxis
-                    dataKey="mes"
-                    tick={{ fontSize: 10, fill: "currentColor" }}
-                    axisLine={false}
-                    tickLine={false}
-                  />
-                  <YAxis
-                    yAxisId="left"
-                    tick={{ fontSize: 10, fill: "currentColor" }}
-                    axisLine={false}
-                    tickLine={false}
-                  />
-                  <YAxis
-                    yAxisId="right"
-                    orientation="right"
-                    tick={{ fontSize: 10, fill: "currentColor" }}
-                    tickFormatter={lpsCompacto}
-                    axisLine={false}
-                    tickLine={false}
-                  />
-                  <Tooltip content={<ChartTooltip currency={false} />} />
-                  <Legend iconSize={8} wrapperStyle={{ fontSize: "10px" }} />
-                  <Area
-                    yAxisId="left"
-                    type="monotone"
-                    dataKey="creditosAprobados"
-                    name="Créditos aprobados"
-                    stroke="#378ADD"
-                    strokeWidth={2}
-                    fill="url(#creditosAprobadosGradient)"
-                  />
-                  <Area
-                    yAxisId="right"
-                    type="monotone"
-                    dataKey="montoCobrado"
-                    name="Monto cobrado"
-                    stroke="#1D9E75"
-                    strokeWidth={2}
-                    fill="url(#montoCobradoGradient)"
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
+                <defs>
+                  <linearGradient
+                    id="creditosAprobadosGradient"
+                    x1="0"
+                    y1="0"
+                    x2="0"
+                    y2="1"
+                  >
+                    <stop offset="5%" stopColor="#378ADD" stopOpacity={0.28} />
+                    <stop offset="95%" stopColor="#378ADD" stopOpacity={0} />
+                  </linearGradient>
+                  <linearGradient
+                    id="montoCobradoGradient"
+                    x1="0"
+                    y1="0"
+                    x2="0"
+                    y2="1"
+                  >
+                    <stop offset="5%" stopColor="#1D9E75" stopOpacity={0.25} />
+                    <stop offset="95%" stopColor="#1D9E75" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  stroke="currentColor"
+                  opacity={0.12}
+                  vertical={false}
+                />
+                <XAxis
+                  dataKey="mes"
+                  tick={{ fontSize: 10, fill: "currentColor" }}
+                  axisLine={false}
+                  tickLine={false}
+                />
+                <YAxis
+                  yAxisId="left"
+                  tick={{ fontSize: 10, fill: "currentColor" }}
+                  axisLine={false}
+                  tickLine={false}
+                />
+                <YAxis
+                  yAxisId="right"
+                  orientation="right"
+                  tick={{ fontSize: 10, fill: "currentColor" }}
+                  tickFormatter={lpsCompacto}
+                  axisLine={false}
+                  tickLine={false}
+                />
+                <Tooltip content={<ChartTooltip currency={false} />} />
+                <Legend iconSize={8} wrapperStyle={{ fontSize: "10px" }} />
+                <Area
+                  yAxisId="left"
+                  type="monotone"
+                  dataKey="creditosAprobados"
+                  name="Créditos aprobados"
+                  stroke="#378ADD"
+                  strokeWidth={2}
+                  fill="url(#creditosAprobadosGradient)"
+                />
+                <Area
+                  yAxisId="right"
+                  type="monotone"
+                  dataKey="montoCobrado"
+                  name="Monto cobrado"
+                  stroke="#1D9E75"
+                  strokeWidth={2}
+                  fill="url(#montoCobradoGradient)"
+                />
+              </AreaChart>
+            </ResponsiveContainer>
           </div>
         </div>
       )}

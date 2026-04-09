@@ -9,10 +9,10 @@ import {
   serverTimestamp,
   updateDoc,
 } from "firebase/firestore";
-import { sileo } from "sileo";
 import { useAuth } from "../../../auth/AuthProvider";
 import { useNombreEmpleadoActual } from "../../../hooks/useNombreEmpleadoActual";
 import { registrarBitacora } from "../../../services/bitacora";
+import { notify } from "../../../services/notifier";
 
 export const useDepartamentos = ({
   closeModal,
@@ -26,6 +26,9 @@ export const useDepartamentos = ({
   const [enviando, setEnviando] = useState(false);
   const [nombre, setNombre] = useState("");
 
+  const usuarioBitacora = user?.email ?? "desconocido";
+  const nombreBitacora = nombreEmpleado || user?.email || "desconocido";
+
   const fetchDepartamentos = async () => {
     setLoading(true);
     try {
@@ -34,7 +37,7 @@ export const useDepartamentos = ({
       setDepartamentos(docs);
     } catch (error) {
       console.error("Error al cargar departamentos:", error);
-      sileo.error("No se pudieron cargar los departamentos.");
+      notify.loadError("los departamentos");
     } finally {
       setLoading(false);
     }
@@ -46,34 +49,59 @@ export const useDepartamentos = ({
     }
   }, []);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setEnviando(true);
+  const guardarDepartamento = async ({ nombre, descripcion, onSuccess }) => {
+    const nombreLimpio = String(nombre ?? "").trim();
+    const descripcionLimpia = String(descripcion ?? "").trim();
+
+    if (!nombreLimpio) {
+      notify.error("El nombre del departamento es obligatorio.");
+      return false;
+    }
+
     try {
       const nuevoDepartamento = await addDoc(collection(db, "departamentos"), {
-        nombre,
-        descripcion: "",
+        nombre: nombreLimpio,
+        descripcion: descripcionLimpia,
         fechaRegistro: serverTimestamp(),
+        ultimaModificacion: serverTimestamp(),
       });
 
       await registrarBitacora({
-        usuario: user?.email ?? "desconocido",
-        nombre: nombreEmpleado,
+        usuario: usuarioBitacora,
+        nombre: nombreBitacora,
         coleccion: "departamentos",
         accion: "creacion",
         docId: nuevoDepartamento.id,
         metadata: {
-          nombre,
+          nombre: nombreLimpio,
+          descripcion: descripcionLimpia,
         },
       });
 
+      await fetchDepartamentos();
+      notify.created("Departamento");
+      await onSuccess?.();
+      return true;
+    } catch (error) {
+      console.error("Error al guardar departamento:", error);
+      notify.saveError("el departamento");
+      return false;
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setEnviando(true);
+    try {
+      await guardarDepartamento({
+        nombre,
+        descripcion: "",
+        onSuccess: closeModal,
+      });
       setNombre("");
-      fetchDepartamentos();
-      closeModal();
-      sileo.success("Departamento creado con éxito");
     } catch (error) {
       console.error("Error al guardar", error);
-      sileo.error("Error al guardar");
+      notify.saveError("el departamento");
     } finally {
       setEnviando(false);
     }
@@ -102,10 +130,10 @@ export const useDepartamentos = ({
       setNombre("");
       fetchDepartamentos();
       closeModal();
-      sileo.success("Departamento actualizado con éxito");
+      notify.updated("Departamento");
     } catch (error) {
       console.error("Error al actualizar", error);
-      sileo.error("Error al actualizar");
+      notify.updateError("el departamento");
     } finally {
       setEnviando(false);
     }
@@ -118,36 +146,45 @@ export const useDepartamentos = ({
     nombreAnterior,
     onSuccess,
   }) => {
+    const nombreLimpio = String(nombre ?? "").trim();
+    const descripcionLimpia = String(descripcion ?? "").trim();
+
+    if (!nombreLimpio) {
+      notify.error("El nombre del departamento es obligatorio.");
+      return false;
+    }
+
     try {
       await updateDoc(doc(db, "departamentos", editandoId), {
-        nombre,
-        descripcion,
+        nombre: nombreLimpio,
+        descripcion: descripcionLimpia,
         ultimaModificacion: serverTimestamp(),
       });
 
       await registrarBitacora({
-        usuario: user?.email ?? "desconocido",
-        nombre: nombreEmpleado,
+        usuario: usuarioBitacora,
+        nombre: nombreBitacora,
         coleccion: "departamentos",
         accion: "actualizacion",
         docId: editandoId,
         metadata: {
-          nombre,
-          descripcion,
-          ...(nombreAnterior !== nombre && {
+          nombre: nombreLimpio,
+          descripcion: descripcionLimpia,
+          ...(nombreAnterior !== nombreLimpio && {
             nombreAnterior,
-            nombreNuevo: nombre,
+            nombreNuevo: nombreLimpio,
           }),
         },
       });
 
-      fetchDepartamentos();
-      sileo.success("Departamento actualizado con éxito");
-      onSuccess?.();
+      await fetchDepartamentos();
+      notify.updated("Departamento");
+      await onSuccess?.();
+      return true;
     } catch (error) {
       console.error("Error al actualizar departamento", error);
-      sileo.error("Error al actualizar el departamento");
-      throw error;
+      notify.updateError("el departamento");
+      return false;
     }
   };
 
@@ -158,8 +195,8 @@ export const useDepartamentos = ({
       await deleteDoc(doc(db, "departamentos", id));
 
       await registrarBitacora({
-        usuario: user?.email ?? "desconocido",
-        nombre: nombreEmpleado || user?.email || "desconocido",
+        usuario: usuarioBitacora,
+        nombre: nombreBitacora,
         coleccion: "departamentos",
         accion: "eliminacion",
         docId: id,
@@ -170,12 +207,12 @@ export const useDepartamentos = ({
         },
       });
 
-      fetchDepartamentos();
-      sileo.success("Departamento eliminado");
+      await fetchDepartamentos();
+      notify.deleted("Departamento");
       return true;
     } catch (error) {
       console.error("Error al eliminar", error);
-      sileo.error("Error al eliminar");
+      notify.deleteError("el departamento");
       return false;
     }
   };
@@ -190,6 +227,7 @@ export const useDepartamentos = ({
     setNombre,
     handleSubmit,
     handleUpdate,
+    guardarDepartamento,
     actualizarDepartamento,
     handleEliminar,
     fetchDepartamentos,

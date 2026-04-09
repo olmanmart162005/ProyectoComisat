@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { PackageCheck } from "lucide-react";
 
 import DataTable from "../../components/ui/table/DataTable";
 import ExportButtons from "../../layout/Exportbuttons";
@@ -7,7 +8,13 @@ import MetricCard from "../../components/common/MetricCard";
 import ConfirmDeleteModal from "../../components/common/ConfirmDeleteModal";
 import { useAuth } from "../../auth/AuthProvider";
 import { useNombreEmpleadoActual } from "../../hooks/useNombreEmpleadoActual";
-import { BoxIconLine, CheckCircleIcon, CloseIcon, PlusIcon } from "../../icons";
+import {
+  BoxCubeIcon,
+  BoxIconLine,
+  AlertIcon,
+  CheckCircleIcon,
+  PlusIcon,
+} from "../../icons";
 import {
   productColumns,
   COLUMNAS_EXPORT_PRODUCTOS,
@@ -30,6 +37,7 @@ export default function Gest_Productos() {
     porcentajeAumento,
     totalProductos,
     productosActivos,
+    productosAgotados,
     stockTotal,
     productosFiltrados,
     textoFiltrosPdf,
@@ -93,7 +101,7 @@ export default function Gest_Productos() {
         </button>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 md:gap-6">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4 md:gap-6">
         <MetricCard
           title="Total Productos"
           value={totalProductos}
@@ -106,7 +114,7 @@ export default function Gest_Productos() {
           title="Productos Activos"
           value={productosActivos}
           icon={
-            <CheckCircleIcon className="text-green-600 size-6 dark:text-green-400" />
+            <PackageCheck className="text-green-600 size-6 dark:text-green-400" />
           }
           iconWrapperClass="bg-green-50 dark:bg-green-500/10"
         />
@@ -114,9 +122,15 @@ export default function Gest_Productos() {
           title="Stock Total"
           value={stockTotal}
           icon={
-            <CloseIcon className="text-blue-600 size-6 dark:text-blue-400" />
+            <BoxCubeIcon className="text-orange-600 size-6 dark:text-orange-400" />
           }
-          iconWrapperClass="bg-blue-50 dark:bg-blue-500/10"
+          iconWrapperClass="bg-orange-50 dark:bg-orange-500/10"
+        />
+        <MetricCard
+          title="Productos Agotados"
+          value={productosAgotados}
+          icon={<AlertIcon className="text-red-600 size-6 dark:text-red-400" />}
+          iconWrapperClass="bg-red-50 dark:bg-red-500/10"
         />
       </div>
 

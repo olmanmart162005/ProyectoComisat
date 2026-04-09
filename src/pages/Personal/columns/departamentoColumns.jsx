@@ -1,18 +1,14 @@
 import { useState } from "react";
-
 import { Dropdown } from "../../../components/ui/dropdown/Dropdown";
 import { DropdownItem } from "../../../components/ui/dropdown/DropdownItem";
 import { MoreDotIcon, PencilIcon, TrashBinIcon } from "../../../icons";
-
 const COLUMNAS_EXPORT_DEPARTAMENTOS = [
   { key: "nombre", header: "Nombre", type: "text" },
   { key: "descripcion", header: "Descripción", type: "text" },
 ];
-
 export function departamentoColumns({ onEdit, onEliminar }) {
   function DepartamentoAcciones({ departamento }) {
     const [isOpen, setIsOpen] = useState(false);
-
     return (
       <div className="relative flex justify-center">
         <button
@@ -23,7 +19,6 @@ export function departamentoColumns({ onEdit, onEliminar }) {
         >
           <MoreDotIcon className="h-5 w-5" />
         </button>
-
         <Dropdown
           isOpen={isOpen}
           onClose={() => setIsOpen(false)}
@@ -55,7 +50,6 @@ export function departamentoColumns({ onEdit, onEliminar }) {
       </div>
     );
   }
-
   return [
     {
       accessorKey: "nombre",
@@ -89,5 +83,4 @@ export function departamentoColumns({ onEdit, onEliminar }) {
     },
   ];
 }
-
-export { COLUMNAS_EXPORT_DEPARTAMENTOS };
+export { COLUMNAS_EXPORT_DEPARTAMENTOS };

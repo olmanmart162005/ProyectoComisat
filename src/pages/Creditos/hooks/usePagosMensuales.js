@@ -11,16 +11,13 @@ import {
 } from "firebase/firestore";
 import { registrarBitacora } from "../../../services/bitacora";
 import { notify } from "../../../services/notifier";
-
 const getMesActual = () => {
   const now = new Date();
   const y = now.getFullYear();
   const m = String(now.getMonth() + 1).padStart(2, "0");
   return `${y}-${m}`;
 };
-
 const ESTADOS_CERRADOS = ["pagado", "cancelado", "finalizado"];
-
 export const usePagosMensuales = ({ user, nombreEmpleado, closeModal }) => {
   const [creditosPendientes, setCreditosPendientes] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -28,9 +25,7 @@ export const usePagosMensuales = ({ user, nombreEmpleado, closeModal }) => {
   const [registradoPor, setRegistradoPor] = useState("");
   const [cuotasCobradasParaExport, setCuotasCobradasParaExport] = useState([]);
   const [ultimoCobro, setUltimoCobro] = useState(null);
-
   const mesActual = getMesActual();
-
   useEffect(() => {
     const resolverNombre = async () => {
       if (!user?.email) return;
@@ -44,15 +39,12 @@ export const usePagosMensuales = ({ user, nombreEmpleado, closeModal }) => {
           setRegistradoPor(user.email);
           return;
         }
-
         const datosUsuario = snapUsuario.docs[0].data();
         const empleadoId = datosUsuario.empleadoId;
-
         if (!empleadoId) {
           setRegistradoPor(datosUsuario.nombre ?? user.email);
           return;
         }
-
         const qEmpleado = query(
           collection(db, "empleados"),
           where("__name__", "==", empleadoId),
@@ -62,7 +54,6 @@ export const usePagosMensuales = ({ user, nombreEmpleado, closeModal }) => {
           setRegistradoPor(datosUsuario.nombre ?? user.email);
           return;
         }
-
         const emp = snapEmpleado.docs[0].data();
         const nombreCompleto =
           `${emp.nombres ?? ""} ${emp.apellidos ?? ""}`.trim();
@@ -72,19 +63,15 @@ export const usePagosMensuales = ({ user, nombreEmpleado, closeModal }) => {
         setRegistradoPor(user?.email ?? "desconocido");
       }
     };
-
     resolverNombre();
   }, [user]);
-
   const fetchCreditosPendientes = async () => {
     setLoading(true);
     try {
       const snapCreditos = await getDocs(collection(db, "creditos"));
       const todos = snapCreditos.docs.map((d) => ({ id: d.id, ...d.data() }));
-
       const snapCuotas = await getDocs(collection(db, "cuotas"));
       const pagosPorCredito = {};
-
       snapCuotas.docs.forEach((d) => {
         const { creditoId, montoCuota } = d.data();
         if (!creditoId) return;
@@ -94,7 +81,6 @@ export const usePagosMensuales = ({ user, nombreEmpleado, closeModal }) => {
         pagosPorCredito[creditoId].total += Number(montoCuota ?? 0);
         pagosPorCredito[creditoId].count += 1;
       });
-
       const cobrables = todos
         .map((c) => ({
           ...c,
@@ -103,26 +89,20 @@ export const usePagosMensuales = ({ user, nombreEmpleado, closeModal }) => {
         }))
         .filter((c) => {
           if (c.estado !== "Aprobado") return false;
-
           const estadoCredito = String(c.estadoCredito ?? "").toLowerCase();
           if (ESTADOS_CERRADOS.includes(estadoCredito)) return false;
-
           if (c.mesCobro === mesActual) return false;
-
           const totalCredito = Number(
             c.datosFinancierosHistoricos?.totalCredito ?? 0,
           );
           const plazoCuotas = Number(
             c.datosFinancierosHistoricos?.plazoCuotas ?? 0,
           );
-
           if (c._cuotasPagadasReal >= plazoCuotas && plazoCuotas > 0)
             return false;
           if (c._totalPagado >= totalCredito && totalCredito > 0) return false;
-
           return true;
         });
-
       setCreditosPendientes(cobrables);
     } catch (err) {
       console.error("Error al cargar créditos:", err);
@@ -130,11 +110,9 @@ export const usePagosMensuales = ({ user, nombreEmpleado, closeModal }) => {
       setLoading(false);
     }
   };
-
   useEffect(() => {
     fetchCreditosPendientes();
   }, []);
-
   const { totalCuotas, montoTotal, empleadosUnicos } = useMemo(() => {
     const monto = creditosPendientes.reduce(
       (acc, c) => acc + Number(c.datosFinancierosHistoricos?.cuotaMensual ?? 0),
@@ -149,16 +127,13 @@ export const usePagosMensuales = ({ user, nombreEmpleado, closeModal }) => {
       empleadosUnicos: empleados.size,
     };
   }, [creditosPendientes]);
-
   const handleRealizarPagos = async () => {
     if (creditosPendientes.length === 0) return;
     setProcesando(true);
     closeModal();
-
     try {
       const batch = writeBatch(db);
       const fechaCobro = serverTimestamp();
-
       const snapshotParaExport = creditosPendientes.map((credito) => {
         const fin = credito.datosFinancierosHistoricos ?? {};
         const cuotaMensual = Number(fin.cuotaMensual ?? 0);
@@ -179,34 +154,27 @@ export const usePagosMensuales = ({ user, nombreEmpleado, closeModal }) => {
           mesCobro: mesActual,
         };
       });
-
       const montoTotalCobrado = snapshotParaExport.reduce(
         (acc, r) => acc + r.montoCuota,
         0,
       );
-
       for (const credito of creditosPendientes) {
         const fin = credito.datosFinancierosHistoricos ?? {};
         const cuotaMensual = Number(fin.cuotaMensual ?? 0);
         const totalCredito = Number(fin.totalCredito ?? 0);
         const plazoCuotas = Number(fin.plazoCuotas ?? 0);
-
         const cuotasPagadasReal = credito._cuotasPagadasReal ?? 0;
         const totalPagadoReal = credito._totalPagado ?? 0;
-
         if (cuotasPagadasReal >= plazoCuotas && plazoCuotas > 0) {
           continue;
         }
-
         const numeroCuota = cuotasPagadasReal + 1;
         const nuevoTotalPagado = totalPagadoReal + cuotaMensual;
         const saldoPendiente = Math.max(0, totalCredito - nuevoTotalPagado);
         const esUltimaCuota =
           saldoPendiente <= 0 || numeroCuota === plazoCuotas;
-
         const nombreEmpleado =
           `${credito.empleadoNombres ?? ""} ${credito.empleadoApellidos ?? ""}`.trim();
-
         const cuotaRef = doc(collection(db, "cuotas"));
         batch.set(cuotaRef, {
           creditoId: credito.id,
@@ -221,7 +189,6 @@ export const usePagosMensuales = ({ user, nombreEmpleado, closeModal }) => {
           fechaCobro,
           registradoPor,
         });
-
         const creditoRef = doc(db, "creditos", credito.id);
         batch.update(creditoRef, {
           cuotasPagadas: numeroCuota,
@@ -230,9 +197,7 @@ export const usePagosMensuales = ({ user, nombreEmpleado, closeModal }) => {
           ...(esUltimaCuota && { estadoCredito: "Pagado" }),
         });
       }
-
       await batch.commit();
-
       await registrarBitacora({
         usuario: user?.email ?? "desconocido",
         nombre: registradoPor,
@@ -247,14 +212,12 @@ export const usePagosMensuales = ({ user, nombreEmpleado, closeModal }) => {
           ).size,
         },
       });
-
       setCuotasCobradasParaExport(snapshotParaExport);
       setUltimoCobro({
         fecha: new Date().toLocaleDateString("es-HN"),
         totalCuotas: snapshotParaExport.length,
         montoTotal: montoTotalCobrado,
       });
-
       await fetchCreditosPendientes();
       notify.success("Pagos registrados con éxito");
     } catch (err) {
@@ -264,7 +227,6 @@ export const usePagosMensuales = ({ user, nombreEmpleado, closeModal }) => {
       setProcesando(false);
     }
   };
-
   return {
     creditosPendientes,
     loading,
@@ -278,4 +240,4 @@ export const usePagosMensuales = ({ user, nombreEmpleado, closeModal }) => {
     handleRealizarPagos,
     fetchCreditosPendientes,
   };
-};
+};

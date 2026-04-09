@@ -1,5 +1,4 @@
 import { useLocation, useNavigate } from "react-router-dom";
-
 import Badge from "../../components/ui/badge/Badge";
 import PageShell from "../../components/common/PageShell";
 import { ChevronLeftIcon } from "../../icons";
@@ -9,12 +8,10 @@ import {
   getEstadoProductoColor,
   safeFormatDate,
 } from "../../utils/productoUtils";
-
 export default function ProductoDetalle() {
   const { state } = useLocation();
   const navigate = useNavigate();
   const producto = state?.producto ?? null;
-
   if (!producto) {
     return (
       <PageShell
@@ -28,17 +25,14 @@ export default function ProductoDetalle() {
       </PageShell>
     );
   }
-
   const estadoVisual = getEstadoProducto(
     producto.stock,
     producto.stockMinimo,
     producto.estado,
   );
-
   const stockBajo =
     Number(producto.stock) > 0 &&
     Number(producto.stock) <= Number(producto.stockMinimo);
-
   return (
     <PageShell
       breadcrumbItems={["Detalle", producto.nombre]}
@@ -55,7 +49,6 @@ export default function ProductoDetalle() {
             <ChevronLeftIcon className="h-4 w-4" />
             Regresar a productos
           </button>
-
           <div className="flex items-center gap-3">
             <button
               onClick={() =>
@@ -75,7 +68,6 @@ export default function ProductoDetalle() {
             </button>
           </div>
         </div>
-
         <div className="grid grid-cols-1 items-start gap-8 lg:grid-cols-12 lg:gap-12">
           <div className="lg:col-span-5 w-full">
             <div className="group relative aspect-square overflow-hidden rounded-2xl border border-gray-200 bg-gray-50 shadow-sm dark:border-white/10 dark:bg-gray-900/40">
@@ -90,7 +82,6 @@ export default function ProductoDetalle() {
                   Sin imagen
                 </div>
               )}
-
               <div className="pointer-events-none absolute left-4 top-4 flex flex-col gap-2">
                 <span className="rounded-md border border-blue-200 bg-white/90 px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-widest text-blue-600 backdrop-blur dark:border-blue-500/20 dark:bg-gray-900/80 dark:text-blue-300">
                   {producto.categoriaNombre || "Sin categoría"}
@@ -101,13 +92,11 @@ export default function ProductoDetalle() {
               </div>
             </div>
           </div>
-
           <div className="lg:col-span-7 flex flex-col">
             <div className="space-y-6">
               <h2 className="text-4xl font-extrabold leading-tight tracking-tight text-gray-900 dark:text-white/90 sm:text-5xl xl:text-6xl">
                 {producto.nombre}
               </h2>
-
               <div className="space-y-3">
                 <h3 className="text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">
                   Descripción
@@ -117,7 +106,6 @@ export default function ProductoDetalle() {
                 </p>
               </div>
             </div>
-
             <div className="mt-10 grid grid-cols-1 gap-8 border-t border-gray-200 pt-8 dark:border-white/10 md:grid-cols-2 md:gap-12">
               <div className="space-y-6">
                 <div className="flex items-center gap-2.5">
@@ -138,7 +126,6 @@ export default function ProductoDetalle() {
                     Estructura de precios
                   </h3>
                 </div>
-
                 <div className="space-y-6">
                   <div className="flex flex-col">
                     <span className="mb-1 text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">
@@ -148,7 +135,6 @@ export default function ProductoDetalle() {
                       {formatMoney(producto.precioContado)}
                     </span>
                   </div>
-
                   <div className="flex flex-col">
                     <span className="mb-1 text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">
                       Precio Crédito
@@ -159,7 +145,6 @@ export default function ProductoDetalle() {
                   </div>
                 </div>
               </div>
-
               <div className="space-y-6 border-l border-gray-200 pl-8 dark:border-white/10">
                 <div className="flex items-center gap-2.5">
                   <svg
@@ -179,7 +164,6 @@ export default function ProductoDetalle() {
                     Estado de inventario
                   </h3>
                 </div>
-
                 <div className="space-y-6">
                   <div className="flex flex-col">
                     <span className="mb-1 text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">
@@ -196,7 +180,6 @@ export default function ProductoDetalle() {
                       )}
                     </div>
                   </div>
-
                   <div className="flex flex-col">
                     <span className="mb-1 text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">
                       Stock mínimo
@@ -205,7 +188,6 @@ export default function ProductoDetalle() {
                       {producto.stockMinimo ?? "—"}
                     </span>
                   </div>
-
                   <div className="flex flex-col">
                     <span className="mb-1 text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">
                       Fecha de registro
@@ -222,4 +204,4 @@ export default function ProductoDetalle() {
       </main>
     </PageShell>
   );
-}
+}

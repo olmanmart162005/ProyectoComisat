@@ -13,7 +13,6 @@ import { useAuth } from "../../../auth/AuthProvider";
 import { useNombreEmpleadoActual } from "../../../hooks/useNombreEmpleadoActual";
 import { registrarBitacora } from "../../../services/bitacora";
 import { notify } from "../../../services/notifier";
-
 export const useDepartamentos = ({
   closeModal,
   cargarDepartamentos = true,
@@ -25,10 +24,8 @@ export const useDepartamentos = ({
   const [editandoId, setEditandoId] = useState(null);
   const [enviando, setEnviando] = useState(false);
   const [nombre, setNombre] = useState("");
-
   const usuarioBitacora = user?.email ?? "desconocido";
   const nombreBitacora = nombreEmpleado || user?.email || "desconocido";
-
   const fetchDepartamentos = async () => {
     setLoading(true);
     try {
@@ -42,22 +39,18 @@ export const useDepartamentos = ({
       setLoading(false);
     }
   };
-
   useEffect(() => {
     if (cargarDepartamentos) {
       fetchDepartamentos();
     }
   }, []);
-
   const guardarDepartamento = async ({ nombre, descripcion, onSuccess }) => {
     const nombreLimpio = String(nombre ?? "").trim();
     const descripcionLimpia = String(descripcion ?? "").trim();
-
     if (!nombreLimpio) {
       notify.error("El nombre del departamento es obligatorio.");
       return false;
     }
-
     try {
       const nuevoDepartamento = await addDoc(collection(db, "departamentos"), {
         nombre: nombreLimpio,
@@ -65,7 +58,6 @@ export const useDepartamentos = ({
         fechaRegistro: serverTimestamp(),
         ultimaModificacion: serverTimestamp(),
       });
-
       await registrarBitacora({
         usuario: usuarioBitacora,
         nombre: nombreBitacora,
@@ -77,7 +69,6 @@ export const useDepartamentos = ({
           descripcion: descripcionLimpia,
         },
       });
-
       await fetchDepartamentos();
       notify.created("Departamento");
       await onSuccess?.();
@@ -88,7 +79,6 @@ export const useDepartamentos = ({
       return false;
     }
   };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setEnviando(true);
@@ -106,7 +96,6 @@ export const useDepartamentos = ({
       setEnviando(false);
     }
   };
-
   const handleUpdate = async (e) => {
     e.preventDefault();
     setEnviando(true);
@@ -114,7 +103,6 @@ export const useDepartamentos = ({
       await updateDoc(doc(db, "departamentos", editandoId), {
         nombre,
       });
-
       await registrarBitacora({
         usuario: user?.email ?? "desconocido",
         nombre: nombreEmpleado,
@@ -125,7 +113,6 @@ export const useDepartamentos = ({
           nombre,
         },
       });
-
       setEditandoId(null);
       setNombre("");
       fetchDepartamentos();
@@ -138,7 +125,6 @@ export const useDepartamentos = ({
       setEnviando(false);
     }
   };
-
   const actualizarDepartamento = async ({
     editandoId,
     nombre,
@@ -148,19 +134,16 @@ export const useDepartamentos = ({
   }) => {
     const nombreLimpio = String(nombre ?? "").trim();
     const descripcionLimpia = String(descripcion ?? "").trim();
-
     if (!nombreLimpio) {
       notify.error("El nombre del departamento es obligatorio.");
       return false;
     }
-
     try {
       await updateDoc(doc(db, "departamentos", editandoId), {
         nombre: nombreLimpio,
         descripcion: descripcionLimpia,
         ultimaModificacion: serverTimestamp(),
       });
-
       await registrarBitacora({
         usuario: usuarioBitacora,
         nombre: nombreBitacora,
@@ -176,7 +159,6 @@ export const useDepartamentos = ({
           }),
         },
       });
-
       await fetchDepartamentos();
       notify.updated("Departamento");
       await onSuccess?.();
@@ -187,13 +169,10 @@ export const useDepartamentos = ({
       return false;
     }
   };
-
   const handleEliminar = async (id) => {
     try {
       const departamentoAEliminar = departamentos.find((d) => d.id === id);
-
       await deleteDoc(doc(db, "departamentos", id));
-
       await registrarBitacora({
         usuario: usuarioBitacora,
         nombre: nombreBitacora,
@@ -206,7 +185,6 @@ export const useDepartamentos = ({
           id,
         },
       });
-
       await fetchDepartamentos();
       notify.deleted("Departamento");
       return true;
@@ -216,7 +194,6 @@ export const useDepartamentos = ({
       return false;
     }
   };
-
   return {
     departamentos,
     loading,
@@ -232,4 +209,4 @@ export const useDepartamentos = ({
     handleEliminar,
     fetchDepartamentos,
   };
-};
+};

@@ -10,16 +10,10 @@ import {
   updateDoc,
   where,
 } from "firebase/firestore";
-
 import { db } from "../../../firebase/firebase";
 import { registrarBitacora } from "../../../services/bitacora";
 import { notify } from "../../../services/notifier";
-
-// Este hook maneja toda la lógica relacionada con el detalle de una solicitud de crédito: carga, aprobación/rechazo, historial, etc.
-
 const estadosHistorial = ["aprobado", "aceptado", "rechazado", "cancelado"];
-
-// Convierte un campo de fecha (que puede ser Timestamp, objeto con seconds, Date o string) a milisegundos para facilitar comparaciones y ordenamientos.
 const toMillis = (fecha) => {
   if (!fecha) return 0;
   if (typeof fecha?.toMillis === "function") return fecha.toMillis();
@@ -29,7 +23,6 @@ const toMillis = (fecha) => {
   const parsed = new Date(fecha).getTime();
   return Number.isNaN(parsed) ? 0 : parsed;
 };
-
 export function useSolicitudDetalle({
   solicitudId,
   initialState,
@@ -45,10 +38,8 @@ export function useSolicitudDetalle({
     cantidadActivos: 0,
     cuotaMensualActiva: 0,
   });
-
   useEffect(() => {
     let mounted = true;
-
     const cargarSolicitud = async () => {
       setLoading(true);
       try {
@@ -66,23 +57,19 @@ export function useSolicitudDetalle({
         if (mounted) setLoading(false);
       }
     };
-
     cargarSolicitud();
     return () => {
       mounted = false;
     };
   }, [solicitudId, initialState?.solicitud]);
-
   useEffect(() => {
     let mounted = true;
-
     const cargarResumenEHistorial = async () => {
       if (!solicitud?.empleadoId) {
         setHistorialPrevio([]);
         setResumenEmpleado({ cantidadActivos: 0, cuotaMensualActiva: 0 });
         return;
       }
-
       setLoadingHistorial(true);
       try {
         const snap = await getDocs(
@@ -92,7 +79,6 @@ export function useSolicitudDetalle({
           ),
         );
         const docs = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-
         const historial = docs
           .filter((s) =>
             estadosHistorial.includes(String(s.estado ?? "").toLowerCase()),
@@ -102,7 +88,6 @@ export function useSolicitudDetalle({
               toMillis(b.fechaAutoriza ?? b.fechaRegistro) -
               toMillis(a.fechaAutoriza ?? a.fechaRegistro),
           );
-
         const solicitudActualEsHistorial = estadosHistorial.includes(
           String(solicitud.estado ?? "").toLowerCase(),
         );
@@ -110,7 +95,6 @@ export function useSolicitudDetalle({
         if (solicitudActualEsHistorial && !yaExisteActual) {
           historial.unshift(solicitud);
         }
-
         const activos = docs.filter((s) => {
           const aprobado = s.estado === "Aprobado";
           const estadoCredito = String(s.estadoCredito ?? "").toLowerCase();
@@ -119,7 +103,6 @@ export function useSolicitudDetalle({
           );
           return aprobado && sigueActivo;
         });
-
         const cuotaMensualActiva = activos.reduce(
           (acc, s) =>
             acc +
@@ -128,7 +111,6 @@ export function useSolicitudDetalle({
             ),
           0,
         );
-
         if (mounted) {
           setHistorialPrevio(historial);
           setResumenEmpleado({
@@ -146,13 +128,11 @@ export function useSolicitudDetalle({
         if (mounted) setLoadingHistorial(false);
       }
     };
-
     cargarResumenEHistorial();
     return () => {
       mounted = false;
     };
   }, [solicitud]);
-
   const fin = solicitud?.datosFinancierosHistoricos ?? {};
   const limite =
     (fin.salarioNetoAlMomento ?? 0) * (fin.porcentajeLimiteAplicado ?? 0);
@@ -165,7 +145,6 @@ export function useSolicitudDetalle({
     solicitud?.estado,
   );
   const cantidadSolicitada = solicitud?.cantidad ?? "---";
-
   const handleDecision = async (nuevoEstado) => {
     if (!solicitud) return;
     setProcesando(true);
@@ -185,7 +164,6 @@ export function useSolicitudDetalle({
           estadoCredito: "Activo",
         }),
       });
-
       setSolicitud((prev) =>
         prev
           ? {
@@ -205,7 +183,6 @@ export function useSolicitudDetalle({
             }
           : prev,
       );
-
       await registrarBitacora({
         usuario: user?.email ?? "desconocido",
         nombre: nombreEmpleado || user?.email || "desconocido",
@@ -219,7 +196,6 @@ export function useSolicitudDetalle({
               : `Rechazó la solicitud de crédito para ${solicitud.empleadoNombres} ${solicitud.empleadoApellidos} por L. ${Number(solicitud.datosFinancierosHistoricos?.totalCredito ?? 0).toLocaleString("es-HN")}`,
         },
       });
-
       notify.success(`Solicitud ${nuevoEstado} con éxito`);
     } catch (err) {
       console.error("Error al procesar:", err);
@@ -228,7 +204,6 @@ export function useSolicitudDetalle({
       setProcesando(false);
     }
   };
-
   return {
     solicitud,
     loading,
@@ -247,4 +222,4 @@ export function useSolicitudDetalle({
     cantidadSolicitada,
     handleDecision,
   };
-}
+}

@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { db } from "../../../firebase/firebase";
 import { collection, getDocs, query, where } from "firebase/firestore";
-
 export const MESES = [
   { valor: "01", etiqueta: "Enero" },
   { valor: "02", etiqueta: "Febrero" },
@@ -16,7 +15,6 @@ export const MESES = [
   { valor: "11", etiqueta: "Noviembre" },
   { valor: "12", etiqueta: "Diciembre" },
 ];
-
 export const generarAnios = () => {
   const anioActual = new Date().getFullYear();
   const anios = [];
@@ -25,17 +23,14 @@ export const generarAnios = () => {
   }
   return anios;
 };
-
 export const estadoCreditoColor = {
   Activo: "success",
   Pagado: "info",
   Cancelado: "error",
   Finalizado: "warning",
 };
-
 export function useHistorialCreditos() {
   const now = new Date();
-
   const [cuotas, setCuotas] = useState([]);
   const [creditos, setCreditos] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -43,10 +38,8 @@ export function useHistorialCreditos() {
   const [mesFiltro, setMesFiltro] = useState(
     String(now.getMonth() + 1).padStart(2, "0"),
   );
-
   const anios = useMemo(() => generarAnios(), []);
   const mesKey = `${anioFiltro}-${mesFiltro}`;
-
   const fetchDatos = async (key) => {
     setLoading(true);
     try {
@@ -64,11 +57,9 @@ export function useHistorialCreditos() {
       setLoading(false);
     }
   };
-
   useEffect(() => {
     fetchDatos(mesKey);
   }, [mesKey]);
-
   const { totalCuotas, montoTotal, empleadosUnicos, creditosPagados } =
     useMemo(() => {
       const monto = cuotas.reduce(
@@ -86,7 +77,6 @@ export function useHistorialCreditos() {
         creditosPagados: pagados,
       };
     }, [cuotas, creditos]);
-
   return {
     cuotas,
     creditos,
@@ -102,4 +92,4 @@ export function useHistorialCreditos() {
     empleadosUnicos,
     creditosPagados,
   };
-}
+}

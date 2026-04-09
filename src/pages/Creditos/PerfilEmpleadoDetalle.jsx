@@ -1,5 +1,4 @@
 import { useLocation } from "react-router-dom";
-
 import PageShell from "../../components/common/PageShell";
 import DataTable from "../../components/ui/table/DataTable";
 import Badge from "../../components/ui/badge/Badge";
@@ -14,7 +13,6 @@ import {
   formatDniDisplay,
   formatTelefonoDisplay,
 } from "../../utils/empleadoUtils";
-
 const formatFecha = (valor) => {
   if (!valor) return "---";
   if (typeof valor?.toDate === "function") {
@@ -29,11 +27,9 @@ const formatFecha = (valor) => {
   }
   return "---";
 };
-
 export default function PerfilEmpleadoDetalle() {
   const { state } = useLocation();
   const empleadoId = state?.empleado?.id;
-
   const {
     empleado,
     loading,
@@ -47,10 +43,8 @@ export default function PerfilEmpleadoDetalle() {
     porcentajeUsado,
     excedeLimite,
   } = usePerfilEmpleadoDetalle({ empleadoId, state });
-
   const historialCols = historialColumns();
   const columnasDetalle = columnasCreditosDetalle();
-
   return (
     <PageShell
       breadcrumbCurrent="Perfil del Empleado"
@@ -63,7 +57,6 @@ export default function PerfilEmpleadoDetalle() {
           No se encontró información del empleado.
         </div>
       )}
-
       {empleado && (
         <div className="space-y-5 border border-gray-200 dark:border-white/10 rounded-xl p-4 sm:p-6 bg-white dark:bg-gray-800">
           <div className="flex items-center gap-3">
@@ -81,7 +74,6 @@ export default function PerfilEmpleadoDetalle() {
               {getEstadoEmpleado(empleado)}
             </Badge>
           </div>
-
           <div className="rounded-xl border border-gray-200 dark:border-white/10 overflow-hidden">
             <div className="px-4 py-2 bg-gray-50 dark:bg-gray-900/50 border-b border-gray-200 dark:border-white/10">
               <p className="text-xs font-semibold uppercase tracking-widest text-gray-400 dark:text-gray-500">
@@ -119,7 +111,6 @@ export default function PerfilEmpleadoDetalle() {
               </div>
             </div>
           </div>
-
           <div className="rounded-xl border border-gray-200 dark:border-white/10 overflow-hidden">
             <div className="px-4 py-2 bg-gray-50 dark:bg-gray-900/50 border-b border-gray-200 dark:border-white/10">
               <p className="text-xs font-semibold uppercase tracking-widest text-gray-400 dark:text-gray-500">
@@ -164,7 +155,6 @@ export default function PerfilEmpleadoDetalle() {
                   </div>
                 ))}
               </div>
-
               <div className="mt-4 space-y-1.5">
                 <div className="flex justify-between items-center">
                   <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
@@ -187,7 +177,6 @@ export default function PerfilEmpleadoDetalle() {
                   />
                 </div>
               </div>
-
               <div className="mt-4 pt-3 border-t border-gray-200 dark:border-white/10 flex justify-between items-center">
                 <span className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
                   Saldo Total Pendiente
@@ -198,7 +187,6 @@ export default function PerfilEmpleadoDetalle() {
               </div>
             </div>
           </div>
-
           {excedeLimite && (
             <div className="flex items-start gap-3 p-4 rounded-xl border border-red-200 dark:border-red-500/30 bg-red-50 dark:bg-red-500/10">
               <div>
@@ -212,7 +200,6 @@ export default function PerfilEmpleadoDetalle() {
               </div>
             </div>
           )}
-
           {creditosActivos.length > 0 && (
             <div className="rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-gray-900 overflow-hidden">
               <div className="px-4 pt-5 pb-3 border-b border-gray-200 dark:border-white/10">
@@ -220,7 +207,6 @@ export default function PerfilEmpleadoDetalle() {
                   Créditos Activos
                 </p>
               </div>
-
               <div className="p-3">
                 <DataTable
                   columns={columnasDetalle}
@@ -233,14 +219,12 @@ export default function PerfilEmpleadoDetalle() {
               </div>
             </div>
           )}
-
           <div className="rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-gray-900 overflow-hidden">
             <div className="px-4 pt-5 pb-3 border-b border-gray-200 dark:border-white/10">
               <p className="text-xs font-semibold uppercase tracking-widest text-gray-400 dark:text-gray-500">
                 Historial de Créditos
               </p>
             </div>
-
             <div className="p-3">
               <DataTable
                 columns={historialCols}
@@ -256,4 +240,4 @@ export default function PerfilEmpleadoDetalle() {
       )}
     </PageShell>
   );
-}
+}

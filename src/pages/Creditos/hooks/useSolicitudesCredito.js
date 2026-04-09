@@ -13,7 +13,6 @@ import {
 } from "firebase/firestore";
 import { registrarBitacora } from "../../../services/bitacora";
 import { notify } from "../../../services/notifier";
-
 const getEmpleadoKey = (s) => {
   if (!s) return "";
   return String(
@@ -25,8 +24,6 @@ const getEmpleadoKey = (s) => {
     .trim()
     .toLowerCase();
 };
-
-// este hook maneja toda la lógica relacionada con solicitudes de crédito: carga, filtrado, selección, etc.
 export function useSolicitudesCredito({ user, nombreEmpleado, isOpen }) {
   const [solicitudes, setSolicitudes] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -36,7 +33,6 @@ export function useSolicitudesCredito({ user, nombreEmpleado, isOpen }) {
   const [historialPrevioSeleccionado, setHistorialPrevioSeleccionado] =
     useState([]);
   const [loadingHistorial, setLoadingHistorial] = useState(false);
-
   const fetchSolicitudes = async () => {
     setLoading(true);
     try {
@@ -52,16 +48,13 @@ export function useSolicitudesCredito({ user, nombreEmpleado, isOpen }) {
       setLoading(false);
     }
   };
-
   useEffect(() => {
     fetchSolicitudes();
   }, []);
-
   const resumenEmpleadoSeleccionado = useMemo(() => {
     if (!solicitudSeleccionada) {
       return { cantidadActivos: 0, cuotaMensualActiva: 0 };
     }
-
     const empleadoKey = getEmpleadoKey(solicitudSeleccionada);
     const creditosActivos = solicitudes.filter((s) => {
       const mismoEmpleado = getEmpleadoKey(s) === empleadoKey;
@@ -72,7 +65,6 @@ export function useSolicitudesCredito({ user, nombreEmpleado, isOpen }) {
       );
       return mismoEmpleado && aprobado && sigueActivo;
     });
-
     const cuotaMensualActiva = creditosActivos.reduce(
       (acc, s) =>
         acc +
@@ -81,32 +73,27 @@ export function useSolicitudesCredito({ user, nombreEmpleado, isOpen }) {
         ),
       0,
     );
-
     return {
       cantidadActivos: creditosActivos.length,
       cuotaMensualActiva,
     };
   }, [solicitudSeleccionada, solicitudes]);
-
   useEffect(() => {
     const cargarHistorialPrevio = async () => {
       if (!isOpen || !solicitudSeleccionada) {
         setHistorialPrevioSeleccionado([]);
         return;
       }
-
       const toMillis = (fecha) => {
         if (!fecha) return 0;
         if (typeof fecha?.toMillis === "function") return fecha.toMillis();
         const parsed = new Date(fecha).getTime();
         return Number.isNaN(parsed) ? 0 : parsed;
       };
-
       const estadosHistorial = ["Aprobado", "Rechazado"];
       setLoadingHistorial(true);
       try {
         const empleadoId = solicitudSeleccionada.empleadoId;
-
         if (empleadoId) {
           const q = query(
             collection(db, "creditos"),
@@ -114,7 +101,6 @@ export function useSolicitudesCredito({ user, nombreEmpleado, isOpen }) {
           );
           const snap = await getDocs(q);
           const docs = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
-
           const historial = docs
             .filter((s) => estadosHistorial.includes(s.estado))
             .sort((a, b) => {
@@ -122,22 +108,18 @@ export function useSolicitudesCredito({ user, nombreEmpleado, isOpen }) {
               const fechaA = toMillis(a.fechaAutoriza ?? a.fechaRegistro);
               return fechaB - fechaA;
             });
-
           const solicitudActualEsHistorial = estadosHistorial.includes(
             solicitudSeleccionada.estado,
           );
           const yaExisteActual = historial.some(
             (s) => s.id === solicitudSeleccionada.id,
           );
-
           if (solicitudActualEsHistorial && !yaExisteActual) {
             historial.unshift(solicitudSeleccionada);
           }
-
           setHistorialPrevioSeleccionado(historial);
           return;
         }
-
         const empleadoKey = getEmpleadoKey(solicitudSeleccionada);
         const historialFallback = solicitudes
           .filter((s) => getEmpleadoKey(s) === empleadoKey)
@@ -147,7 +129,6 @@ export function useSolicitudesCredito({ user, nombreEmpleado, isOpen }) {
             const fechaA = toMillis(a.fechaAutoriza ?? a.fechaRegistro);
             return fechaB - fechaA;
           });
-
         setHistorialPrevioSeleccionado(historialFallback);
       } catch (error) {
         console.error("Error al cargar historial previo:", error);
@@ -156,10 +137,8 @@ export function useSolicitudesCredito({ user, nombreEmpleado, isOpen }) {
         setLoadingHistorial(false);
       }
     };
-
     cargarHistorialPrevio();
   }, [isOpen, solicitudSeleccionada, solicitudes]);
-
   const handleDecision = async (nuevoEstado) => {
     if (!solicitudSeleccionada) return;
     setProcesando(true);
@@ -178,7 +157,6 @@ export function useSolicitudesCredito({ user, nombreEmpleado, isOpen }) {
           estadoCredito: "Activo",
         }),
       });
-
       setSolicitudes((prev) =>
         prev.map((s) =>
           s.id === solicitudSeleccionada.id
@@ -200,7 +178,6 @@ export function useSolicitudesCredito({ user, nombreEmpleado, isOpen }) {
             : s,
         ),
       );
-
       setSolicitudSeleccionada((prev) =>
         prev
           ? {
@@ -219,7 +196,6 @@ export function useSolicitudesCredito({ user, nombreEmpleado, isOpen }) {
             }
           : prev,
       );
-
       await registrarBitacora({
         usuario: user?.email ?? "desconocido",
         nombre: nombreEmpleado || user?.email || "desconocido",
@@ -233,7 +209,6 @@ export function useSolicitudesCredito({ user, nombreEmpleado, isOpen }) {
               : `Rechazó la solicitud de crédito para ${solicitudSeleccionada.empleadoNombres} ${solicitudSeleccionada.empleadoApellidos} por L. ${Number(solicitudSeleccionada.datosFinancierosHistoricos?.totalCredito ?? 0).toLocaleString("es-HN")}`,
         },
       });
-
       notify.success(`Solicitud ${nuevoEstado} con éxito`);
       fetchSolicitudes();
     } catch (err) {
@@ -243,7 +218,6 @@ export function useSolicitudesCredito({ user, nombreEmpleado, isOpen }) {
       setProcesando(false);
     }
   };
-
   const totalPendientes = solicitudes.filter(
     (s) => s.estado === "Pendiente",
   ).length;
@@ -259,39 +233,30 @@ export function useSolicitudesCredito({ user, nombreEmpleado, isOpen }) {
   const totalRechazados = solicitudes.filter(
     (s) => s.estado === "Rechazado",
   ).length;
-
   const solicitudesFiltradas = useMemo(() => {
     return solicitudes.filter((s) => {
       if (!filtroEstadoSolicitud) return true;
-
       const estado = String(s.estado ?? "").toLowerCase();
-
       if (filtroEstadoSolicitud === "pendiente") {
         return estado === "pendiente";
       }
-
       if (filtroEstadoSolicitud === "rechazado") {
         return estado === "rechazado";
       }
-
       if (filtroEstadoSolicitud === "aprobado_activo") {
         const estadoCredito = String(s.estadoCredito ?? "").toLowerCase();
         return estado === "aprobado" && estadoCredito === "activo";
       }
-
       if (filtroEstadoSolicitud === "aprobado_pagado") {
         const estadoCredito = String(s.estadoCredito ?? "").toLowerCase();
         return estado === "aprobado" && estadoCredito === "pagado";
       }
-
       if (filtroEstadoSolicitud === "aprobado") {
         return estado === "aprobado";
       }
-
       return true;
     });
   }, [solicitudes, filtroEstadoSolicitud]);
-
   const etiquetaFiltroEstado = {
     pendiente: "Pendiente",
     aprobado: "Aprobado",
@@ -299,11 +264,9 @@ export function useSolicitudesCredito({ user, nombreEmpleado, isOpen }) {
     aprobado_pagado: "Pagado",
     rechazado: "Rechazado",
   };
-
   const textoFiltrosPdf = filtroEstadoSolicitud
     ? `Estado: ${etiquetaFiltroEstado[filtroEstadoSolicitud] ?? filtroEstadoSolicitud}`
     : "Listado Completo";
-
   return {
     solicitudes,
     loading,
@@ -324,4 +287,4 @@ export function useSolicitudesCredito({ user, nombreEmpleado, isOpen }) {
     handleDecision,
     fetchSolicitudes,
   };
-}
+}

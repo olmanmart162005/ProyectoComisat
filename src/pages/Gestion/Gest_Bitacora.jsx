@@ -1,5 +1,4 @@
 import { useMemo } from "react";
-
 import DataTable from "../../components/ui/table/DataTable";
 import MetricCard from "../../components/common/MetricCard";
 import ExportButtons from "../../layout/Exportbuttons";
@@ -10,21 +9,17 @@ import { useAuth } from "../../auth/AuthProvider";
 import { useNombreEmpleadoActual } from "../../hooks/useNombreEmpleadoActual";
 import { registrarBitacora } from "../../services/bitacora";
 import { formatDateForFilename, safeFormatDate } from "../../utils/formatters";
-
 import { useBitacora } from "./hooks/useBitacora";
 import {
   bitacoraColumns,
   COLUMNAS_EXPORT_BITACORA,
 } from "./columns/bitacoraColumns";
 import BitacoraFiltersDropdown from "../../components/Gestion/BitacoraFiltersDropdown";
-
 const selectClass =
   "p-2 border border-gray-300 rounded-md text-sm text-gray-900 focus:ring-blue-500 focus:border-blue-500 dark:bg-white/5 dark:border-white/10 dark:text-gray-100";
-
 export default function Gest_Bitacora() {
   const { user } = useAuth();
   const nombreEmpleado = useNombreEmpleadoActual();
-
   const {
     registrosFiltrados,
     loading,
@@ -42,10 +37,8 @@ export default function Gest_Bitacora() {
     totalEliminaciones,
     totalExportaciones,
   } = useBitacora();
-
   const [fechaInicioDP, fechaFinDP] = rangoPersonalizado;
   const columns = useMemo(() => bitacoraColumns(), []);
-
   const rangoFechaLabel = useMemo(() => {
     switch (rangoFecha) {
       case "hoy":
@@ -68,19 +61,16 @@ export default function Gest_Bitacora() {
         return "Todas";
     }
   }, [rangoFecha, fechaInicioDP, fechaFinDP]);
-
   const filtrosActivos = useMemo(
     () =>
       `Colección: ${filtroColeccion || "Todas"} · Acción: ${filtroAccion || "Todas"} · Fecha: ${rangoFechaLabel}`,
     [filtroColeccion, filtroAccion, rangoFechaLabel],
   );
-
   return (
     <div className="space-y-6">
       <h2 className="text-2xl font-bold text-gray-800 dark:text-white/90">
         Bitácora de Auditoría
       </h2>
-
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 md:gap-6">
         <MetricCard
           title="Registros Hoy"
@@ -107,7 +97,6 @@ export default function Gest_Bitacora() {
           iconWrapperClass="bg-blue-50 dark:bg-blue-500/10"
         />
       </div>
-
       <DataTable columns={columns} data={registrosFiltrados} loading={loading}>
         <DataTable.Toolbar searchPlaceholder="Buscar por usuario o nombre...">
           <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto sm:ml-auto items-stretch sm:items-center">
@@ -137,7 +126,6 @@ export default function Gest_Bitacora() {
                 />
               }
             />
-
             <ExportButtons
               rows={registrosFiltrados}
               columns={COLUMNAS_EXPORT_BITACORA}
@@ -176,4 +164,4 @@ export default function Gest_Bitacora() {
       </DataTable>
     </div>
   );
-}
+}

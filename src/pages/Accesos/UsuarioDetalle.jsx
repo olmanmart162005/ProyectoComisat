@@ -1,23 +1,19 @@
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { doc, getDoc } from "firebase/firestore";
-
 import Badge from "../../components/ui/badge/Badge";
 import PageShell from "../../components/common/PageShell";
 import { ChevronLeftIcon } from "../../icons";
 import { safeFormatDate } from "../../utils/formatters";
 import { db } from "../../firebase/firebase";
-
 export default function UsuarioDetalle() {
   const { state } = useLocation();
   const navigate = useNavigate();
   const usuario = state?.usuario ?? null;
   const [correoPersonalFallback, setCorreoPersonalFallback] = useState("");
-
   useEffect(() => {
     const cargarCorreoPersonal = async () => {
       if (!usuario?.empleadoId || usuario?.correoPersonal) return;
-
       try {
         const empleadoSnap = await getDoc(
           doc(db, "empleados", usuario.empleadoId),
@@ -29,10 +25,8 @@ export default function UsuarioDetalle() {
         console.error("Error al cargar correo personal del empleado:", error);
       }
     };
-
     cargarCorreoPersonal();
   }, [usuario]);
-
   if (!usuario) {
     return (
       <PageShell
@@ -46,11 +40,9 @@ export default function UsuarioDetalle() {
       </PageShell>
     );
   }
-
   const nombreCompleto = usuario.nombre || "Usuario";
   const correoPersonalMostrado =
     usuario.correoPersonal || correoPersonalFallback || "—";
-
   return (
     <PageShell
       breadcrumbItems={["Detalle", nombreCompleto]}
@@ -67,7 +59,6 @@ export default function UsuarioDetalle() {
             <ChevronLeftIcon className="h-4 w-4" />
             Regresar a usuarios
           </button>
-
           <div className="flex items-center gap-3">
             <button
               type="button"
@@ -80,17 +71,14 @@ export default function UsuarioDetalle() {
             </button>
           </div>
         </div>
-
         <div className="grid grid-cols-1 items-start gap-8 lg:grid-cols-12 lg:gap-12">
           <div className="w-full lg:col-span-5">
             <div className="group relative aspect-square overflow-hidden rounded-2xl border border-gray-200 bg-gray-50 shadow-sm dark:border-white/10 dark:bg-gray-900/40">
               <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-white to-gray-50 dark:from-blue-500/10 dark:via-gray-900 dark:to-gray-950" />
-
               <div className="relative flex h-full flex-col items-center justify-center px-6 text-center">
                 <div className="flex h-24 w-24 items-center justify-center rounded-full bg-blue-600 text-3xl font-extrabold text-white shadow-lg shadow-blue-600/25">
                   {(nombreCompleto || "U").charAt(0).toUpperCase()}
                 </div>
-
                 <p className="mt-5 text-sm font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">
                   Rol
                 </p>
@@ -98,7 +86,6 @@ export default function UsuarioDetalle() {
                   {usuario.rolNombre || "—"}
                 </p>
               </div>
-
               <div className="pointer-events-none absolute left-4 top-4 flex flex-col gap-2">
                 <Badge
                   size="sm"
@@ -109,14 +96,12 @@ export default function UsuarioDetalle() {
               </div>
             </div>
           </div>
-
           <div className="flex flex-col lg:col-span-7">
             <div className="space-y-6">
               <h2 className="text-4xl font-extrabold leading-tight tracking-tight text-gray-900 dark:text-white/90 sm:text-5xl xl:text-6xl">
                 {nombreCompleto}
               </h2>
             </div>
-
             <div className="mt-10 grid grid-cols-1 gap-8 border-t border-gray-200 pt-8 dark:border-white/10 md:grid-cols-2 md:gap-12">
               <div className="space-y-6">
                 <div className="flex items-center gap-2.5">
@@ -137,7 +122,6 @@ export default function UsuarioDetalle() {
                     Datos de acceso
                   </h3>
                 </div>
-
                 <div className="space-y-6">
                   <div className="flex flex-col">
                     <span className="mb-1 text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">
@@ -147,7 +131,6 @@ export default function UsuarioDetalle() {
                       {usuario.correo || "—"}
                     </span>
                   </div>
-
                   <div className="flex flex-col">
                     <span className="mb-1 text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">
                       Correo personal
@@ -158,7 +141,6 @@ export default function UsuarioDetalle() {
                   </div>
                 </div>
               </div>
-
               <div className="space-y-6 border-l border-gray-200 pl-8 dark:border-white/10">
                 <div className="flex items-center gap-2.5">
                   <svg
@@ -178,7 +160,6 @@ export default function UsuarioDetalle() {
                     Datos generales
                   </h3>
                 </div>
-
                 <div className="space-y-6">
                   <div className="flex flex-col">
                     <span className="mb-1 text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">
@@ -188,7 +169,6 @@ export default function UsuarioDetalle() {
                       {usuario.estado || "—"}
                     </span>
                   </div>
-
                   <div className="flex flex-col">
                     <span className="mb-1 text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">
                       Fecha de registro
@@ -197,7 +177,6 @@ export default function UsuarioDetalle() {
                       {safeFormatDate(usuario.fechaRegistro)}
                     </span>
                   </div>
-
                   <div className="flex flex-col">
                     <span className="mb-1 text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">
                       Última modificación
@@ -214,4 +193,4 @@ export default function UsuarioDetalle() {
       </main>
     </PageShell>
   );
-}
+}

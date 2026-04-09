@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-
 import PageShell from "../../components/common/PageShell";
 import { useAuth } from "../../auth/AuthProvider";
 import { useNombreEmpleadoActual } from "../../hooks/useNombreEmpleadoActual";
@@ -9,7 +8,6 @@ import {
   MAX_NOMBRE_DEPARTAMENTO,
   MAX_DESCRIPCION_DEPARTAMENTO,
 } from "../../utils/formLimits";
-
 export default function DepartamentoFormulario() {
   const location = useLocation();
   const navigate = useNavigate();
@@ -17,25 +15,21 @@ export default function DepartamentoFormulario() {
   const nombreEmpleado = useNombreEmpleadoActual();
   const departamento = location.state?.departamento ?? null;
   const modoEdicion = Boolean(departamento);
-
   const { guardarDepartamento, actualizarDepartamento } = useDepartamentos({
     closeModal: () => navigate("/departamentos"),
     cargarDepartamentos: false,
   });
-
   const [editandoId, setEditandoId] = useState(null);
   const [enviando, setEnviando] = useState(false);
   const [nombre, setNombre] = useState("");
   const [descripcion, setDescripcion] = useState("");
   const [nombreAnterior, setNombreAnterior] = useState("");
-
   const resetFormulario = () => {
     setEditandoId(null);
     setNombre("");
     setDescripcion("");
     setNombreAnterior("");
   };
-
   useEffect(() => {
     if (modoEdicion && departamento) {
       setEditandoId(departamento.id || null);
@@ -44,10 +38,8 @@ export default function DepartamentoFormulario() {
       setNombreAnterior(departamento.nombre || "");
       return;
     }
-
     resetFormulario();
   }, [modoEdicion, departamento]);
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setEnviando(true);
@@ -71,7 +63,6 @@ export default function DepartamentoFormulario() {
       setEnviando(false);
     }
   };
-
   if (location.pathname.endsWith("/editar") && !departamento) {
     return (
       <PageShell
@@ -87,7 +78,6 @@ export default function DepartamentoFormulario() {
       </PageShell>
     );
   }
-
   return (
     <PageShell
       breadcrumbCurrent={modoEdicion ? "Editar" : "Nuevo"}
@@ -97,7 +87,7 @@ export default function DepartamentoFormulario() {
     >
       <form onSubmit={handleSubmit} className="space-y-6">
         <section className="max-w-2xl space-y-6">
-          {/* Nombre del Departamento */}
+          {}
           <div className="space-y-2.5">
             <div className="flex items-center justify-between gap-2 mb-1.5">
               <label className="block text-[10px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500">
@@ -120,7 +110,6 @@ export default function DepartamentoFormulario() {
               className="w-full px-4 py-3 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-gray-900 text-gray-900 dark:text-white/90 placeholder-gray-500 dark:placeholder-gray-400 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 disabled:opacity-50 transition-colors"
             />
           </div>
-
           {/* Descripción */}
           <div className="space-y-2.5">
             <div className="flex items-center justify-between gap-2 mb-1.5">
@@ -145,7 +134,6 @@ export default function DepartamentoFormulario() {
             />
           </div>
         </section>
-
         <div className="border-t border-gray-200 dark:border-white/10 pt-6 flex gap-3 justify-end">
           <button
             type="button"
@@ -175,4 +163,4 @@ export default function DepartamentoFormulario() {
       </form>
     </PageShell>
   );
-}
+}

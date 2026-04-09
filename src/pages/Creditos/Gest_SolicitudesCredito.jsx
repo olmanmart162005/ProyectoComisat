@@ -13,19 +13,16 @@ import {
 } from "../../icons";
 import { formatDateForFilename } from "../../utils/formatters";
 import SolicitudesFiltersDropdown from "../../components/creditos/SolicitudesFiltersDropdown";
-
 import {
   solicitudColumns,
   COLUMNAS_EXPORT_SOLICITUDES,
   lps,
 } from "./columns/solicitudColumns";
 import { useSolicitudesCredito } from "./hooks/useSolicitudesCredito";
-
 export default function Gest_SolicitudesCredito() {
   const { user } = useAuth();
   const nombreEmpleado = useNombreEmpleadoActual();
   const navigate = useNavigate();
-
   const {
     solicitudes,
     loading,
@@ -38,20 +35,17 @@ export default function Gest_SolicitudesCredito() {
     totalRechazados,
     montoEnRiesgo,
   } = useSolicitudesCredito({ user, nombreEmpleado, isOpen: false });
-
   const columns = solicitudColumns({
     onVerDetalle: (solicitud) =>
       navigate("/solicitudes-reservas/detalle", {
         state: { solicitud },
       }),
   });
-
   return (
     <div className="space-y-6">
       <h2 className="text-2xl font-bold text-gray-800 dark:text-white/90">
         Solicitudes de Crédito
       </h2>
-
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-4 md:gap-6">
         <MetricCard
           title="Pendientes Revisión"
@@ -84,7 +78,6 @@ export default function Gest_SolicitudesCredito() {
           iconWrapperClass="bg-red-50 dark:bg-red-500/10"
         />
       </div>
-
       <DataTable
         columns={columns}
         data={solicitudesFiltradas}
@@ -96,7 +89,6 @@ export default function Gest_SolicitudesCredito() {
               filtroEstadoSolicitud={filtroEstadoSolicitud}
               setFiltroEstadoSolicitud={setFiltroEstadoSolicitud}
             />
-
             <ExportButtons
               rows={solicitudesFiltradas}
               columns={COLUMNAS_EXPORT_SOLICITUDES}
@@ -132,4 +124,4 @@ export default function Gest_SolicitudesCredito() {
       </DataTable>
     </div>
   );
-}
+}

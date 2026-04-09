@@ -1,5 +1,4 @@
 import { useMemo } from "react";
-
 const COLUMNAS_EXPORT_HISTORIAL_PRODUCTOS = [
   { key: "nombre", header: "Nombre", type: "text" },
   { key: "descripcion", header: "Descripción", type: "text" },
@@ -10,7 +9,6 @@ const COLUMNAS_EXPORT_HISTORIAL_PRODUCTOS = [
   { key: "fechaBaja", header: "Fecha de Baja", type: "date" },
   { key: "nombreBajadoPor", header: "Dado de baja por", type: "text" },
 ];
-
 export function historialProductoColumns() {
   return useMemo(
     () => [
@@ -76,5 +74,4 @@ export function historialProductoColumns() {
     [],
   );
 }
-
-export { COLUMNAS_EXPORT_HISTORIAL_PRODUCTOS };
+export { COLUMNAS_EXPORT_HISTORIAL_PRODUCTOS };

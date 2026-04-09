@@ -1,14 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { collection, getDocs, query, where } from "firebase/firestore";
-
 import PageShell from "../../components/common/PageShell";
 import DataTable from "../../components/ui/table/DataTable";
 import Badge from "../../components/ui/badge/Badge";
 import { ChevronLeftIcon } from "../../icons";
 import { db } from "../../firebase/firebase";
 import { lps, estadoCreditoColor } from "./columns/historialCreditoColumns";
-
 const formatFecha = (valor) => {
   if (!valor) return "---";
   if (typeof valor?.toDate === "function") {
@@ -23,18 +21,14 @@ const formatFecha = (valor) => {
   }
   return "---";
 };
-
 export default function HistorialCreditosDetalle() {
   const { state } = useLocation();
   const navigate = useNavigate();
   const credito = state?.credito ?? null;
-
   const [cuotas, setCuotas] = useState([]);
   const [loadingCuotas, setLoadingCuotas] = useState(false);
-
   useEffect(() => {
     if (!credito?.id) return;
-
     const fetchCuotas = async () => {
       setLoadingCuotas(true);
       try {
@@ -55,10 +49,8 @@ export default function HistorialCreditosDetalle() {
         setLoadingCuotas(false);
       }
     };
-
     fetchCuotas();
   }, [credito?.id]);
-
   const columnasCuotas = useMemo(
     () => [
       {
@@ -118,7 +110,6 @@ export default function HistorialCreditosDetalle() {
     ],
     [],
   );
-
   if (!credito) {
     return (
       <PageShell
@@ -132,7 +123,6 @@ export default function HistorialCreditosDetalle() {
       </PageShell>
     );
   }
-
   const fin = credito.datosFinancierosHistoricos ?? {};
   const cuotasPagadas = Number(credito.cuotasPagadas ?? 0);
   const plazoCuotas = Number(fin.plazoCuotas ?? 0);
@@ -144,11 +134,9 @@ export default function HistorialCreditosDetalle() {
   );
   const porcentajeAvance =
     plazoCuotas > 0 ? Math.min(100, (cuotasPagadas / plazoCuotas) * 100) : 0;
-
   const nombreEmpleado =
     `${credito.empleadoNombres ?? ""} ${credito.empleadoApellidos ?? ""}`.trim() ||
     "Empleado";
-
   return (
     <PageShell
       breadcrumbItems={["Detalle", credito.productoNombre ?? "Crédito"]}
@@ -167,7 +155,6 @@ export default function HistorialCreditosDetalle() {
             Regresar a historial de créditos
           </button>
         </div>
-
         <div className="space-y-2">
           <p className="text-xs font-semibold uppercase tracking-widest text-gray-400 dark:text-gray-500">
             {esActivo ? "Progreso del Crédito" : "Historial del Crédito"}
@@ -193,7 +180,6 @@ export default function HistorialCreditosDetalle() {
             </Badge>
           </div>
         </div>
-
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 p-4 rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-gray-900/50">
           <div className="flex flex-col gap-1">
             <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
@@ -228,7 +214,6 @@ export default function HistorialCreditosDetalle() {
             </p>
           </div>
         </div>
-
         {plazoCuotas > 0 && (
           <div className="space-y-1.5">
             <div className="flex justify-between items-center">
@@ -247,14 +232,12 @@ export default function HistorialCreditosDetalle() {
             </div>
           </div>
         )}
-
         <div className="rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-gray-900 overflow-hidden">
           <div className="px-4 pt-5 pb-3 border-b border-gray-200 dark:border-white/10">
             <p className="text-xs font-semibold uppercase tracking-widest text-gray-400 dark:text-gray-500">
               Cuotas Cobradas
             </p>
           </div>
-
           <div className="p-3">
             <DataTable
               columns={columnasCuotas}
@@ -269,4 +252,4 @@ export default function HistorialCreditosDetalle() {
       </div>
     </PageShell>
   );
-}
+}

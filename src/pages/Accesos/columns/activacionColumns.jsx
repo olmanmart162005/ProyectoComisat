@@ -1,7 +1,6 @@
 import { useState } from "react";
 import Badge from "../../../components/ui/badge/Badge";
 import { CheckCircleIcon } from "../../../icons";
-
 function PasswordCell({ password }) {
   const [visible, setVisible] = useState(false);
   return (
@@ -28,7 +27,6 @@ function PasswordCell({ password }) {
     </div>
   );
 }
-
 export function activacionColumns({ onActivar }) {
   return [
     {

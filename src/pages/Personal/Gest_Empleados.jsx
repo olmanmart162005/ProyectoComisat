@@ -1,9 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-
 import DataTable from "../../components/ui/table/DataTable";
 import ConfirmDeleteModal from "../../components/common/ConfirmDeleteModal";
-
 import MetricCard from "../../components/common/MetricCard";
 import { GroupIcon, CheckCircleIcon, CloseIcon } from "../../icons";
 import ExportButtons from "../../layout/Exportbuttons";
@@ -12,16 +10,13 @@ import { useNombreEmpleadoActual } from "../../hooks/useNombreEmpleadoActual";
 import { registrarBitacora } from "../../services/bitacora";
 import { formatDateForFilename } from "../../utils/formatters";
 import EmpleadosFiltersDropdown from "../../components/Personal/EmpleadosFiltersDropdown";
-
 import {
   empleadoColumns,
   COLUMNAS_EXPORT_EMPLEADOS,
 } from "./columns/empleadoColumns";
 import { useEmpleados } from "./hooks/useEmpleados";
-
 export default function Gest_Empleados() {
   const navigate = useNavigate();
-
   const { user } = useAuth();
   const nombreEmpleado = useNombreEmpleadoActual();
   const {
@@ -41,17 +36,14 @@ export default function Gest_Empleados() {
   } = useEmpleados({ user, nombreEmpleado });
   const [empleadoAEliminar, setEmpleadoAEliminar] = useState(null);
   const [eliminando, setEliminando] = useState(false);
-
   const abrirEliminarEmpleado = (empId) => {
     const emp = empleados.find((item) => item.id === empId) || null;
     setEmpleadoAEliminar(emp);
   };
-
   const cerrarEliminarEmpleado = () => {
     if (eliminando) return;
     setEmpleadoAEliminar(null);
   };
-
   const confirmarEliminarEmpleado = async () => {
     if (!empleadoAEliminar?.id) return;
     setEliminando(true);
@@ -59,7 +51,6 @@ export default function Gest_Empleados() {
     setEliminando(false);
     if (ok) setEmpleadoAEliminar(null);
   };
-
   const columns = empleadoColumns({
     onView: (empleado) =>
       navigate("/empleados/detalle", {
@@ -72,7 +63,6 @@ export default function Gest_Empleados() {
     onEliminar: abrirEliminarEmpleado,
     departamentos,
   });
-
   return (
     <div className="space-y-6">
       <div className="flex sm:justify-between flex-col sm:flex-row gap-4 items-start sm:items-center">
@@ -90,7 +80,7 @@ export default function Gest_Empleados() {
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
-            xmlns="http://www.w3.org/2000/svg"
+            xmlns="http:
           >
             <path
               strokeLinecap="round"
@@ -102,7 +92,6 @@ export default function Gest_Empleados() {
           Nuevo Empleado
         </button>
       </div>
-
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 md:gap-6">
         <MetricCard
           title="Total Empleados"
@@ -127,7 +116,6 @@ export default function Gest_Empleados() {
           iconWrapperClass="bg-red-50 dark:bg-red-500/10"
         />
       </div>
-
       <DataTable columns={columns} data={empleadosFiltrados} loading={loading}>
         <DataTable.Toolbar searchPlaceholder="Buscar empleado...">
           <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto sm:ml-auto items-stretch sm:items-center">
@@ -170,7 +158,6 @@ export default function Gest_Empleados() {
         <DataTable.Table />
         <DataTable.Pagination />
       </DataTable>
-
       <ConfirmDeleteModal
         isOpen={Boolean(empleadoAEliminar)}
         onClose={cerrarEliminarEmpleado}
@@ -181,4 +168,4 @@ export default function Gest_Empleados() {
       />
     </div>
   );
-}
+}

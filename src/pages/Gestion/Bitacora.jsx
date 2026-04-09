@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { db } from "../../firebase/firebase";
 import { collection, getDocs, orderBy, query, where } from "firebase/firestore";
-
 import DataTable from "../../components/ui/table/DataTable";
 import Badge from "../../components/ui/badge/Badge";
 import MetricCard from "../../components/common/MetricCard";
@@ -9,38 +8,33 @@ import { ListIcon, TrashBinIcon, DownloadIcon } from "../../icons";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { safeFormatDateTime } from "../../utils/formatters";
-
-// Helpers para capitalizar
 function capitalize(str) {
   if (!str) return "";
   return str.charAt(0).toUpperCase() + str.slice(1);
 }
-
 function accionColor(accion) {
   if (!accion) return "gray";
   const a = accion.toLowerCase();
   switch (a) {
     case "creacion":
-      return "primary"; // azul
+      return "primary"; 
     case "actualizacion":
-      return "success"; // verde
+      return "success"; 
     case "eliminacion":
-      return "error"; // rojo
+      return "error"; 
     case "exportar":
-      return "dark"; // gris oscuro, serio
+      return "dark"; 
     case "aprobacion":
-      return "teal"; // teal
+      return "teal"; 
     case "rechazo":
-      return "pink"; // rosa
+      return "pink"; 
     case "primer ingreso":
-      return "indigo"; // morado intenso
+      return "indigo"; 
     case "ingreso":
-      return "purple"; // morado claro
+      return "purple"; 
     case "cobro mensual":
-      return "success"; // verde intenso
-    // Agrega más casos según tus acciones frecuentes
+      return "success"; 
     default: {
-      // Fallback: asigna un color consistente basado en hash
       const palette = [
         "primary",
         "success",
@@ -62,7 +56,6 @@ function accionColor(accion) {
     }
   }
 }
-
 function resumirMetadata(accion, metadata = {}) {
   if (!metadata || Object.keys(metadata).length === 0) return "—";
   if (metadata.detalle) return metadata.detalle;
@@ -104,11 +97,8 @@ function resumirMetadata(accion, metadata = {}) {
       return "—";
   }
 }
-
 const selectClass =
   "p-2 border border-gray-300 rounded-md text-sm text-gray-900 focus:ring-blue-500 focus:border-blue-500 dark:bg-white/5 dark:border-white/10 dark:text-gray-100";
-
-// ── Componente ─────────────────────────────────────────────────────
 export default function Bitacora() {
   const [registros, setRegistros] = useState([]);
   const [todosLosRegistros, setTodosLosRegistros] = useState([]);
@@ -118,8 +108,6 @@ export default function Bitacora() {
   const [rangoFecha, setRangoFecha] = useState("");
   const [rangoPersonalizado, setRangoPersonalizado] = useState([null, null]);
   const [fechaInicioDP, fechaFinDP] = rangoPersonalizado;
-
-  // Extraer colecciones y acciones únicas de todosLosRegistros
   const coleccionesDinamicas = useMemo(() => {
     const set = new Set();
     todosLosRegistros.forEach((r) => {
@@ -130,14 +118,12 @@ export default function Bitacora() {
       label: capitalize(val),
     }));
   }, [todosLosRegistros]);
-
   const accionesDinamicas = useMemo(() => {
     const set = new Set();
     todosLosRegistros.forEach((r) => {
       if (r.accion) set.add(r.accion.toLowerCase());
       if (r.accion) set.add(capitalize(r.accion));
     });
-    // Elimina duplicados ignorando mayúsculas/minúsculas
     const unique = Array.from(set).reduce((acc, val) => {
       if (!acc.some((v) => v.toLowerCase() === val.toLowerCase()))
         acc.push(val);
@@ -145,12 +131,9 @@ export default function Bitacora() {
     }, []);
     return unique.map((val) => ({ value: val, label: capitalize(val) }));
   }, [todosLosRegistros]);
-
-  // Re-fetch cuando cambian los filtros que van a Firestore
   const fetchBitacora = async () => {
     setLoading(true);
     try {
-      // ── Query completa — siempre, para métricas ──
       const qCompleta = query(
         collection(db, "bitacora"),
         orderBy("fecha", "desc"),
@@ -158,14 +141,10 @@ export default function Bitacora() {
       const snapCompleta = await getDocs(qCompleta);
       const todos = snapCompleta.docs.map((d) => ({ id: d.id, ...d.data() }));
       setTodosLosRegistros(todos);
-
-      // ── Query filtrada — para la tabla ──
       let q;
-      // Normalizar filtroAccion a minúsculas y capitalizada para la consulta
       const filtroAccionLower = filtroAccion ? filtroAccion.toLowerCase() : "";
       const filtroAccionCap = filtroAccion ? capitalize(filtroAccionLower) : "";
       if (filtroColeccion && filtroAccion) {
-        // Buscar ambos variantes
         q = query(
           collection(db, "bitacora"),
           where("coleccion", "==", filtroColeccion),
@@ -185,11 +164,9 @@ export default function Bitacora() {
           orderBy("fecha", "desc"),
         );
       } else {
-        // Sin filtros — reutiliza lo que ya cargamos
         setRegistros(todos);
         return;
       }
-
       const snap = await getDocs(q);
       setRegistros(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
     } catch (error) {
@@ -198,11 +175,9 @@ export default function Bitacora() {
       setLoading(false);
     }
   };
-
   useEffect(() => {
     fetchBitacora();
   }, [filtroColeccion, filtroAccion]);
-
   const limitesFecha = useMemo(() => {
     const hoy = new Date();
     switch (rangoFecha) {
@@ -246,12 +221,9 @@ export default function Bitacora() {
         return { inicio: null, fin: null };
     }
   }, [rangoFecha, fechaInicioDP, fechaFinDP]);
-
-  // Filtro de rango de fecha en cliente (sobre los datos ya cargados)
   const registrosFiltrados = useMemo(() => {
     const { inicio, fin } = limitesFecha;
     if (!inicio && !fin) return registros;
-
     return registros.filter((r) => {
       const fecha = r.fecha?.toDate?.();
       if (!fecha) return false;
@@ -260,14 +232,11 @@ export default function Bitacora() {
       return true;
     });
   }, [registros, limitesFecha]);
-
-  // Métricas calculadas sobre todos los registros cargados
   const hoyInicio = useMemo(() => {
     const d = new Date();
     d.setHours(0, 0, 0, 0);
     return d;
   }, []);
-
   const totalHoy = useMemo(
     () =>
       todosLosRegistros.filter((r) => {
@@ -276,15 +245,12 @@ export default function Bitacora() {
       }).length,
     [todosLosRegistros, hoyInicio],
   );
-
   const totalEliminaciones = useMemo(() => {
     return todosLosRegistros.filter((r) => r.accion === "eliminacion").length;
   }, [todosLosRegistros]);
-
   const totalExportaciones = useMemo(() => {
     return todosLosRegistros.filter((r) => r.accion === "exportar").length;
   }, [todosLosRegistros]);
-
   const columns = useMemo(
     () => [
       {
@@ -349,13 +315,11 @@ export default function Bitacora() {
     ],
     [],
   );
-
   return (
     <div className="space-y-6">
       <h2 className="text-2xl font-bold text-gray-800 dark:text-white/90">
         Bitácora de Auditoría
       </h2>
-
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 md:gap-6">
         <MetricCard
           title="Registros Hoy"
@@ -382,7 +346,6 @@ export default function Bitacora() {
           iconWrapperClass="bg-blue-50 dark:bg-blue-500/10"
         />
       </div>
-
       <DataTable columns={columns} data={registrosFiltrados} loading={loading}>
         <DataTable.Toolbar searchPlaceholder="Buscar por usuario o nombre...">
           <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto sm:ml-auto flex-wrap">
@@ -404,7 +367,6 @@ export default function Bitacora() {
                 </option>
               ))}
             </select>
-
             <select
               value={filtroAccion}
               onChange={(e) => setFiltroAccion(e.target.value)}
@@ -423,7 +385,6 @@ export default function Bitacora() {
                 </option>
               ))}
             </select>
-
             <select
               value={rangoFecha}
               onChange={(e) => {
@@ -453,7 +414,6 @@ export default function Bitacora() {
                 Personalizado
               </option>
             </select>
-
             {/* Date picker de rango — solo en personalizado */}
             {rangoFecha === "personalizado" && (
               <DatePicker
@@ -476,4 +436,4 @@ export default function Bitacora() {
       </DataTable>
     </div>
   );
-}
+}

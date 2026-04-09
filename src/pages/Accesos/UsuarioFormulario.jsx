@@ -1,11 +1,9 @@
 import { useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-
 import PageShell from "../../components/common/PageShell";
 import { useAuth } from "../../auth/AuthProvider";
 import { useNombreEmpleadoActual } from "../../hooks/useNombreEmpleadoActual";
 import { useUsuarios } from "./hooks/useUsuarios";
-
 export default function UsuarioFormulario() {
   const location = useLocation();
   const navigate = useNavigate();
@@ -13,7 +11,6 @@ export default function UsuarioFormulario() {
   const nombreEmpleado = useNombreEmpleadoActual();
   const usuario = location.state?.usuario ?? null;
   const modoEdicion = Boolean(usuario);
-
   const {
     empleados,
     roles,
@@ -47,13 +44,10 @@ export default function UsuarioFormulario() {
     handleUpdate,
     resetFormulario,
   } = useUsuarios({ user, nombreEmpleado });
-
   useEffect(() => {
     if (!modoEdicion || !usuario || !roles.length || !empleados.length) return;
-
     const empleadoRelacionado =
       empleados.find((emp) => emp.id === usuario.empleadoId) ?? null;
-
     setEditandoId(usuario.id || null);
     setEmpleadoId(usuario.empleadoId || empleadoRelacionado?.id || "");
     setBusquedaEmpleado(
@@ -88,13 +82,11 @@ export default function UsuarioFormulario() {
     setRolNombre,
     extraerLocalPartCorreo,
   ]);
-
   useEffect(() => {
     if (modoEdicion) return;
     resetFormulario();
     setBusquedaEmpleado("");
   }, [modoEdicion, resetFormulario, setBusquedaEmpleado]);
-
   const handleEmpleadoSeleccionado = (emp) => {
     const nombreCompleto = `${emp.nombres ?? ""} ${emp.apellidos ?? ""}`.trim();
     setEmpleadoId(emp.id);
@@ -103,7 +95,6 @@ export default function UsuarioFormulario() {
     setBusquedaEmpleado(nombreCompleto);
     setMostrarSugerencias(false);
   };
-
   const handleGuardar = async (e) => {
     if (modoEdicion) {
       await handleUpdate(e, {
@@ -111,17 +102,14 @@ export default function UsuarioFormulario() {
       });
       return;
     }
-
     await handleSubmit(e, {
       onSuccess: () => navigate("/usuarios"),
     });
   };
-
   const rolesSelect =
     modoEdicion && rolId && !rolesAsignables.some((r) => r.id === rolId)
       ? [...rolesAsignables, ...roles.filter((r) => r.id === rolId)]
       : rolesAsignables;
-
   if (location.pathname.endsWith("/editar") && !usuario) {
     return (
       <PageShell
@@ -135,7 +123,6 @@ export default function UsuarioFormulario() {
       </PageShell>
     );
   }
-
   return (
     <PageShell
       breadcrumbCurrent={modoEdicion ? "Editar" : "Nuevo"}
@@ -157,7 +144,6 @@ export default function UsuarioFormulario() {
                 Asignación de acceso y credenciales.
               </p>
             </div>
-
             <div className="rounded-xl border border-gray-200 bg-white p-5 dark:border-white/10 dark:bg-white/[0.02]">
               <h3 className="text-sm font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">
                 Estado del usuario
@@ -190,7 +176,6 @@ export default function UsuarioFormulario() {
               </div>
             </div>
           </div>
-
           <div className="flex flex-col gap-5 self-stretch">
             <div className="relative">
               <label className="mb-1.5 ml-1 block text-[10px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500">
@@ -215,7 +200,6 @@ export default function UsuarioFormulario() {
                 placeholder="Buscar empleado..."
                 className="w-full rounded-lg border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-gray-900 outline-none transition-all focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 dark:border-white/10 dark:bg-gray-900 dark:text-white/90"
               />
-
               {mostrarSugerencias && busquedaEmpleado.length > 0 && (
                 <ul className="absolute z-50 mt-1 max-h-52 w-full overflow-y-auto rounded-md border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-800">
                   {empleadosDisponibles
@@ -242,7 +226,6 @@ export default function UsuarioFormulario() {
                         </li>
                       );
                     })}
-
                   {empleadosDisponibles.filter((emp) =>
                     `${emp.nombres ?? ""} ${emp.apellidos ?? ""}`
                       .toLowerCase()
@@ -255,7 +238,6 @@ export default function UsuarioFormulario() {
                 </ul>
               )}
             </div>
-
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div>
                 <label className="mb-1.5 ml-1 block text-[10px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500">
@@ -269,7 +251,6 @@ export default function UsuarioFormulario() {
                   className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3.5 py-2.5 text-sm text-gray-900 outline-none transition-all dark:border-white/10 dark:bg-gray-900 dark:text-white/90"
                 />
               </div>
-
               <div>
                 <label className="mb-1.5 ml-1 block text-[10px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500">
                   Correo Institucional
@@ -291,7 +272,6 @@ export default function UsuarioFormulario() {
                 </div>
               </div>
             </div>
-
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div>
                 <label className="mb-1.5 ml-1 block text-[10px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500">
@@ -316,7 +296,6 @@ export default function UsuarioFormulario() {
             </div>
           </div>
         </section>
-
         <footer className="sticky bottom-0 z-10 -mx-5 border-t border-gray-100 bg-white px-5 py-4 dark:border-white/10 dark:bg-gray-950/80 sm:-mx-6 sm:px-6">
           <div className="flex justify-end gap-3">
             <button
@@ -348,4 +327,4 @@ export default function UsuarioFormulario() {
       </form>
     </PageShell>
   );
-}
+}

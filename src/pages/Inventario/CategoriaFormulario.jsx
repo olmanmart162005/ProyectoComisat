@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { useLocation, useNavigate } from "react-router-dom";
-
 import PageShell from "../../components/common/PageShell";
 import { useAuth } from "../../auth/AuthProvider";
 import { useNombreEmpleadoActual } from "../../hooks/useNombreEmpleadoActual";
@@ -10,7 +9,6 @@ import {
   MAX_NOMBRE_CATEGORIA,
   sanitizeNombreCategoria,
 } from "../../utils/productoUtils";
-
 export default function CategoriaFormulario() {
   const location = useLocation();
   const navigate = useNavigate();
@@ -18,19 +16,16 @@ export default function CategoriaFormulario() {
   const nombreEmpleado = useNombreEmpleadoActual();
   const categoria = location.state?.categoria ?? null;
   const modoEdicion = Boolean(categoria);
-
   const { guardarCategoria, actualizarCategoria } = useCategorias({
     user,
     nombreEmpleado,
     cargarCategorias: false,
   });
-
   const [enviando, setEnviando] = useState(false);
   const [nombre, setNombre] = useState("");
   const [archivoImagen, setArchivoImagen] = useState(null);
   const [previewImagen, setPreviewImagen] = useState(null);
   const [imagenUrlActual, setImagenUrlActual] = useState("");
-
   useEffect(() => {
     if (modoEdicion && categoria) {
       setNombre(categoria.nombre || "");
@@ -44,14 +39,12 @@ export default function CategoriaFormulario() {
       setImagenUrlActual("");
     }
   }, [modoEdicion, categoria]);
-
   const handleImagenChange = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
     setArchivoImagen(file);
     setPreviewImagen(URL.createObjectURL(file));
   };
-
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop: (acceptedFiles) => {
       if (acceptedFiles.length > 0) {
@@ -64,7 +57,6 @@ export default function CategoriaFormulario() {
       "image/webp": [],
     },
   });
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setEnviando(true);
@@ -74,7 +66,6 @@ export default function CategoriaFormulario() {
         archivoImagen,
         onSuccess: () => navigate("/categorias"),
       };
-
       if (modoEdicion) {
         await actualizarCategoria?.({
           ...payload,
@@ -89,7 +80,6 @@ export default function CategoriaFormulario() {
       setEnviando(false);
     }
   };
-
   if (location.pathname.endsWith("/editar") && !categoria) {
     return (
       <PageShell
@@ -105,7 +95,6 @@ export default function CategoriaFormulario() {
       </PageShell>
     );
   }
-
   return (
     <PageShell
       breadcrumbCurrent={modoEdicion ? "Editar" : "Nueva"}
@@ -137,7 +126,6 @@ export default function CategoriaFormulario() {
               ) : (
                 <div className="absolute inset-0 bg-gradient-to-br from-white/80 via-white/60 to-transparent dark:from-gray-900/70 dark:via-gray-900/45" />
               )}
-
               {(!previewImagen || isDragActive) && (
                 <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-4">
                   <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-blue-50 text-blue-600 transition-transform group-hover:scale-105 dark:bg-blue-500/10 dark:text-blue-400">
@@ -167,7 +155,6 @@ export default function CategoriaFormulario() {
               )}
             </div>
           </div>
-
           <div className="w-full lg:flex-1 space-y-2.5">
             <div className="flex items-end justify-between gap-3">
               <label className="block text-[10px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500">
@@ -196,7 +183,6 @@ export default function CategoriaFormulario() {
             />
           </div>
         </section>
-
         <div className="border-t border-gray-200 dark:border-white/10 pt-6 flex gap-3 justify-end">
           <button
             type="button"
@@ -226,4 +212,4 @@ export default function CategoriaFormulario() {
       </form>
     </PageShell>
   );
-}
+}

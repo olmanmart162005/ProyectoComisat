@@ -1,6 +1,5 @@
 import Badge from "../../../components/ui/badge/Badge";
 import { lps, estadoCreditoColor } from "./empleadoCreditoColumns";
-
 export function historialColumns() {
   return [
     {
@@ -47,7 +46,6 @@ export function historialColumns() {
     },
   ];
 }
-
 export function columnasCreditosDetalle() {
   return [
     {
@@ -77,4 +75,4 @@ export function columnasCreditosDetalle() {
       cell: (info) => lps(info.getValue()),
     },
   ];
-}
+}

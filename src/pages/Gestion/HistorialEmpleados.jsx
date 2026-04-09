@@ -12,10 +12,8 @@ import {
   COLUMNAS_EXPORT_HISTORIAL,
   historialEmpleadoColumns,
 } from "./columns/historialEmpleadoColumns";
-
 const selectClass =
   "p-2 border border-gray-300 rounded-md text-sm text-gray-900 focus:ring-blue-500 focus:border-blue-500 dark:bg-white/5 dark:border-white/10 dark:text-gray-100";
-
 export default function HistorialEmpleados() {
   const { user } = useAuth();
   const nombreEmpleado = useNombreEmpleadoActual();
@@ -29,15 +27,12 @@ export default function HistorialEmpleados() {
     bajasEsteMes,
     totalUsuariosEliminados,
   } = useHistorialEmpleados();
-
   const columns = historialEmpleadoColumns();
-
   return (
     <div className="space-y-6">
       <h2 className="text-2xl font-bold text-gray-800 dark:text-white/90">
         Historial de Empleados
       </h2>
-
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 md:gap-6">
         <MetricCard
           title="Total en Historial"
@@ -62,7 +57,6 @@ export default function HistorialEmpleados() {
           iconWrapperClass="bg-blue-50 dark:bg-blue-500/10"
         />
       </div>
-
       <DataTable columns={columns} data={historialFiltrado} loading={loading}>
         <DataTable.Toolbar searchPlaceholder="Buscar empleado...">
           <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto sm:ml-auto items-stretch sm:items-center">
@@ -82,7 +76,6 @@ export default function HistorialEmpleados() {
                 });
               }}
             />
-
             <ExportButtons
               rows={historialFiltrado}
               columns={COLUMNAS_EXPORT_HISTORIAL}
@@ -120,4 +113,4 @@ export default function HistorialEmpleados() {
       </DataTable>
     </div>
   );
-}
+}

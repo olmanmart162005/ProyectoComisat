@@ -11,10 +11,8 @@ import {
   COLUMNAS_EXPORT_HISTORIAL_PRODUCTOS,
   historialProductoColumns,
 } from "./columns/historialProductoColumns";
-
 const selectClass =
   "p-2 border border-gray-300 rounded-md text-sm text-gray-900 focus:ring-blue-500 focus:border-blue-500 dark:bg-white/5 dark:border-white/10 dark:text-gray-100";
-
 export default function HistorialProductos() {
   const { user } = useAuth();
   const nombreEmpleado = useNombreEmpleadoActual();
@@ -27,15 +25,12 @@ export default function HistorialProductos() {
     historialFiltrado,
     bajasEsteMes,
   } = useHistorialProductos();
-
   const columns = historialProductoColumns();
-
   return (
     <div className="space-y-6">
       <h2 className="text-2xl font-bold text-gray-800 dark:text-white/90">
         Historial de Productos
       </h2>
-
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-6">
         <MetricCard
           title="Total en Historial"
@@ -54,7 +49,6 @@ export default function HistorialProductos() {
           iconWrapperClass="bg-red-50 dark:bg-red-500/10"
         />
       </div>
-
       <DataTable columns={columns} data={historialFiltrado} loading={loading}>
         <DataTable.Toolbar searchPlaceholder="Buscar producto...">
           <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto sm:ml-auto">
@@ -76,7 +70,6 @@ export default function HistorialProductos() {
                 </option>
               ))}
             </select>
-
             <ExportButtons
               rows={historialFiltrado}
               columns={COLUMNAS_EXPORT_HISTORIAL_PRODUCTOS}
@@ -114,4 +107,4 @@ export default function HistorialProductos() {
       </DataTable>
     </div>
   );
-}
+}

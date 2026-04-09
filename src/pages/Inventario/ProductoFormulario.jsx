@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { useLocation, useNavigate } from "react-router-dom";
-
 import PageShell from "../../components/common/PageShell";
 import { useAuth } from "../../auth/AuthProvider";
 import { useNombreEmpleadoActual } from "../../hooks/useNombreEmpleadoActual";
@@ -14,7 +13,6 @@ import {
   sanitizeNombreProducto,
   sanitizeTextInput,
 } from "../../utils/productoUtils";
-
 export default function ProductoFormulario() {
   const location = useLocation();
   const navigate = useNavigate();
@@ -22,10 +20,8 @@ export default function ProductoFormulario() {
   const nombreEmpleado = useNombreEmpleadoActual();
   const producto = location.state?.producto ?? null;
   const modoEdicion = Boolean(producto);
-
   const { categorias, porcentajeAumento, guardarProducto, actualizarProducto } =
     useProductos({ user, nombreEmpleado, cargarProductos: false });
-
   const [editandoId, setEditandoId] = useState(null);
   const [enviando, setEnviando] = useState(false);
   const [nombre, setNombre] = useState("");
@@ -43,7 +39,6 @@ export default function ProductoFormulario() {
   const [archivoImagen, setArchivoImagen] = useState(null);
   const [previewImagen, setPreviewImagen] = useState(null);
   const [imagenUrlActual, setImagenUrlActual] = useState("");
-
   const resetFormulario = () => {
     setEditandoId(null);
     setNombre("");
@@ -61,7 +56,6 @@ export default function ProductoFormulario() {
     setCategoriaId("");
     setCategoriaNombre("");
   };
-
   useEffect(() => {
     if (modoEdicion && producto) {
       setEditandoId(producto.id || null);
@@ -81,52 +75,43 @@ export default function ProductoFormulario() {
       setArchivoImagen(null);
       return;
     }
-
     resetFormulario();
   }, [modoEdicion, producto, categorias]);
-
   useEffect(() => {
     if (precioContado === "") {
       setPrecioCredito("");
       return;
     }
-
     const contado = Number(precioContado);
     if (Number.isNaN(contado)) return;
     const credito = contado * (1 + porcentajeAumento);
     setPrecioCredito(credito.toFixed(2));
   }, [precioContado, porcentajeAumento]);
-
   useEffect(() => {
     if (estado === "Inactivo") return;
     if (stock === "" || stockMinimo === "") return;
-
     const siguienteEstado = getEstadoProducto(stock, stockMinimo, estado);
     if (siguienteEstado !== estado) {
       setEstado(siguienteEstado);
     }
   }, [estado, stock, stockMinimo]);
-
   const categoriasFiltradas = categorias.filter((cat) =>
     `${cat.nombre ?? ""}`
       .toLowerCase()
       .includes(busquedaCategoria.toLowerCase()),
   );
-
   const seleccionarCategoria = (cat) => {
     setCategoriaId(cat.id);
     setCategoriaNombre(cat.nombre || "");
     setBusquedaCategoria(cat.nombre || "");
     setMostrarSugerenciasCategoria(false);
   };
-
   const handleImagenChange = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
     setArchivoImagen(file);
     setPreviewImagen(URL.createObjectURL(file));
   };
-
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop: (acceptedFiles) => {
       if (acceptedFiles.length > 0) {
@@ -139,18 +124,14 @@ export default function ProductoFormulario() {
       "image/webp": [],
     },
   });
-
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     const nombreSanitizado = sanitizeNombreProducto(nombre).trim();
     const descripcionSanitizada =
       sanitizeDescripcionProducto(descripcion).trim();
-
     if (!categoriaId) {
       setMostrarSugerenciasCategoria(true);
     }
-
     setEnviando(true);
     try {
       const payload = {
@@ -166,7 +147,6 @@ export default function ProductoFormulario() {
         porcentajeAumento,
         onSuccess: () => navigate("/productos"),
       };
-
       if (modoEdicion) {
         await actualizarProducto?.({
           ...payload,
@@ -181,7 +161,6 @@ export default function ProductoFormulario() {
       setEnviando(false);
     }
   };
-
   if (location.pathname.endsWith("/editar") && !producto) {
     return (
       <PageShell
@@ -197,7 +176,6 @@ export default function ProductoFormulario() {
       </PageShell>
     );
   }
-
   return (
     <PageShell
       breadcrumbCurrent={modoEdicion ? "Editar" : "Nuevo"}
@@ -228,7 +206,6 @@ export default function ProductoFormulario() {
               ) : (
                 <div className="absolute inset-0 bg-gradient-to-br from-white/80 via-white/60 to-transparent dark:from-gray-900/70 dark:via-gray-900/45" />
               )}
-
               {(!previewImagen || isDragActive) && (
                 <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-4">
                   <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-blue-50 text-blue-600 transition-transform group-hover:scale-105 dark:bg-blue-500/10 dark:text-blue-400">
@@ -258,7 +235,6 @@ export default function ProductoFormulario() {
               )}
             </div>
           </div>
-
           <div className="lg:col-span-7 flex flex-col gap-5 self-stretch">
             <div>
               <div className="mb-1.5 ml-1 flex items-end justify-between gap-3">
@@ -286,7 +262,6 @@ export default function ProductoFormulario() {
                 className="w-full rounded-lg border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-gray-900 outline-none transition-all focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 dark:border-white/10 dark:bg-gray-900 dark:text-white"
               />
             </div>
-
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div>
                 <label className="mb-1.5 ml-1 block text-[10px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500">
@@ -307,7 +282,6 @@ export default function ProductoFormulario() {
                     onKeyDown={(e) => {
                       if (e.key !== "Enter") return;
                       if (categoriasFiltradas.length === 0) return;
-
                       e.preventDefault();
                       seleccionarCategoria(categoriasFiltradas[0]);
                     }}
@@ -321,7 +295,6 @@ export default function ProductoFormulario() {
                     placeholder="Buscar categoría..."
                     className="w-full rounded-lg border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-gray-900 outline-none transition-all focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 dark:border-white/10 dark:bg-gray-900 dark:text-white"
                   />
-
                   {mostrarSugerenciasCategoria &&
                     busquedaCategoria.length > 0 && (
                       <ul className="absolute z-50 mt-1 max-h-52 w-full overflow-y-auto rounded-lg border border-gray-200 bg-white shadow-lg dark:border-white/10 dark:bg-gray-800">
@@ -346,7 +319,6 @@ export default function ProductoFormulario() {
                     )}
                 </div>
               </div>
-
               <div>
                 <label className="mb-1.5 ml-1 block text-[10px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500">
                   Estado del producto
@@ -383,7 +355,6 @@ export default function ProductoFormulario() {
                 </div>
               </div>
             </div>
-
             <div className="flex-1">
               <div className="mb-1.5 ml-1 flex items-end justify-between">
                 <label className="block text-[10px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500">
@@ -412,7 +383,6 @@ export default function ProductoFormulario() {
             </div>
           </div>
         </section>
-
         <section className="grid grid-cols-1 gap-6 border-t border-gray-100 pt-2 md:grid-cols-2 dark:border-white/10">
           <div className="space-y-3">
             <div className="flex items-center gap-2.5 border-b border-gray-100 pb-1.5 dark:border-white/10">
@@ -433,7 +403,6 @@ export default function ProductoFormulario() {
                 Precios
               </h3>
             </div>
-
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="mb-1.5 ml-1 block text-[10px] font-bold uppercase text-gray-400 dark:text-gray-500">
@@ -473,7 +442,6 @@ export default function ProductoFormulario() {
               </div>
             </div>
           </div>
-
           <div className="space-y-3">
             <div className="flex items-center gap-2.5 border-b border-gray-100 pb-1.5 dark:border-white/10">
               <svg
@@ -493,7 +461,6 @@ export default function ProductoFormulario() {
                 Inventario
               </h3>
             </div>
-
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="mb-1.5 ml-1 block text-[10px] font-bold uppercase text-gray-400 dark:text-gray-500">
@@ -514,7 +481,6 @@ export default function ProductoFormulario() {
                   className="w-full rounded-lg border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-gray-900 outline-none transition-all focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 dark:border-white/10 dark:bg-gray-900 dark:text-white"
                 />
               </div>
-
               <div>
                 <label className="mb-1.5 ml-1 block text-[10px] font-bold uppercase text-gray-400 dark:text-gray-500">
                   Mínimo Stock
@@ -537,7 +503,6 @@ export default function ProductoFormulario() {
             </div>
           </div>
         </section>
-
         <footer className="sticky bottom-0 z-10 -mx-5 border-t border-gray-100 bg-white px-5 py-4 dark:border-white/10 dark:bg-gray-950/80 sm:-mx-6 sm:px-6">
           <div className="flex justify-end gap-3">
             <button
@@ -569,4 +534,4 @@ export default function ProductoFormulario() {
       </form>
     </PageShell>
   );
-}
+}

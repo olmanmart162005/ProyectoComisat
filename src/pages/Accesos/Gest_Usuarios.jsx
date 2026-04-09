@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-
 import DataTable from "../../components/ui/table/DataTable";
 import ConfirmDeleteModal from "../../components/common/ConfirmDeleteModal";
 import ExportButtons from "../../layout/Exportbuttons";
@@ -16,14 +15,12 @@ import {
   usuarioColumns,
   COLUMNAS_EXPORT_USUARIOS,
 } from "./columns/usuarioColumns";
-
 export default function Gest_Usuarios() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const nombreEmpleado = useNombreEmpleadoActual();
   const [usuarioAEliminar, setUsuarioAEliminar] = useState(null);
   const [eliminando, setEliminando] = useState(false);
-
   const {
     usuarios,
     empleados,
@@ -40,17 +37,14 @@ export default function Gest_Usuarios() {
     textoFiltrosPdf,
     handleEliminar,
   } = useUsuarios({ user, nombreEmpleado });
-
   const abrirEliminarUsuario = (uId) => {
     const usuario = usuarios.find((item) => item.id === uId) || null;
     setUsuarioAEliminar(usuario);
   };
-
   const cerrarEliminarUsuario = () => {
     if (eliminando) return;
     setUsuarioAEliminar(null);
   };
-
   const confirmarEliminarUsuario = async () => {
     if (!usuarioAEliminar?.id) return;
     setEliminando(true);
@@ -58,7 +52,6 @@ export default function Gest_Usuarios() {
     setEliminando(false);
     if (ok) setUsuarioAEliminar(null);
   };
-
   const columns = usuarioColumns({
     onView: (usuario) =>
       navigate("/usuarios/detalle", {
@@ -70,7 +63,6 @@ export default function Gest_Usuarios() {
       }),
     onEliminar: abrirEliminarUsuario,
   });
-
   return (
     <div className="space-y-6">
       <div className="flex sm:justify-between flex-col sm:flex-row gap-4 items-start sm:items-center">
@@ -99,7 +91,6 @@ export default function Gest_Usuarios() {
           Nuevo Usuario
         </button>
       </div>
-
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 md:gap-6">
         <MetricCard
           title="Total Usuarios"
@@ -124,7 +115,6 @@ export default function Gest_Usuarios() {
           iconWrapperClass="bg-red-50 dark:bg-red-500/10"
         />
       </div>
-
       <DataTable columns={columns} data={usuariosFiltrados} loading={loading}>
         <DataTable.Toolbar searchPlaceholder="Buscar usuario...">
           <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto sm:ml-auto items-stretch sm:items-center">
@@ -135,7 +125,6 @@ export default function Gest_Usuarios() {
               filtroEstado={filtroEstado}
               setFiltroEstado={setFiltroEstado}
             />
-
             <ExportButtons
               rows={usuariosFiltrados}
               columns={COLUMNAS_EXPORT_USUARIOS}
@@ -169,7 +158,6 @@ export default function Gest_Usuarios() {
         <DataTable.Table />
         <DataTable.Pagination />
       </DataTable>
-
       <ConfirmDeleteModal
         isOpen={Boolean(usuarioAEliminar)}
         onClose={cerrarEliminarUsuario}
@@ -180,4 +168,4 @@ export default function Gest_Usuarios() {
       />
     </div>
   );
-}
+}

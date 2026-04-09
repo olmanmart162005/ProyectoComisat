@@ -10,12 +10,10 @@ import {
   doc,
 } from "firebase/firestore";
 import { sileo } from "sileo";
-
 export const useActivaciones = () => {
   const [pendientes, setPendientes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [confirmandoId, setConfirmandoId] = useState(null);
-
   const fetchPendientes = async () => {
     setLoading(true);
     try {
@@ -33,17 +31,15 @@ export const useActivaciones = () => {
       setLoading(false);
     }
   };
-
   useEffect(() => {
     fetchPendientes();
   }, []);
-
   const handleActivar = async (usuarioId) => {
     setConfirmandoId(usuarioId);
     try {
       await updateDoc(doc(db, "usuarios", usuarioId), {
         registradoEnAuth: true,
-        passwordTemporal: deleteField(), // se borra por seguridad
+        passwordTemporal: deleteField(), 
       });
       sileo.success({
         title: "Usuario activado",
@@ -57,7 +53,6 @@ export const useActivaciones = () => {
       setConfirmandoId(null);
     }
   };
-
   return {
     pendientes,
     loading,

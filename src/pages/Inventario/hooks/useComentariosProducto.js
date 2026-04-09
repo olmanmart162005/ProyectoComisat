@@ -9,11 +9,9 @@ import {
   updateDoc,
   where,
 } from "firebase/firestore";
-
 import { db } from "../../../firebase/firebase";
 import { registrarBitacora } from "../../../services/bitacora";
 import { notify } from "../../../services/notifier";
-
 const obtenerFechaComentario = (comentario) => {
   const valor =
     comentario?.["fechaReseña"] ??
@@ -21,22 +19,18 @@ const obtenerFechaComentario = (comentario) => {
     comentario?.fecha ??
     comentario?.fechaRegistro ??
     null;
-
   if (!valor) return 0;
   if (typeof valor?.toDate === "function") return valor.toDate().getTime();
   if (valor instanceof Date) return valor.getTime();
   if (typeof valor === "number") return valor;
-
   const parsed = new Date(valor).getTime();
   return Number.isNaN(parsed) ? 0 : parsed;
 };
-
 export function useComentariosProducto({ productoId, user, nombreEmpleado }) {
   const [producto, setProducto] = useState(null);
   const [comentarios, setComentarios] = useState([]);
   const [loading, setLoading] = useState(true);
   const [procesando, setProcesando] = useState(null);
-
   const cargarDatos = useCallback(async () => {
     if (!productoId) {
       setProducto(null);
@@ -44,7 +38,6 @@ export function useComentariosProducto({ productoId, user, nombreEmpleado }) {
       setLoading(false);
       return;
     }
-
     setLoading(true);
     try {
       const [productoSnap, comentariosSnap] = await Promise.all([
@@ -56,17 +49,14 @@ export function useComentariosProducto({ productoId, user, nombreEmpleado }) {
           ),
         ),
       ]);
-
       if (productoSnap.exists()) {
         setProducto({ id: productoSnap.id, ...productoSnap.data() });
       } else {
         setProducto(null);
       }
-
       const docs = comentariosSnap.docs
         .map((item) => ({ id: item.id, ...item.data() }))
         .sort((a, b) => obtenerFechaComentario(b) - obtenerFechaComentario(a));
-
       setComentarios(docs);
     } catch (error) {
       console.error("Error al cargar comentarios del producto:", error);
@@ -77,16 +67,13 @@ export function useComentariosProducto({ productoId, user, nombreEmpleado }) {
       setLoading(false);
     }
   }, [productoId]);
-
   useEffect(() => {
     cargarDatos();
   }, [cargarDatos]);
-
   const estadisticas = useMemo(() => {
     const comentariosVisibles = comentarios.filter(
       (comentario) => comentario.visible !== false,
     );
-
     const visibles = comentariosVisibles.length;
     const ocultos = comentarios.length - visibles;
     const promedio =
@@ -96,7 +83,6 @@ export function useComentariosProducto({ productoId, user, nombreEmpleado }) {
             0,
           ) / visibles
         : 0;
-
     return {
       total: comentarios.length,
       visibles,
@@ -104,20 +90,16 @@ export function useComentariosProducto({ productoId, user, nombreEmpleado }) {
       promedio,
     };
   }, [comentarios]);
-
   const toggleVisibilidad = async (comentario) => {
     if (!productoId || !comentario?.id) return;
-
     const visibleActual = comentario.visible !== false;
     const nuevaVisibilidad = !visibleActual;
-
     setProcesando(comentario.id);
     try {
       await updateDoc(doc(db, "reseñas", comentario.id), {
         visible: nuevaVisibilidad,
         fechaModificacion: serverTimestamp(),
       });
-
       await registrarBitacora({
         usuario: user?.email ?? "desconocido",
         nombre: nombreEmpleado || user?.email || "desconocido",
@@ -131,7 +113,6 @@ export function useComentariosProducto({ productoId, user, nombreEmpleado }) {
           empleadoId: comentario.empleadoId ?? null,
         },
       });
-
       setComentarios((prev) =>
         prev.map((item) =>
           item.id === comentario.id
@@ -142,7 +123,6 @@ export function useComentariosProducto({ productoId, user, nombreEmpleado }) {
             : item,
         ),
       );
-
       notify.success(
         nuevaVisibilidad
           ? "Comentario restaurado con éxito"
@@ -155,7 +135,6 @@ export function useComentariosProducto({ productoId, user, nombreEmpleado }) {
       setProcesando(null);
     }
   };
-
   return {
     producto,
     comentarios,
@@ -165,4 +144,4 @@ export function useComentariosProducto({ productoId, user, nombreEmpleado }) {
     toggleVisibilidad,
     recargar: cargarDatos,
   };
-}
+}

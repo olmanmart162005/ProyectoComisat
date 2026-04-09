@@ -1,7 +1,5 @@
 import Badge from "../../../components/ui/badge/Badge";
-
 const lps = (n) => `L. ${Number(n ?? 0).toLocaleString("es-HN")}`;
-
 export function pagoMensualColumns() {
   return [
     {
@@ -81,5 +79,4 @@ export function pagoMensualColumns() {
     },
   ];
 }
-
-export { lps };
+export { lps };

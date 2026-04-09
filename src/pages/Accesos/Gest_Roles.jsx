@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-
 import DataTable from "../../components/ui/table/DataTable";
 import ConfirmDeleteModal from "../../components/common/ConfirmDeleteModal";
 import ExportButtons from "../../layout/Exportbuttons";
@@ -8,13 +7,10 @@ import { useAuth } from "../../auth/AuthProvider";
 import { useNombreEmpleadoActual } from "../../hooks/useNombreEmpleadoActual";
 import { registrarBitacora } from "../../services/bitacora";
 import { formatDateForFilename } from "../../utils/formatters";
-
 import { roleColumns, COLUMNAS_EXPORT_ROLES } from "./columns/roleColumns";
 import { useRoles } from "./hooks/useRoles";
-
 export default function Gest_Roles() {
   const navigate = useNavigate();
-
   const { user } = useAuth();
   const nombreEmpleado = useNombreEmpleadoActual();
   const { roles, loading, fetchRoles, handleEliminar } = useRoles({
@@ -23,17 +19,14 @@ export default function Gest_Roles() {
   });
   const [rolAEliminar, setRolAEliminar] = useState(null);
   const [eliminando, setEliminando] = useState(false);
-
   const abrirEliminarRol = (rolId) => {
     const rol = roles.find((item) => item.id === rolId) || null;
     setRolAEliminar(rol);
   };
-
   const cerrarEliminarRol = () => {
     if (eliminando) return;
     setRolAEliminar(null);
   };
-
   const confirmarEliminarRol = async () => {
     if (!rolAEliminar?.id) return;
     setEliminando(true);
@@ -41,14 +34,12 @@ export default function Gest_Roles() {
     setEliminando(false);
     if (ok) setRolAEliminar(null);
   };
-
   const columns = roleColumns({
     onEdit: (rol) => {
       navigate("/roles/editar", { state: { rol } });
     },
     onEliminar: abrirEliminarRol,
   });
-
   return (
     <div className="space-y-6">
       <div className="flex sm:justify-between flex-col sm:flex-row gap-4 items-start sm:items-center">
@@ -75,7 +66,6 @@ export default function Gest_Roles() {
           Nuevo Rol
         </button>
       </div>
-
       <DataTable columns={columns} data={roles} loading={loading}>
         <DataTable.Toolbar searchPlaceholder="Buscar rol...">
           <ExportButtons
@@ -105,7 +95,6 @@ export default function Gest_Roles() {
         <DataTable.Table />
         <DataTable.Pagination />
       </DataTable>
-
       <ConfirmDeleteModal
         isOpen={Boolean(rolAEliminar)}
         onClose={cerrarEliminarRol}
@@ -116,4 +105,4 @@ export default function Gest_Roles() {
       />
     </div>
   );
-}
+}

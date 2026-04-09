@@ -12,7 +12,7 @@ import { getStorage } from "firebase/storage";
 
 /* Configuración de Firebase
     Debes reemplazar estos valores con los de tu proyecto de Firebase
-    Puedes obtenerlos en la consola de Firebase
+    Puedes obtenerlos en la consola de Firebase */ 
 
 
 

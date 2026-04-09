@@ -3,16 +3,13 @@ import {
   formatDniDisplay,
   formatTelefonoDisplay,
 } from "../../../utils/empleadoUtils";
-
 const obtenerIniciales = (nombreCompleto) => {
   const limpio = String(nombreCompleto ?? "").trim();
   if (!limpio) return "--";
-
   const partes = limpio.split(/\s+/).filter(Boolean);
   const primeras = partes.slice(0, 2).map((p) => p.charAt(0).toUpperCase());
   return primeras.join("");
 };
-
 const COLUMNAS_EXPORT_HISTORIAL = [
   { key: "codigoEmpleado", header: "Código", type: "text" },
   { key: "nombres", header: "Nombres", type: "text" },
@@ -36,7 +33,6 @@ const COLUMNAS_EXPORT_HISTORIAL = [
   { key: "fechaBaja", header: "Fecha Baja", type: "date" },
   { key: "nombreBajadoPor", header: "Dado de baja por", type: "text" },
 ];
-
 export function historialEmpleadoColumns() {
   return useMemo(
     () => [
@@ -132,5 +128,4 @@ export function historialEmpleadoColumns() {
     [],
   );
 }
-
-export { COLUMNAS_EXPORT_HISTORIAL };
+export { COLUMNAS_EXPORT_HISTORIAL };

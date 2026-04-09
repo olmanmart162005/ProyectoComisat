@@ -3,18 +3,15 @@ import { useAuth } from "../../auth/AuthProvider";
 import { useNombreEmpleadoActual } from "../../hooks/useNombreEmpleadoActual";
 import { useModal } from "../../hooks/useModal";
 import { CreditPercentIcon, PercentIcon, TrashBinIcon } from "../../icons";
-
 import ConfirmDeleteModal from "../../components/common/ConfirmDeleteModal";
 import CuotaModal from "../../components/Gestion/CuotaModal";
 import { useParametrosGlobales } from "./hooks/useParametrosGlobales";
-
 export default function Gest_ConfiguracionGlobal() {
   const { user } = useAuth();
   const nombreEmpleado = useNombreEmpleadoActual();
   const { isOpen, openModal, closeModal } = useModal();
   const [cuotaAEliminar, setCuotaAEliminar] = useState(null);
   const [eliminandoCuota, setEliminandoCuota] = useState(false);
-
   const {
     config,
     tiempoInactividad,
@@ -38,18 +35,15 @@ export default function Gest_ConfiguracionGlobal() {
     handleSubmitCuota,
     handleEliminar,
   } = useParametrosGlobales({ user, nombreEmpleado, closeModal });
-
   const abrirEliminarCuota = (cuotaId) => {
     const cuota =
       cuotas.find((item) => String(item.id) === String(cuotaId)) || null;
     setCuotaAEliminar(cuota);
   };
-
   const cerrarEliminarCuota = () => {
     if (eliminandoCuota) return;
     setCuotaAEliminar(null);
   };
-
   const confirmarEliminarCuota = async () => {
     if (!cuotaAEliminar?.id) return;
     setEliminandoCuota(true);
@@ -60,12 +54,9 @@ export default function Gest_ConfiguracionGlobal() {
       setEliminandoCuota(false);
     }
   };
-
-  // ─── Render ───────────────────────────────────────────────────────────────
-
   return (
     <div className="space-y-5 p-4 md:p-6 max-w-screen-xl mx-auto">
-      {/* Header */}
+      {}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
           <h2 className="text-2xl font-bold text-gray-800 dark:text-white/90">
@@ -85,8 +76,7 @@ export default function Gest_ConfiguracionGlobal() {
           {guardando ? "Guardando..." : "Guardar Parámetros"}
         </button>
       </div>
-
-      {/* Reglas de negocio */}
+      {}
       <div className="rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03] p-5">
         <div className="flex items-center justify-between mb-4">
           {ultimaModificacionLabel && (
@@ -96,9 +86,8 @@ export default function Gest_ConfiguracionGlobal() {
             </span>
           )}
         </div>
-
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {/* Margen */}
+          {}
           <div className="rounded-lg border border-gray-100 dark:border-white/[0.06] bg-gray-50 dark:bg-white/[0.02] p-4">
             <div className="flex items-start gap-3 mb-3">
               <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-blue-50 dark:bg-blue-500/10 text-brand-600 dark:text-blue-400 shrink-0">
@@ -131,7 +120,6 @@ export default function Gest_ConfiguracionGlobal() {
               <span className="text-xl font-bold text-gray-400">%</span>
             </div>
           </div>
-
           {/* Límite */}
           <div className="rounded-lg border border-gray-100 dark:border-white/[0.06] bg-gray-50 dark:bg-white/[0.02] p-4">
             <div className="flex items-start gap-3 mb-3">
@@ -167,7 +155,6 @@ export default function Gest_ConfiguracionGlobal() {
           </div>
         </div>
       </div>
-
       {/* Configuración web */}
       <div className="rounded-lg border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03] p-5">
         <div className="flex items-center justify-between mb-4">
@@ -198,7 +185,6 @@ export default function Gest_ConfiguracionGlobal() {
           </div>
         </div>
       </div>
-
       {/* Cuotas */}
       <div className="rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03] p-5">
         <div className="flex items-center justify-between mb-4">
@@ -224,7 +210,6 @@ export default function Gest_ConfiguracionGlobal() {
             Agregar Cuota
           </button>
         </div>
-
         <div className="rounded-lg border border-gray-100 dark:border-white/[0.05] overflow-hidden">
           <div className="grid grid-cols-[1fr_100px_60px] px-4 py-2.5 bg-gray-50 dark:bg-white/[0.02] border-b border-gray-100 dark:border-white/[0.05]">
             <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
@@ -237,7 +222,6 @@ export default function Gest_ConfiguracionGlobal() {
               Acción
             </span>
           </div>
-
           {loadingCuotas ? (
             <p className="py-8 text-center text-theme-sm text-gray-400">
               Cargando...
@@ -260,7 +244,6 @@ export default function Gest_ConfiguracionGlobal() {
           )}
         </div>
       </div>
-
       {/* Modal */}
       <CuotaModal
         isOpen={isOpen}
@@ -272,7 +255,6 @@ export default function Gest_ConfiguracionGlobal() {
         enviandoCuota={enviandoCuota}
         onSubmit={handleSubmitCuota}
       />
-
       <ConfirmDeleteModal
         isOpen={Boolean(cuotaAEliminar)}
         onClose={cerrarEliminarCuota}
@@ -284,9 +266,7 @@ export default function Gest_ConfiguracionGlobal() {
     </div>
   );
 }
-
 // ─── Cuota Row Component ───────────────────────────────────────────────────
-
 const CuotaRow = ({ cuota, onToggle, onEliminar }) => {
   const Toggle = ({ checked, onChange }) => (
     <button
@@ -299,7 +279,6 @@ const CuotaRow = ({ cuota, onToggle, onEliminar }) => {
       />
     </button>
   );
-
   return (
     <div className="grid grid-cols-[1fr_100px_60px] px-4 py-3 items-center hover:bg-gray-50 dark:hover:bg-white/[0.02] transition-colors">
       <span className="font-medium text-gray-800 dark:text-white/90 text-theme-sm">
@@ -322,4 +301,4 @@ const CuotaRow = ({ cuota, onToggle, onEliminar }) => {
       </div>
     </div>
   );
-};
+};

@@ -1,20 +1,16 @@
 import { useState } from "react";
-
 import Badge from "../../../components/ui/badge/Badge";
 import { Dropdown } from "../../../components/ui/dropdown/Dropdown";
 import { DropdownItem } from "../../../components/ui/dropdown/DropdownItem";
 import { EyeIcon, MoreDotIcon, PencilIcon, TrashBinIcon } from "../../../icons";
-
 const COLUMNAS_EXPORT_USUARIOS = [
   { key: "nombre", header: "Nombre", type: "text" },
   { key: "correo", header: "Correo", type: "text" },
   { key: "rolNombre", header: "Rol", type: "text" },
   { key: "estado", header: "Estado", type: "text" },
 ];
-
 function UsuarioAcciones({ usuario, onView, onEdit, onEliminar }) {
   const [isOpen, setIsOpen] = useState(false);
-
   return (
     <div className="relative flex justify-center">
       <button
@@ -25,7 +21,6 @@ function UsuarioAcciones({ usuario, onView, onEdit, onEliminar }) {
       >
         <MoreDotIcon className="h-5 w-5" />
       </button>
-
       <Dropdown
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
@@ -67,7 +62,6 @@ function UsuarioAcciones({ usuario, onView, onEdit, onEliminar }) {
     </div>
   );
 }
-
 export function usuarioColumns({ onView, onEdit, onEliminar }) {
   return [
     {
@@ -108,5 +102,4 @@ export function usuarioColumns({ onView, onEdit, onEliminar }) {
     },
   ];
 }
-
-export { COLUMNAS_EXPORT_USUARIOS };
+export { COLUMNAS_EXPORT_USUARIOS };

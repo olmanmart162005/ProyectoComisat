@@ -1,15 +1,12 @@
 import Badge from "../../../components/ui/badge/Badge";
 import { EyeIcon } from "../../../icons";
-
 export const estadoColor = {
   Aprobado: "success",
   Activo: "success",
   Rechazado: "error",
   Pendiente: "warning",
 };
-
 export const lps = (n) => `L. ${Number(n ?? 0).toLocaleString("es-HN")}`;
-
 export const COLUMNAS_EXPORT_SOLICITUDES = [
   { key: "empleadoNombres", header: "Empleado", type: "text" },
   { key: "empleadoApellidos", header: "Apellidos", type: "text" },
@@ -35,7 +32,6 @@ export const COLUMNAS_EXPORT_SOLICITUDES = [
   { key: "estado", header: "Estado", type: "text" },
   { key: "fechaRegistro", header: "Solicitado", type: "date" },
 ];
-
 export function solicitudColumns({ onVerDetalle }) {
   return [
     {
@@ -123,7 +119,6 @@ export function solicitudColumns({ onVerDetalle }) {
         const colorAccion = esPendiente
           ? "text-blue-600 hover:text-blue-800"
           : "text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200";
-
         return (
           <button
             onClick={() => onVerDetalle(row.original)}
@@ -136,4 +131,4 @@ export function solicitudColumns({ onVerDetalle }) {
       },
     },
   ];
-}
+}

@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-
 import DataTable from "../../components/ui/table/DataTable";
 import ConfirmDeleteModal from "../../components/common/ConfirmDeleteModal";
 import ExportButtons from "../../layout/Exportbuttons";
@@ -9,13 +8,11 @@ import { useNombreEmpleadoActual } from "../../hooks/useNombreEmpleadoActual";
 import { PlusIcon } from "../../icons";
 import { registrarBitacora } from "../../services/bitacora";
 import { formatDateForFilename } from "../../utils/formatters";
-
 import {
   categoryColumns,
   COLUMNAS_EXPORT_CATEGORIAS,
 } from "./columns/categoryColumns";
 import { useCategorias } from "./hooks/useCategorias";
-
 export default function Gest_Categorias() {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -24,17 +21,14 @@ export default function Gest_Categorias() {
     useCategorias({ user, nombreEmpleado });
   const [categoriaAEliminar, setCategoriaAEliminar] = useState(null);
   const [eliminando, setEliminando] = useState(false);
-
   const abrirEliminarCategoria = (catId) => {
     const cat = categorias.find((item) => item.id === catId) || null;
     setCategoriaAEliminar(cat);
   };
-
   const cerrarEliminarCategoria = () => {
     if (eliminando) return;
     setCategoriaAEliminar(null);
   };
-
   const confirmarEliminarCategoria = async () => {
     if (!categoriaAEliminar?.id) return;
     setEliminando(true);
@@ -42,7 +36,6 @@ export default function Gest_Categorias() {
     setEliminando(false);
     if (ok) setCategoriaAEliminar(null);
   };
-
   const columns = categoryColumns({
     onEdit: (cat) => {
       navigate("/categorias/editar", {
@@ -51,7 +44,6 @@ export default function Gest_Categorias() {
     },
     onEliminar: abrirEliminarCategoria,
   });
-
   return (
     <div className="space-y-6">
       <div className="flex sm:justify-between flex-col sm:flex-row gap-4 items-start sm:items-center">
@@ -68,7 +60,6 @@ export default function Gest_Categorias() {
           Nueva Categoría
         </button>
       </div>
-
       <DataTable columns={columns} data={categorias} loading={loading}>
         <DataTable.Toolbar searchPlaceholder="Buscar categoría...">
           <ExportButtons
@@ -98,7 +89,6 @@ export default function Gest_Categorias() {
         <DataTable.Table />
         <DataTable.Pagination />
       </DataTable>
-
       <ConfirmDeleteModal
         isOpen={Boolean(categoriaAEliminar)}
         onClose={cerrarEliminarCategoria}
@@ -109,4 +99,4 @@ export default function Gest_Categorias() {
       />
     </div>
   );
-}
+}

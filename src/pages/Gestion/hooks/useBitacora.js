@@ -1,12 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { db } from "../../../firebase/firebase";
 import { collection, getDocs, orderBy, query, where } from "firebase/firestore";
-
 export function capitalize(str) {
   if (!str) return "";
   return str.charAt(0).toUpperCase() + str.slice(1);
 }
-
 function resumirMetadata(accion, metadata = {}) {
   if (!metadata || Object.keys(metadata).length === 0) return "—";
   if (metadata.detalle) return metadata.detalle;
@@ -48,7 +46,6 @@ function resumirMetadata(accion, metadata = {}) {
       return "—";
   }
 }
-
 export function useBitacora() {
   const [registros, setRegistros] = useState([]);
   const [todosLosRegistros, setTodosLosRegistros] = useState([]);
@@ -57,9 +54,7 @@ export function useBitacora() {
   const [filtroAccion, setFiltroAccion] = useState("");
   const [rangoFecha, setRangoFecha] = useState("");
   const [rangoPersonalizado, setRangoPersonalizado] = useState([null, null]);
-
   const [fechaInicioDP, fechaFinDP] = rangoPersonalizado;
-
   const coleccionesDinamicas = useMemo(() => {
     const set = new Set();
     todosLosRegistros.forEach((r) => {
@@ -70,23 +65,19 @@ export function useBitacora() {
       label: capitalize(val),
     }));
   }, [todosLosRegistros]);
-
   const accionesDinamicas = useMemo(() => {
     const set = new Set();
     todosLosRegistros.forEach((r) => {
       if (r.accion) set.add(r.accion.toLowerCase());
       if (r.accion) set.add(capitalize(r.accion));
     });
-
     const unique = Array.from(set).reduce((acc, val) => {
       if (!acc.some((v) => v.toLowerCase() === val.toLowerCase()))
         acc.push(val);
       return acc;
     }, []);
-
     return unique.map((val) => ({ value: val, label: capitalize(val) }));
   }, [todosLosRegistros]);
-
   const fetchBitacora = async () => {
     setLoading(true);
     try {
@@ -97,11 +88,9 @@ export function useBitacora() {
       const snapCompleta = await getDocs(qCompleta);
       const todos = snapCompleta.docs.map((d) => ({ id: d.id, ...d.data() }));
       setTodosLosRegistros(todos);
-
       let q;
       const filtroAccionLower = filtroAccion ? filtroAccion.toLowerCase() : "";
       const filtroAccionCap = filtroAccion ? capitalize(filtroAccionLower) : "";
-
       if (filtroColeccion && filtroAccion) {
         q = query(
           collection(db, "bitacora"),
@@ -125,7 +114,6 @@ export function useBitacora() {
         setRegistros(todos);
         return;
       }
-
       const snap = await getDocs(q);
       setRegistros(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
     } catch (error) {
@@ -134,11 +122,9 @@ export function useBitacora() {
       setLoading(false);
     }
   };
-
   useEffect(() => {
     fetchBitacora();
   }, [filtroColeccion, filtroAccion]);
-
   const limitesFecha = useMemo(() => {
     const hoy = new Date();
     switch (rangoFecha) {
@@ -182,11 +168,9 @@ export function useBitacora() {
         return { inicio: null, fin: null };
     }
   }, [rangoFecha, fechaInicioDP, fechaFinDP]);
-
   const registrosFiltrados = useMemo(() => {
     const { inicio, fin } = limitesFecha;
     if (!inicio && !fin) return registros;
-
     return registros.filter((r) => {
       const fecha = r.fecha?.toDate?.();
       if (!fecha) return false;
@@ -195,13 +179,11 @@ export function useBitacora() {
       return true;
     });
   }, [registros, limitesFecha]);
-
   const hoyInicio = useMemo(() => {
     const d = new Date();
     d.setHours(0, 0, 0, 0);
     return d;
   }, []);
-
   const totalHoy = useMemo(
     () =>
       todosLosRegistros.filter((r) => {
@@ -210,15 +192,12 @@ export function useBitacora() {
       }).length,
     [todosLosRegistros, hoyInicio],
   );
-
   const totalEliminaciones = useMemo(() => {
     return todosLosRegistros.filter((r) => r.accion === "eliminacion").length;
   }, [todosLosRegistros]);
-
   const totalExportaciones = useMemo(() => {
     return todosLosRegistros.filter((r) => r.accion === "exportar").length;
   }, [todosLosRegistros]);
-
   return {
     registros,
     registrosFiltrados,
@@ -237,4 +216,4 @@ export function useBitacora() {
     totalEliminaciones,
     totalExportaciones,
   };
-}
+}

@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { PackageCheck } from "lucide-react";
-
 import DataTable from "../../components/ui/table/DataTable";
 import ExportButtons from "../../layout/Exportbuttons";
 import MetricCard from "../../components/common/MetricCard";
@@ -23,7 +22,6 @@ import { useProductos } from "./hooks/useProductos";
 import { registrarBitacora } from "../../services/bitacora";
 import ProductosFiltersDropdown from "../../components/inventario/ProductosFiltersDropdown";
 import { formatDateForFilename } from "../../utils/formatters";
-
 export default function Gest_Productos() {
   const { user } = useAuth();
   const nombreEmpleado = useNombreEmpleadoActual();
@@ -49,29 +47,23 @@ export default function Gest_Productos() {
     setFiltroStockRange,
     handleEliminar,
   } = useProductos({ user, nombreEmpleado });
-
   const abrirConfirmacionEliminar = (productoId) => {
     const producto = productos.find((item) => item.id === productoId) || null;
     setProductoAEliminar(producto);
   };
-
   const cerrarConfirmacionEliminar = () => {
     if (eliminando) return;
     setProductoAEliminar(null);
   };
-
   const confirmarEliminarProducto = async () => {
     if (!productoAEliminar?.id) return;
-
     setEliminando(true);
     const ok = await handleEliminar(productoAEliminar.id);
     setEliminando(false);
-
     if (ok) {
       setProductoAEliminar(null);
     }
   };
-
   const columns = productColumns({
     onView: (producto) =>
       navigate("/productos/detalle", {
@@ -83,7 +75,6 @@ export default function Gest_Productos() {
       }),
     onEliminar: abrirConfirmacionEliminar,
   });
-
   return (
     <div className="space-y-6">
       <div className="flex sm:justify-between flex-col sm:flex-row gap-4 items-start sm:items-center">
@@ -100,7 +91,6 @@ export default function Gest_Productos() {
           Nuevo Producto
         </button>
       </div>
-
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4 md:gap-6">
         <MetricCard
           title="Total Productos"
@@ -133,7 +123,6 @@ export default function Gest_Productos() {
           iconWrapperClass="bg-red-50 dark:bg-red-500/10"
         />
       </div>
-
       <DataTable columns={columns} data={productosFiltrados} loading={loading}>
         <DataTable.Toolbar searchPlaceholder="Buscar producto...">
           <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto sm:ml-auto items-stretch sm:items-center">
@@ -147,7 +136,6 @@ export default function Gest_Productos() {
               setFiltroStockRange={setFiltroStockRange}
             />
           </div>
-
           <ExportButtons
             rows={productosFiltrados}
             columns={COLUMNAS_EXPORT_PRODUCTOS}
@@ -176,11 +164,9 @@ export default function Gest_Productos() {
             }
           />
         </DataTable.Toolbar>
-
         <DataTable.Table />
         <DataTable.Pagination />
       </DataTable>
-
       <ConfirmDeleteModal
         isOpen={Boolean(productoAEliminar)}
         onClose={cerrarConfirmacionEliminar}
@@ -191,4 +177,4 @@ export default function Gest_Productos() {
       />
     </div>
   );
-}
+}

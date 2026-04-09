@@ -19,9 +19,6 @@ import {
   sanitizeDescripcionProducto,
   sanitizeNombreProducto,
 } from "../../../utils/productoUtils";
-
-// Este hook maneja toda la lógica relacionada con productos: carga, filtrado, eliminación, etc.
-
 export function useProductos({ user, nombreEmpleado, cargarProductos = true }) {
   const [productos, setProductos] = useState([]);
   const [categorias, setCategorias] = useState([]);
@@ -33,7 +30,6 @@ export function useProductos({ user, nombreEmpleado, cargarProductos = true }) {
     undefined,
     undefined,
   ]);
-
   const fetchConfig = useCallback(async () => {
     try {
       const snap = await getDoc(doc(db, "configuracion", "creditoComisariato"));
@@ -45,7 +41,6 @@ export function useProductos({ user, nombreEmpleado, cargarProductos = true }) {
       console.error("Error al cargar configuración:", error);
     }
   }, []);
-
   const fetchCategorias = useCallback(async () => {
     try {
       const querySnapshot = await getDocs(collection(db, "categoria"));
@@ -59,7 +54,6 @@ export function useProductos({ user, nombreEmpleado, cargarProductos = true }) {
       notify.loadError("las categorías");
     }
   }, []);
-
   const fetchProductos = useCallback(async () => {
     setLoading(true);
     try {
@@ -76,7 +70,6 @@ export function useProductos({ user, nombreEmpleado, cargarProductos = true }) {
       setLoading(false);
     }
   }, []);
-
   useEffect(() => {
     fetchConfig();
     fetchCategorias();
@@ -84,7 +77,6 @@ export function useProductos({ user, nombreEmpleado, cargarProductos = true }) {
       fetchProductos();
     }
   }, [cargarProductos, fetchConfig, fetchCategorias, fetchProductos]);
-
   const totalProductos = productos.length;
   const productosActivos = productos.filter(
     (p) => getEstadoProducto(p.stock, p.stockMinimo, p.estado) === "Activo",
@@ -96,26 +88,21 @@ export function useProductos({ user, nombreEmpleado, cargarProductos = true }) {
     (acc, p) => acc + (Number(p.stock) || 0),
     0,
   );
-
-  // Lógica de filtrado
   const productosFiltrados = useMemo(() => {
     return productos.filter((p) => {
       const estadoVisual = getEstadoProducto(p.stock, p.stockMinimo, p.estado);
       const coincideEstado = filtroEstadoProducto
         ? estadoVisual === filtroEstadoProducto
         : true;
-
       const coincideCategoria = filtroCategoria
         ? p.categoriaId === filtroCategoria
         : true;
-
       const stockNum = Number(p.stock) || 0;
       const [stockMin, stockMax] = filtroStockRange;
       const coincideStockMin =
         stockMin === undefined ? true : stockNum >= stockMin;
       const coincideStockMax =
         stockMax === undefined ? true : stockNum <= stockMax;
-
       return (
         coincideEstado &&
         coincideCategoria &&
@@ -124,31 +111,25 @@ export function useProductos({ user, nombreEmpleado, cargarProductos = true }) {
       );
     });
   }, [productos, filtroCategoria, filtroEstadoProducto, filtroStockRange]);
-
   const textoFiltrosPdf = useMemo(() => {
     const partes = [];
-
     if (filtroCategoria) {
       const cat = categorias.find((c) => c.id === filtroCategoria);
       partes.push(`Categoría: ${cat ? cat.nombre : filtroCategoria}`);
     }
-
     if (filtroEstadoProducto) {
       partes.push(`Estado: ${filtroEstadoProducto}`);
     }
-
     const [stockMin, stockMax] = filtroStockRange;
     if (stockMin !== undefined || stockMax !== undefined) {
       const minLabel = stockMin !== undefined ? stockMin : "-";
       const maxLabel = stockMax !== undefined ? stockMax : "-";
       partes.push(`Stock: ${minLabel} a ${maxLabel}`);
     }
-
     return partes.length > 0
       ? `Filtros activos: ${partes.join(" | ")}`
       : "Catálogo Completo";
   }, [filtroCategoria, categorias, filtroEstadoProducto, filtroStockRange]);
-
   const validarPayloadProducto = ({
     nombre,
     descripcion,
@@ -163,74 +144,60 @@ export function useProductos({ user, nombreEmpleado, cargarProductos = true }) {
     const descripcionSanitizada = sanitizeDescripcionProducto(descripcion);
     const stockTexto = String(stock ?? "").trim();
     const stockMinimoTexto = String(stockMinimo ?? "").trim();
-
     if (!nombreSanitizado.trim()) {
       notify.error("El nombre del producto es obligatorio.");
       return false;
     }
-
     if (!descripcionSanitizada.trim()) {
       notify.error("La descripción del producto es obligatoria.");
       return false;
     }
-
     if (descripcionSanitizada.length > MAX_DESCRIPCION) {
       notify.error(
         `La descripción no puede superar ${MAX_DESCRIPCION} caracteres.`,
       );
       return false;
     }
-
     if (!categoriaId) {
       notify.error("Selecciona una categoría válida.");
       return false;
     }
-
     const precioContadoNum = Number(precioContado);
     if (!Number.isFinite(precioContadoNum) || precioContadoNum <= 0) {
       notify.error("El costo debe ser un número mayor que 0.");
       return false;
     }
-
     if (stockTexto === "") {
       notify.error("El stock actual es obligatorio.");
       return false;
     }
-
     if (stockMinimoTexto === "") {
       notify.error("El stock mínimo es obligatorio.");
       return false;
     }
-
     const stockNum = Number(stockTexto);
     const stockMinimoNum = Number(stockMinimoTexto);
-
     if (!Number.isInteger(stockNum) || stockNum <= 0) {
       notify.error("El stock actual debe ser un número entero mayor que 0.");
       return false;
     }
-
     if (!Number.isInteger(stockMinimoNum) || stockMinimoNum < 0) {
       notify.error(
         "El stock mínimo debe ser un número entero mayor o igual a 0.",
       );
       return false;
     }
-
     if (!archivoImagen && !imagenUrlActual) {
       notify.error("La imagen del producto es obligatoria.");
       return false;
     }
-
     return true;
   };
-  // ------------------------------------------------------------
   const subirImagen = async (archivo) => {
     const imagenRef = ref(storage, `productos/${Date.now()}_${archivo.name}`);
     await uploadBytes(imagenRef, archivo);
     return getDownloadURL(imagenRef);
   };
-
   const guardarProducto = async ({
     nombre,
     descripcion,
@@ -257,7 +224,6 @@ export function useProductos({ user, nombreEmpleado, cargarProductos = true }) {
     ) {
       return;
     }
-
     try {
       const nombreSanitizado = sanitizeNombreProducto(nombre).trim();
       const descripcionSanitizada =
@@ -272,7 +238,6 @@ export function useProductos({ user, nombreEmpleado, cargarProductos = true }) {
         ),
       );
       const estadoFinal = getEstadoProducto(stockNum, stockMinimoNum, estado);
-
       const docRef = await addDoc(collection(db, "productos"), {
         nombre: nombreSanitizado,
         descripcion: descripcionSanitizada,
@@ -287,7 +252,6 @@ export function useProductos({ user, nombreEmpleado, cargarProductos = true }) {
         fechaRegistro: serverTimestamp(),
         ultimaModificacion: serverTimestamp(),
       });
-
       await registrarBitacora({
         usuario: user?.email ?? "desconocido",
         nombre: nombreEmpleado || user?.email || "desconocido",
@@ -304,7 +268,6 @@ export function useProductos({ user, nombreEmpleado, cargarProductos = true }) {
           estado: estadoFinal,
         },
       });
-
       notify.created("Producto");
       await onSuccess?.();
     } catch (error) {
@@ -312,7 +275,6 @@ export function useProductos({ user, nombreEmpleado, cargarProductos = true }) {
       notify.saveError("el producto");
     }
   };
-
   const actualizarProducto = async ({
     editandoId,
     editandoData,
@@ -330,7 +292,6 @@ export function useProductos({ user, nombreEmpleado, cargarProductos = true }) {
     onSuccess,
   }) => {
     if (!editandoId) return;
-
     if (
       !validarPayloadProducto({
         nombre,
@@ -345,13 +306,11 @@ export function useProductos({ user, nombreEmpleado, cargarProductos = true }) {
     ) {
       return;
     }
-
     try {
       let imagenUrl = imagenUrlActual || "";
       if (archivoImagen) {
         imagenUrl = await subirImagen(archivoImagen);
       }
-
       const precioContadoNum = Number(precioContado);
       const stockNum = Number(String(stock ?? "").trim());
       const stockMinimoNum = Number(String(stockMinimo ?? "").trim());
@@ -361,7 +320,6 @@ export function useProductos({ user, nombreEmpleado, cargarProductos = true }) {
         ),
       );
       const estadoFinal = getEstadoProducto(stockNum, stockMinimoNum, estado);
-
       const datosActualizados = {
         nombre: sanitizeNombreProducto(nombre).trim(),
         descripcion: sanitizeDescripcionProducto(descripcion).trim(),
@@ -375,9 +333,7 @@ export function useProductos({ user, nombreEmpleado, cargarProductos = true }) {
         imagenUrl,
         ultimaModificacion: serverTimestamp(),
       };
-
       await updateDoc(doc(db, "productos", editandoId), datosActualizados);
-
       await registrarBitacora({
         usuario: user?.email ?? "desconocido",
         nombre: nombreEmpleado || user?.email || "desconocido",
@@ -402,7 +358,6 @@ export function useProductos({ user, nombreEmpleado, cargarProductos = true }) {
           imagenActualizada: Boolean(archivoImagen),
         },
       });
-
       notify.updated("Producto");
       await onSuccess?.();
     } catch (error) {
@@ -410,11 +365,9 @@ export function useProductos({ user, nombreEmpleado, cargarProductos = true }) {
       notify.updateError("el producto");
     }
   };
-
   const handleEliminar = async (id) => {
     try {
       const productoAEliminar = productos.find((p) => p.id === id);
-
       if (productoAEliminar) {
         await addDoc(collection(db, "historialProductos"), {
           nombre: productoAEliminar.nombre,
@@ -431,9 +384,7 @@ export function useProductos({ user, nombreEmpleado, cargarProductos = true }) {
           nombreBajadoPor: nombreEmpleado,
         });
       }
-
       await deleteDoc(doc(db, "productos", id));
-
       await registrarBitacora({
         usuario: user?.email ?? "desconocido",
         nombre: nombreEmpleado || user?.email || "desconocido",
@@ -446,7 +397,6 @@ export function useProductos({ user, nombreEmpleado, cargarProductos = true }) {
           precioContado: productoAEliminar?.precioContado,
         },
       });
-
       await fetchProductos();
       notify.info("Producto eliminado y movido al historial.");
       return true;
@@ -456,7 +406,6 @@ export function useProductos({ user, nombreEmpleado, cargarProductos = true }) {
       return false;
     }
   };
-
   return {
     productos,
     categorias,
@@ -480,4 +429,4 @@ export function useProductos({ user, nombreEmpleado, cargarProductos = true }) {
     actualizarProducto,
     getEstadoProducto,
   };
-}
+}

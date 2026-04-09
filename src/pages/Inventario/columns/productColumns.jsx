@@ -1,14 +1,11 @@
 import { useState } from "react";
-
 import Badge from "../../../components/ui/badge/Badge";
 import { Dropdown } from "../../../components/ui/dropdown/Dropdown";
 import { DropdownItem } from "../../../components/ui/dropdown/DropdownItem";
 import { EyeIcon, MoreDotIcon, PencilIcon, TrashBinIcon } from "../../../icons";
 import { getEstadoProducto } from "../../../utils/productoUtils";
-
 function ProductoAcciones({ producto, onView, onEdit, onEliminar }) {
   const [isOpen, setIsOpen] = useState(false);
-
   return (
     <div className="relative flex justify-center">
       <button
@@ -19,7 +16,6 @@ function ProductoAcciones({ producto, onView, onEdit, onEliminar }) {
       >
         <MoreDotIcon className="h-5 w-5" />
       </button>
-
       <Dropdown
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
@@ -61,7 +57,6 @@ function ProductoAcciones({ producto, onView, onEdit, onEliminar }) {
     </div>
   );
 }
-
 export function productColumns({ onView, onEdit, onEliminar }) {
   return [
     {
@@ -151,7 +146,6 @@ export function productColumns({ onView, onEdit, onEliminar }) {
     },
   ];
 }
-
 export const COLUMNAS_EXPORT_PRODUCTOS = [
   { key: "nombre", header: "Nombre", type: "text" },
   { key: "descripcion", header: "Descripción", type: "text" },
@@ -161,4 +155,4 @@ export const COLUMNAS_EXPORT_PRODUCTOS = [
   { key: "stock", header: "Stock", type: "number" },
   { key: "stockMinimo", header: "Stock Mínimo", type: "number" },
   { key: "estado", header: "Estado", type: "text" },
-];
+];

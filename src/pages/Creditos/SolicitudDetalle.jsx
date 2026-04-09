@@ -1,6 +1,5 @@
 import { useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-
 import PageShell from "../../components/common/PageShell";
 import DataTable from "../../components/ui/table/DataTable";
 import SolicitudDecisionConfirmModal from "../../components/Creditos/SolicitudDecisionConfirmModal";
@@ -10,7 +9,6 @@ import { safeFormatDateTime } from "../../utils/formatters";
 import { lps } from "./columns/solicitudColumns";
 import { historialColumns } from "./columns/perfilDetalleColumns";
 import { useSolicitudDetalle } from "./hooks/useSolicitudDetalle";
-
 export default function SolicitudDetalle() {
   const { state } = useLocation();
   const navigate = useNavigate();
@@ -18,7 +16,6 @@ export default function SolicitudDetalle() {
   const { user } = useAuth();
   const nombreEmpleado = useNombreEmpleadoActual();
   const [decisionPendiente, setDecisionPendiente] = useState(null);
-
   const {
     solicitud,
     loading,
@@ -42,18 +39,14 @@ export default function SolicitudDetalle() {
     user,
     nombreEmpleado,
   });
-
   const historialCols = useMemo(() => historialColumns(), []);
-
   const abrirConfirmacion = (estado) => setDecisionPendiente(estado);
   const cerrarConfirmacion = () => setDecisionPendiente(null);
-
   const confirmarDecision = async () => {
     if (!decisionPendiente) return;
     await handleDecision(decisionPendiente);
     cerrarConfirmacion();
   };
-
   return (
     <PageShell
       breadcrumbCurrent="Detalle"
@@ -68,19 +61,16 @@ export default function SolicitudDetalle() {
       >
         &lt; Regresar a solicitudes
       </button>
-
       {!solicitud && !loading && (
         <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-300">
           No se encontró la solicitud.
         </div>
       )}
-
       {solicitud && (
         <div className="space-y-5 border border-gray-200 dark:border-white/10 rounded-xl p-4 sm:p-6 bg-white dark:bg-gray-800">
           <h2 className="text-xl font-bold text-gray-800 dark:text-white/90">
             {solicitud.empleadoNombres} {solicitud.empleadoApellidos}
           </h2>
-
           {mostrarAuditoria && (
             <div className="rounded-lg border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-gray-900/50 px-4 py-3">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -105,7 +95,6 @@ export default function SolicitudDetalle() {
               </div>
             </div>
           )}
-
           <div className="flex items-center gap-5 p-4 rounded-2xl border border-gray-200 dark:border-white/10 bg-white dark:bg-gray-900 shadow-sm">
             <div className="relative w-24 h-24 rounded-xl bg-white p-2 border border-gray-100 dark:border-white/5 flex items-center justify-center shrink-0 shadow-inner">
               {solicitud.productoImgUrl ? (
@@ -118,7 +107,6 @@ export default function SolicitudDetalle() {
                 <span className="text-xs text-gray-400 font-medium">N/A</span>
               )}
             </div>
-
             <div className="flex flex-col justify-center">
               <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-blue-600 dark:text-blue-400 mb-1">
                 Detalle de Compra
@@ -135,7 +123,6 @@ export default function SolicitudDetalle() {
               <p className="text-xl font-black text-gray-800 dark:text-gray-100 tracking-tight">
                 {lps(fin.totalCredito)}
               </p>
-
               <div className="mt-3 pt-3 border-t border-gray-200 dark:border-white/10">
                 <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
                   <p className="font-medium text-gray-600 dark:text-gray-300">
@@ -147,7 +134,6 @@ export default function SolicitudDetalle() {
                       meses
                     </span>
                   </p>
-
                   <p className="font-medium text-gray-600 dark:text-gray-300">
                     <span className="text-gray-500 dark:text-gray-400">
                       Cuota mensual:
@@ -160,7 +146,6 @@ export default function SolicitudDetalle() {
               </div>
             </div>
           </div>
-
           <div className="rounded-xl border border-gray-200 dark:border-white/10 overflow-hidden">
             <div className="px-4 py-2 bg-gray-50 dark:bg-gray-900/50 border-b border-gray-200 dark:border-white/10">
               <p className="text-xs font-semibold uppercase tracking-widest text-gray-400 dark:text-gray-500">
@@ -207,7 +192,6 @@ export default function SolicitudDetalle() {
               </div>
             </div>
           </div>
-
           {isPendiente && excedeLimite && (
             <div className="flex items-start gap-3 p-4 rounded-xl border border-red-200 dark:border-red-500/30 bg-red-50 dark:bg-red-500/10">
               <div>
@@ -221,7 +205,6 @@ export default function SolicitudDetalle() {
               </div>
             </div>
           )}
-
           <div className="rounded-xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-gray-900 overflow-hidden">
             <div className="px-4 pt-5 pb-3 border-b border-gray-200 dark:border-white/10 flex justify-between items-center">
               <p className="text-xs font-semibold uppercase tracking-widest text-gray-400 dark:text-gray-500">
@@ -242,7 +225,6 @@ export default function SolicitudDetalle() {
               </DataTable>
             </div>
           </div>
-
           <div className="pt-2 border-t border-gray-200 dark:border-white/10 flex gap-3">
             <button
               onClick={() => abrirConfirmacion("Aprobado")}
@@ -274,4 +256,4 @@ export default function SolicitudDetalle() {
       )}
     </PageShell>
   );
-}
+}

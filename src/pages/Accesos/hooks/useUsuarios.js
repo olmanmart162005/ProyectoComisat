@@ -15,16 +15,12 @@ import {
   generarPasswordTemporal,
   enviarCorreoCredenciales,
 } from "../../../services/credencialesEmail";
-
 const DOMINIO_CORREO_INSTITUCIONAL = "@comisat.com";
-
 const normalizarTexto = (valor) =>
   String(valor ?? "")
     .trim()
     .toLowerCase();
-
 const esRolEmpleado = (rol) => normalizarTexto(rol?.nombre) === "empleado";
-
 const extraerLocalPartCorreo = (correoCompleto) => {
   const correo = String(correoCompleto ?? "")
     .trim()
@@ -32,7 +28,6 @@ const extraerLocalPartCorreo = (correoCompleto) => {
   if (!correo) return "";
   return correo.replace(DOMINIO_CORREO_INSTITUCIONAL, "").replace(/@.*/, "");
 };
-
 const normalizarLocalPartCorreo = (valor) =>
   String(valor ?? "")
     .toLowerCase()
@@ -40,10 +35,8 @@ const normalizarLocalPartCorreo = (valor) =>
     .replace(/[^a-z0-9._-]/g, "")
     .replace(/\s+/g, "")
     .trim();
-
 const construirCorreoInstitucional = (localPart) =>
   `${normalizarLocalPartCorreo(localPart)}${DOMINIO_CORREO_INSTITUCIONAL}`;
-
 export const useUsuarios = ({ closeModal, user, nombreEmpleado }) => {
   const [usuarios, setUsuarios] = useState([]);
   const [empleados, setEmpleados] = useState([]);
@@ -51,10 +44,8 @@ export const useUsuarios = ({ closeModal, user, nombreEmpleado }) => {
   const [loading, setLoading] = useState(true);
   const [busquedaEmpleado, setBusquedaEmpleado] = useState("");
   const [mostrarSugerencias, setMostrarSugerencias] = useState(false);
-
   const [editandoId, setEditandoId] = useState(null);
   const [enviando, setEnviando] = useState(false);
-
   const [empleadoId, setEmpleadoId] = useState("");
   const [nombre, setNombre] = useState("");
   const [correoPersonal, setCorreoPersonal] = useState("");
@@ -64,13 +55,11 @@ export const useUsuarios = ({ closeModal, user, nombreEmpleado }) => {
   const [estado, setEstado] = useState("Activo");
   const [filtroEstado, setFiltroEstado] = useState("");
   const [filtroRol, setFiltroRol] = useState("");
-
   const totalUsuarios = usuarios.length;
   const usuariosActivos = usuarios.filter((u) => u.estado === "Activo").length;
   const usuariosInactivos = usuarios.filter(
     (u) => u.estado === "Inactivo",
   ).length;
-
   const fetchEmpleados = async () => {
     try {
       const snap = await getDocs(collection(db, "empleados"));
@@ -81,7 +70,6 @@ export const useUsuarios = ({ closeModal, user, nombreEmpleado }) => {
       notify.loadError("los empleados");
     }
   };
-
   const fetchRoles = async () => {
     try {
       const snap = await getDocs(collection(db, "roles"));
@@ -97,7 +85,6 @@ export const useUsuarios = ({ closeModal, user, nombreEmpleado }) => {
       notify.loadError("los roles");
     }
   };
-
   const fetchUsuarios = async () => {
     setLoading(true);
     try {
@@ -111,13 +98,11 @@ export const useUsuarios = ({ closeModal, user, nombreEmpleado }) => {
       setLoading(false);
     }
   };
-
   useEffect(() => {
     fetchEmpleados();
     fetchRoles();
     fetchUsuarios();
   }, []);
-
   const handleEmpleadoChange = (e) => {
     const selectedId = e.target.value;
     const emp = empleados.find((em) => em.id === selectedId);
@@ -127,38 +112,30 @@ export const useUsuarios = ({ closeModal, user, nombreEmpleado }) => {
       setCorreoPersonal(emp.correo ?? "");
     }
   };
-
   const handleRolChange = (e) => {
     const selectedId = e.target.value;
     const rol = roles.find((r) => r.id === selectedId);
     setRolId(selectedId);
     setRolNombre(rol ? (rol.nombre ?? "") : "");
   };
-
   const rolesAsignables = useMemo(
     () => roles.filter((rol) => !esRolEmpleado(rol)),
     [roles],
   );
-
   const empleadosDisponibles = useMemo(() => {
     return empleados;
   }, [empleados]);
-
-  // Reemplaza handleSubmit completo
   const handleSubmit = async (e, { onSuccess } = {}) => {
     e.preventDefault();
     setEnviando(true);
     try {
-      // Obtener DNI del empleado seleccionado
       const empSeleccionado = empleados.find((em) => em.id === empleadoId);
       const apellidosEmpleado = empSeleccionado?.apellidos ?? "";
       const dniEmpleado = empSeleccionado?.dni ?? "";
-
       const passwordTemporal = generarPasswordTemporal(
         apellidosEmpleado,
         dniEmpleado,
       );
-
       const correoLocal = normalizarLocalPartCorreo(correo);
       if (!correoLocal) {
         notify.warning("Ingresa el usuario del correo institucional.");
@@ -166,7 +143,6 @@ export const useUsuarios = ({ closeModal, user, nombreEmpleado }) => {
         return;
       }
       const correoInstitucional = construirCorreoInstitucional(correoLocal);
-
       await addDoc(collection(db, "usuarios"), {
         empleadoId,
         nombre,
@@ -180,7 +156,6 @@ export const useUsuarios = ({ closeModal, user, nombreEmpleado }) => {
         registradoEnAuth: false,
         fechaRegistro: serverTimestamp(),
       });
-
       await registrarBitacora({
         usuario: user?.email || "Sistema",
         nombre: nombreEmpleado || "Sistema",
@@ -195,8 +170,6 @@ export const useUsuarios = ({ closeModal, user, nombreEmpleado }) => {
           empleadoId,
         },
       });
-
-      // Enviar correo con credenciales al correo personal del empleado
       try {
         await enviarCorreoCredenciales({
           nombre,
@@ -216,7 +189,6 @@ export const useUsuarios = ({ closeModal, user, nombreEmpleado }) => {
         closeModal?.();
         return;
       }
-
       resetFormulario();
       fetchUsuarios();
       closeModal?.();
@@ -232,13 +204,11 @@ export const useUsuarios = ({ closeModal, user, nombreEmpleado }) => {
       setEnviando(false);
     }
   };
-
   const handleUpdate = async (e, { onSuccess } = {}) => {
     e.preventDefault();
     setEnviando(true);
     try {
       const usuarioAnterior = usuarios.find((u) => u.id === editandoId);
-
       const correoLocal = normalizarLocalPartCorreo(correo);
       if (!correoLocal) {
         notify.warning("Ingresa el usuario del correo institucional.");
@@ -246,7 +216,6 @@ export const useUsuarios = ({ closeModal, user, nombreEmpleado }) => {
         return;
       }
       const correoInstitucional = construirCorreoInstitucional(correoLocal);
-
       await updateDoc(doc(db, "usuarios", editandoId), {
         empleadoId,
         nombre,
@@ -257,7 +226,6 @@ export const useUsuarios = ({ closeModal, user, nombreEmpleado }) => {
         estado,
         ultimaModificacion: serverTimestamp(),
       });
-
       await registrarBitacora({
         usuario: user?.email || "Sistema",
         nombre: nombreEmpleado || "Sistema",
@@ -284,7 +252,6 @@ export const useUsuarios = ({ closeModal, user, nombreEmpleado }) => {
           }),
         },
       });
-
       resetFormulario();
       fetchUsuarios();
       closeModal?.();
@@ -297,12 +264,10 @@ export const useUsuarios = ({ closeModal, user, nombreEmpleado }) => {
       setEnviando(false);
     }
   };
-
   const handleEliminar = async (id) => {
     try {
       const usuarioAEliminar = usuarios.find((u) => u.id === id);
       await deleteDoc(doc(db, "usuarios", id));
-
       await registrarBitacora({
         usuario: user?.email || "Sistema",
         nombre: nombreEmpleado || "Sistema",
@@ -316,7 +281,6 @@ export const useUsuarios = ({ closeModal, user, nombreEmpleado }) => {
           estado: usuarioAEliminar?.estado,
         },
       });
-
       fetchUsuarios();
       notify.deleted("Usuario");
       return true;
@@ -326,7 +290,6 @@ export const useUsuarios = ({ closeModal, user, nombreEmpleado }) => {
       return false;
     }
   };
-
   const resetFormulario = useCallback(() => {
     setEditandoId(null);
     setEmpleadoId("");
@@ -334,7 +297,6 @@ export const useUsuarios = ({ closeModal, user, nombreEmpleado }) => {
     setBusquedaEmpleado("");
     setCorreoPersonal("");
     setCorreo("");
-
     const rolPorDefecto = rolesAsignables[0] ?? roles[0];
     if (rolPorDefecto) {
       setRolId(rolPorDefecto.id);
@@ -345,7 +307,6 @@ export const useUsuarios = ({ closeModal, user, nombreEmpleado }) => {
     }
     setEstado("Activo");
   }, [rolesAsignables, roles]);
-
   const usuariosFiltrados = useMemo(() => {
     return usuarios.filter((u) => {
       const coincideRol = filtroRol ? u.rolId === filtroRol : true;
@@ -353,7 +314,6 @@ export const useUsuarios = ({ closeModal, user, nombreEmpleado }) => {
       return coincideRol && coincideEstado;
     });
   }, [usuarios, filtroRol, filtroEstado]);
-
   const textoFiltrosPdf = [
     filtroRol
       ? `Rol: ${roles.find((r) => r.id === filtroRol)?.nombre ?? filtroRol}`
@@ -362,7 +322,6 @@ export const useUsuarios = ({ closeModal, user, nombreEmpleado }) => {
   ]
     .filter(Boolean)
     .join(" | ");
-
   return {
     usuarios,
     empleados,
@@ -411,4 +370,4 @@ export const useUsuarios = ({ closeModal, user, nombreEmpleado }) => {
     resetFormulario,
     fetchUsuarios,
   };
-};
+};

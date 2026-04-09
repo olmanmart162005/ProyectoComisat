@@ -1,43 +1,34 @@
 import { useMemo } from "react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-
 import DataTable from "../../components/ui/table/DataTable";
 import ConfirmDeleteModal from "../../components/common/ConfirmDeleteModal";
 import ExportButtons from "../../layout/Exportbuttons";
 import { useAuth } from "../../auth/AuthProvider";
 import { useNombreEmpleadoActual } from "../../hooks/useNombreEmpleadoActual";
 import { registrarBitacora } from "../../services/bitacora";
-
 import {
   departamentoColumns,
   COLUMNAS_EXPORT_DEPARTAMENTOS,
 } from "./columns/departamentoColumns";
 import { useDepartamentos } from "./hooks/useDepartamentos";
-
 export default function Gest_Departamentos() {
   const navigate = useNavigate();
-
   const { user } = useAuth();
   const nombreEmpleado = useNombreEmpleadoActual();
-
   const { departamentos, loading, handleEliminar } = useDepartamentos({
     closeModal: () => {},
   });
-
   const [departamentoAEliminar, setDepartamentoAEliminar] = useState(null);
   const [eliminando, setEliminando] = useState(false);
-
   const abrirEliminarDepartamento = (depId) => {
     const dep = departamentos.find((item) => item.id === depId) || null;
     setDepartamentoAEliminar(dep);
   };
-
   const cerrarEliminarDepartamento = () => {
     if (eliminando) return;
     setDepartamentoAEliminar(null);
   };
-
   const confirmarEliminarDepartamento = async () => {
     if (!departamentoAEliminar?.id) return;
     setEliminando(true);
@@ -45,7 +36,6 @@ export default function Gest_Departamentos() {
     setEliminando(false);
     if (ok) setDepartamentoAEliminar(null);
   };
-
   const columns = useMemo(
     () =>
       departamentoColumns({
@@ -56,7 +46,6 @@ export default function Gest_Departamentos() {
       }),
     [navigate, departamentos],
   );
-
   return (
     <div className="space-y-6">
       <div className="flex sm:justify-between flex-col sm:flex-row gap-4 items-start sm:items-center">
@@ -83,7 +72,6 @@ export default function Gest_Departamentos() {
           Nuevo Departamento
         </button>
       </div>
-
       <DataTable columns={columns} data={departamentos} loading={loading}>
         <DataTable.Toolbar searchPlaceholder="Buscar departamento...">
           <ExportButtons
@@ -110,7 +98,6 @@ export default function Gest_Departamentos() {
         <DataTable.Table />
         <DataTable.Pagination />
       </DataTable>
-
       <ConfirmDeleteModal
         isOpen={Boolean(departamentoAEliminar)}
         onClose={cerrarEliminarDepartamento}
@@ -121,4 +108,4 @@ export default function Gest_Departamentos() {
       />
     </div>
   );
-}
+}

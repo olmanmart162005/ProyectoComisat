@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-
 import PageShell from "../../components/common/PageShell";
 import { useAuth } from "../../auth/AuthProvider";
 import { useNombreEmpleadoActual } from "../../hooks/useNombreEmpleadoActual";
@@ -14,7 +13,6 @@ import {
   parseDateValue,
   sanitizeDigitsInput,
 } from "../../utils/empleadoUtils";
-
 export default function EmpleadoFormulario() {
   const location = useLocation();
   const navigate = useNavigate();
@@ -22,7 +20,6 @@ export default function EmpleadoFormulario() {
   const nombreEmpleado = useNombreEmpleadoActual();
   const empleado = location.state?.empleado ?? null;
   const modoEdicion = Boolean(empleado);
-
   const {
     empleados,
     historialEmpleados,
@@ -30,7 +27,6 @@ export default function EmpleadoFormulario() {
     guardarEmpleado,
     actualizarEmpleado,
   } = useEmpleados({ user, nombreEmpleado });
-
   const [editandoId, setEditandoId] = useState(null);
   const [enviando, setEnviando] = useState(false);
   const [codigoEmpleado, setCodigoEmpleado] = useState("");
@@ -44,9 +40,7 @@ export default function EmpleadoFormulario() {
   const [salario, setSalario] = useState("");
   const [fechaInicio, setFechaInicio] = useState("");
   const [estado, setEstado] = useState("Activo");
-
   const fechaInicioSeleccionada = parseDateValue(fechaInicio);
-
   const resetFormulario = () => {
     const codigoNuevo = generarNuevoCodigo(empleados, historialEmpleados);
     setEditandoId(null);
@@ -59,7 +53,6 @@ export default function EmpleadoFormulario() {
     setSalario("");
     setFechaInicio("");
     setEstado("Activo");
-
     if (departamentos.length > 0) {
       setDepartamentoId(departamentos[0].id);
       setDepartamentoNombre(departamentos[0].nombre || "");
@@ -68,7 +61,6 @@ export default function EmpleadoFormulario() {
       setDepartamentoNombre("");
     }
   };
-
   useEffect(() => {
     if (modoEdicion && empleado) {
       setEditandoId(empleado.id || null);
@@ -85,23 +77,19 @@ export default function EmpleadoFormulario() {
       setEstado(empleado.estado || "Activo");
       return;
     }
-
     if (departamentos.length > 0) {
       resetFormulario();
     }
   }, [modoEdicion, empleado, departamentos, empleados, historialEmpleados]);
-
   const handleDepartamentoChange = (e) => {
     const selectedId = e.target.value;
     const selectedDep = departamentos.find((d) => d.id === selectedId);
     setDepartamentoId(selectedId);
     setDepartamentoNombre(selectedDep ? selectedDep.nombre || "" : "");
   };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setEnviando(true);
-
     try {
       const payload = {
         codigoEmpleado,
@@ -117,7 +105,6 @@ export default function EmpleadoFormulario() {
         estado,
         onSuccess: () => navigate("/empleados"),
       };
-
       if (modoEdicion) {
         await actualizarEmpleado({
           ...payload,
@@ -130,7 +117,6 @@ export default function EmpleadoFormulario() {
       setEnviando(false);
     }
   };
-
   if (location.pathname.endsWith("/editar") && !empleado) {
     return (
       <PageShell
@@ -146,7 +132,6 @@ export default function EmpleadoFormulario() {
       </PageShell>
     );
   }
-
   return (
     <PageShell
       breadcrumbCurrent={modoEdicion ? "Editar" : "Nuevo"}
@@ -164,7 +149,6 @@ export default function EmpleadoFormulario() {
                 {codigoEmpleado || "Generando..."}
               </p>
             </div>
-
             <div className="rounded-xl border border-gray-200 bg-white p-5 dark:border-white/10 dark:bg-white/[0.02]">
               <h3 className="text-sm font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">
                 Estado del empleado
@@ -197,7 +181,6 @@ export default function EmpleadoFormulario() {
               </div>
             </div>
           </div>
-
           <div className="lg:col-span-7 flex flex-col gap-5 self-stretch">
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div>
@@ -213,7 +196,6 @@ export default function EmpleadoFormulario() {
                   className="w-full rounded-lg border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-gray-900 outline-none transition-all focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 dark:border-white/10 dark:bg-white/[0.02] dark:text-white"
                 />
               </div>
-
               <div>
                 <label className="mb-1.5 ml-1 block text-[10px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500">
                   Apellidos
@@ -228,7 +210,6 @@ export default function EmpleadoFormulario() {
                 />
               </div>
             </div>
-
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div>
                 <label className="mb-1.5 ml-1 block text-[10px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500">
@@ -243,7 +224,6 @@ export default function EmpleadoFormulario() {
                   className="w-full rounded-lg border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-gray-900 outline-none transition-all focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 dark:border-white/10 dark:bg-white/[0.02] dark:text-white"
                 />
               </div>
-
               <div>
                 <label className="mb-1.5 ml-1 block text-[10px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500">
                   DNI
@@ -262,7 +242,6 @@ export default function EmpleadoFormulario() {
                 />
               </div>
             </div>
-
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div>
                 <label className="mb-1.5 ml-1 block text-[10px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500">
@@ -283,7 +262,6 @@ export default function EmpleadoFormulario() {
                   className="w-full rounded-lg border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-gray-900 outline-none transition-all focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 dark:border-white/10 dark:bg-white/[0.02] dark:text-white"
                 />
               </div>
-
               <div>
                 <label className="mb-1.5 ml-1 block text-[10px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500">
                   Departamento
@@ -304,7 +282,6 @@ export default function EmpleadoFormulario() {
             </div>
           </div>
         </section>
-
         <section className="grid grid-cols-1 gap-6 border-t border-gray-100 pt-2 md:grid-cols-2 dark:border-white/10">
           <div className="space-y-3">
             <div className="flex items-center gap-2.5 border-b border-gray-100 pb-1.5 dark:border-white/10">
@@ -325,7 +302,6 @@ export default function EmpleadoFormulario() {
                 Compensación
               </h3>
             </div>
-
             <div>
               <label className="mb-1.5 ml-1 block text-[10px] font-bold uppercase text-gray-400 dark:text-gray-500">
                 Salario
@@ -345,7 +321,6 @@ export default function EmpleadoFormulario() {
               />
             </div>
           </div>
-
           <div className="space-y-3">
             <div className="flex items-center gap-2.5 border-b border-gray-100 pb-1.5 dark:border-white/10">
               <svg
@@ -365,7 +340,6 @@ export default function EmpleadoFormulario() {
                 Contratación
               </h3>
             </div>
-
             <div>
               <label className="mb-1.5 ml-1 block text-[10px] font-bold uppercase text-gray-400 dark:text-gray-500">
                 Fecha de Inicio
@@ -384,7 +358,6 @@ export default function EmpleadoFormulario() {
             </div>
           </div>
         </section>
-
         <footer className="sticky bottom-0 z-10 -mx-5 border-t border-gray-100 bg-white px-5 py-4 dark:border-white/10 dark:bg-gray-950/80 sm:-mx-6 sm:px-6">
           <div className="flex justify-end gap-3">
             <button
@@ -416,4 +389,4 @@ export default function EmpleadoFormulario() {
       </form>
     </PageShell>
   );
-}
+}

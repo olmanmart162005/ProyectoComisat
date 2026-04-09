@@ -18,7 +18,6 @@ import {
   lps,
 } from "./columns/historialCreditoColumns";
 import { MESES, useHistorialCreditos } from "./hooks/useHistorialCreditos";
-
 export default function HistorialCreditos() {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -36,20 +35,17 @@ export default function HistorialCreditos() {
     empleadosUnicos,
     creditosPagados,
   } = useHistorialCreditos();
-
   const columnasCreditos = historialCreditoColumns({
     onVerCuotas: (credito) =>
       navigate("/historial-creditos/detalle", {
         state: { credito, mesFiltro, anioFiltro },
       }),
   });
-
   return (
     <div className="space-y-6">
       <h2 className="text-2xl font-bold text-gray-800 dark:text-white/90">
         Historial de Créditos
       </h2>
-
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-4 md:gap-6">
         <MetricCard
           title="Cuotas Cobradas"
@@ -84,7 +80,6 @@ export default function HistorialCreditos() {
           iconWrapperClass="bg-emerald-50 dark:bg-emerald-500/10"
         />
       </div>
-
       <div className="space-y-3">
         {creditos.length > 0 && (
           <div className="flex items-center gap-2">
@@ -125,7 +120,6 @@ export default function HistorialCreditos() {
                   </option>
                 ))}
               </select>
-
               <ExportButtons
                 rows={creditos}
                 columns={COLUMNAS_EXPORT_HISTORIAL_CREDITOS}
@@ -163,4 +157,4 @@ export default function HistorialCreditos() {
       </div>
     </div>
   );
-}
+}

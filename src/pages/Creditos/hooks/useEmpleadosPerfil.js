@@ -8,32 +8,26 @@ import {
   query,
   orderBy,
 } from "firebase/firestore";
-
 export const getEstadoEmpleado = (empleado) => {
   if (empleado.estado === "Inactivo") return "Inactivo";
   return "Activo";
 };
-
 const normalizarEmpleado = (empleado) => ({
   ...empleado,
   fechaRegistro: empleado?.fechaRegistro ?? empleado?.FechaRegistro ?? null,
 });
-
 const normalizarTexto = (valor) =>
   String(valor ?? "")
     .trim()
     .toLowerCase();
-
 const getKeysEmpleado = (empleado) =>
   [empleado?.id, empleado?.empleadoId, empleado?.codigoEmpleado]
     .map(normalizarTexto)
     .filter(Boolean);
-
 const getKeyCredito = (credito) =>
   normalizarTexto(
     credito?.empleadoId ?? credito?.empleadoUid ?? credito?.idEmpleado,
   );
-
 const esCreditoActivo = (credito) => {
   const aprobado = normalizarTexto(credito?.estado) === "aprobado";
   const estadoCredito = normalizarTexto(credito?.estadoCredito);
@@ -42,7 +36,6 @@ const esCreditoActivo = (credito) => {
   );
   return aprobado && sigueActivo;
 };
-
 const tieneCreditoActivoEmpleado = (empleado, creditos) => {
   const keysEmpleado = getKeysEmpleado(empleado);
   return creditos.some(
@@ -50,7 +43,6 @@ const tieneCreditoActivoEmpleado = (empleado, creditos) => {
       esCreditoActivo(credito) && keysEmpleado.includes(getKeyCredito(credito)),
   );
 };
-
 export function useEmpleadosPerfil() {
   const [empleados, setEmpleados] = useState([]);
   const [departamentos, setDepartamentos] = useState([]);
@@ -60,7 +52,6 @@ export function useEmpleadosPerfil() {
   const [filtroDepartamento, setFiltroDepartamento] = useState("");
   const [filtroEstado, setFiltroEstado] = useState("");
   const [filtroCreditoActivo, setFiltroCreditoActivo] = useState("");
-
   const fetchDatos = async () => {
     setLoading(true);
     try {
@@ -89,11 +80,9 @@ export function useEmpleadosPerfil() {
       setLoading(false);
     }
   };
-
   useEffect(() => {
     fetchDatos();
   }, []);
-
   const { totalActivos, totalInactivos, totalDepartamentos } = useMemo(() => {
     return {
       totalActivos: empleados.filter((e) => getEstadoEmpleado(e) === "Activo")
@@ -104,11 +93,9 @@ export function useEmpleadosPerfil() {
       totalDepartamentos: new Set(empleados.map((e) => e.departamentoId)).size,
     };
   }, [empleados]);
-
   const empleadosConEstadoCredito = useMemo(() => {
     return empleados.map((e) => {
       const tieneCreditoActivo = tieneCreditoActivoEmpleado(e, creditos);
-
       return {
         ...e,
         creditoActivo: tieneCreditoActivo ? "Sí" : "No",
@@ -116,7 +103,6 @@ export function useEmpleadosPerfil() {
       };
     });
   }, [empleados, creditos]);
-
   const empleadosFiltrados = useMemo(() => {
     return empleadosConEstadoCredito.filter((e) => {
       const porDep = filtroDepartamento
@@ -125,13 +111,11 @@ export function useEmpleadosPerfil() {
       const porEstado = filtroEstado
         ? getEstadoEmpleado(e) === filtroEstado
         : true;
-
       const porCredito = filtroCreditoActivo
         ? filtroCreditoActivo === "activo"
           ? e.creditoActivo === "Sí"
           : e.creditoActivo === "No"
         : true;
-
       return porDep && porEstado && porCredito;
     });
   }, [
@@ -140,40 +124,32 @@ export function useEmpleadosPerfil() {
     filtroEstado,
     filtroCreditoActivo,
   ]);
-
   const getEstadoCreditoEmpleado = (empleado) => {
     return empleado?.creditoActivo === "Sí" ? "Sí" : "No";
   };
-
   const totalConCreditoActivo = useMemo(
     () =>
       empleadosConEstadoCredito.filter((e) => e.creditoActivo === "Sí").length,
     [empleadosConEstadoCredito],
   );
-
   const textoFiltrosPdf = useMemo(() => {
     const partes = [];
-
     if (filtroDepartamento) {
       const dep = departamentos.find((d) => d.id === filtroDepartamento);
       partes.push(`Departamento: ${dep?.nombre ?? filtroDepartamento}`);
     }
-
     if (filtroEstado) {
       partes.push(`Estado: ${filtroEstado}`);
     }
-
     if (filtroCreditoActivo) {
       partes.push(
         `Crédito: ${filtroCreditoActivo === "activo" ? "Con crédito activo" : "Sin crédito activo"}`,
       );
     }
-
     return partes.length > 0
       ? `Filtros activos: ${partes.join(" | ")}`
       : "Listado Completo";
   }, [departamentos, filtroCreditoActivo, filtroDepartamento, filtroEstado]);
-
   return {
     empleados,
     departamentos,
@@ -195,4 +171,4 @@ export function useEmpleadosPerfil() {
     getEstadoEmpleado,
     getEstadoCreditoEmpleado,
   };
-}
+}

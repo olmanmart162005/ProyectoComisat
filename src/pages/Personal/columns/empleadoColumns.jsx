@@ -1,5 +1,4 @@
 import { useState } from "react";
-
 import Badge from "../../../components/ui/badge/Badge";
 import { Dropdown } from "../../../components/ui/dropdown/Dropdown";
 import { DropdownItem } from "../../../components/ui/dropdown/DropdownItem";
@@ -8,18 +7,15 @@ import {
   formatDniDisplay,
   formatTelefonoDisplay,
 } from "../../../utils/empleadoUtils";
-
 const obtenerIniciales = (texto) => {
   const limpio = String(texto ?? "").trim();
   if (!limpio) return "--";
-
   const partes = limpio.split(/\s+/).filter(Boolean);
   return partes
     .slice(0, 2)
     .map((p) => p.charAt(0).toUpperCase())
     .join("");
 };
-
 export const COLUMNAS_EXPORT_EMPLEADOS = [
   { key: "codigoEmpleado", header: "Código", type: "text" },
   {
@@ -41,10 +37,8 @@ export const COLUMNAS_EXPORT_EMPLEADOS = [
   { key: "fechaInicio", header: "Fecha Inicio", type: "date" },
   { key: "estado", header: "Estado", type: "text" },
 ];
-
 function EmpleadoAcciones({ empleado, onView, onEdit, onEliminar }) {
   const [isOpen, setIsOpen] = useState(false);
-
   return (
     <div className="relative flex justify-center">
       <button
@@ -55,7 +49,6 @@ function EmpleadoAcciones({ empleado, onView, onEdit, onEliminar }) {
       >
         <MoreDotIcon className="h-5 w-5" />
       </button>
-
       <Dropdown
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
@@ -97,10 +90,8 @@ function EmpleadoAcciones({ empleado, onView, onEdit, onEliminar }) {
     </div>
   );
 }
-
 export function empleadoColumns({ onView, onEdit, onEliminar, departamentos }) {
   void departamentos;
-
   return [
     {
       accessorFn: (row) => `${row.nombres} ${row.apellidos}`,
@@ -117,7 +108,6 @@ export function empleadoColumns({ onView, onEdit, onEliminar, departamentos }) {
             >
               {obtenerIniciales(nombreCompleto)}
             </div>
-
             <div className="flex min-w-0 flex-col gap-1">
               <span
                 title={nombreCompleto}
@@ -199,4 +189,4 @@ export function empleadoColumns({ onView, onEdit, onEliminar, departamentos }) {
       ),
     },
   ];
-}
+}

@@ -2,15 +2,12 @@ import { useState } from "react";
 import { MoreDotIcon, PencilIcon, TrashBinIcon } from "../../../icons";
 import { Dropdown } from "../../../components/ui/dropdown/Dropdown";
 import { DropdownItem } from "../../../components/ui/dropdown/DropdownItem";
-
 export const COLUMNAS_EXPORT_ROLES = [
   { key: "nombre", header: "Nombre", type: "text" },
   { key: "descripcion", header: "Descripción", type: "text" },
 ];
-
 function RolAcciones({ rol, onEdit, onEliminar }) {
   const [isOpen, setIsOpen] = useState(false);
-
   return (
     <div className="relative flex justify-center">
       <button
@@ -21,7 +18,6 @@ function RolAcciones({ rol, onEdit, onEliminar }) {
       >
         <MoreDotIcon className="h-5 w-5" />
       </button>
-
       <Dropdown
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
@@ -53,7 +49,6 @@ function RolAcciones({ rol, onEdit, onEliminar }) {
     </div>
   );
 }
-
 export function roleColumns({ onEdit, onEliminar }) {
   return [
     {
@@ -92,4 +87,4 @@ export function roleColumns({ onEdit, onEliminar }) {
       },
     },
   ];
-}
+}

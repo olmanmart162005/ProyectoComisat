@@ -21,27 +21,21 @@ import {
   validarEmpleadoPayload,
   parseDateValue,
 } from "../../../utils/empleadoUtils";
-
 export const generarNuevoCodigo = (listaEmpleados, listaHistorial = []) => {
   const anioActual = new Date().getFullYear().toString();
-
   const todosLosCodigos = [
     ...listaEmpleados.map((e) => e.codigoEmpleado),
     ...listaHistorial.map((h) => h.codigoEmpleado),
   ]
     .filter((cod) => cod && cod.toString().startsWith(anioActual))
     .map((cod) => cod.toString());
-
   if (todosLosCodigos.length === 0) {
     return `${anioActual}001`;
   }
-
   const ultimosNumeros = todosLosCodigos.map((cod) => parseInt(cod.slice(4)));
   const maxActual = Math.max(...ultimosNumeros);
-
   return `${anioActual}${(maxActual + 1).toString().padStart(3, "0")}`;
 };
-
 export function useEmpleados({ user, nombreEmpleado }) {
   const [empleados, setEmpleados] = useState([]);
   const [historialEmpleados, setHistorialEmpleados] = useState([]);
@@ -49,7 +43,6 @@ export function useEmpleados({ user, nombreEmpleado }) {
   const [loading, setLoading] = useState(true);
   const [filtroDepartamento, setFiltroDepartamento] = useState("");
   const [filtroEstado, setFiltroEstado] = useState("");
-
   const fetchDepartamentos = async () => {
     try {
       const querySnapshot = await getDocs(collection(db, "departamentos"));
@@ -63,7 +56,6 @@ export function useEmpleados({ user, nombreEmpleado }) {
       notify.loadError("los departamentos");
     }
   };
-
   const fetchEmpleados = async () => {
     setLoading(true);
     try {
@@ -80,7 +72,6 @@ export function useEmpleados({ user, nombreEmpleado }) {
       setLoading(false);
     }
   };
-
   const fetchHistorialEmpleados = async () => {
     try {
       const querySnapshot = await getDocs(collection(db, "historialEmpleados"));
@@ -93,13 +84,11 @@ export function useEmpleados({ user, nombreEmpleado }) {
       console.error("Error al cargar historial de empleados:", error);
     }
   };
-
   useEffect(() => {
     fetchDepartamentos();
     fetchEmpleados();
     fetchHistorialEmpleados();
   }, []);
-
   const totalEmpleados = empleados.length;
   const empleadosActivos = empleados.filter(
     (e) => e.estado === "Activo",
@@ -107,52 +96,39 @@ export function useEmpleados({ user, nombreEmpleado }) {
   const empleadosInactivos = empleados.filter(
     (e) => e.estado === "Inactivo",
   ).length;
-
   const empleadosFiltrados = useMemo(() => {
     return empleados.filter((e) => {
       const coincideDepartamento = filtroDepartamento
         ? e.departamentoId === filtroDepartamento
         : true;
-
       const coincideEstado = filtroEstado ? e.estado === filtroEstado : true;
-
       return coincideDepartamento && coincideEstado;
     });
   }, [empleados, filtroDepartamento, filtroEstado]);
-
   const textoFiltrosPdf = useMemo(() => {
     const partes = [];
-
     if (filtroDepartamento) {
       const dep = departamentos.find((d) => d.id === filtroDepartamento);
       partes.push(`Departamento: ${dep ? dep.nombre : filtroDepartamento}`);
     }
-
     if (filtroEstado) {
       partes.push(`Estado: ${filtroEstado}`);
     }
-
     return partes.length > 0
       ? `Filtros activos: ${partes.join(" | ")}`
       : "Listado Completo";
   }, [filtroDepartamento, filtroEstado, departamentos]);
-
   const handleEliminar = async (id) => {
     try {
       const empleadoAEliminar = empleados.find((e) => e.id === id);
-
-      // ── Paso 1: eliminar todos los usuarios vinculados al empleado ──
       const qUsuarios = query(
         collection(db, "usuarios"),
         where("empleadoId", "==", id),
       );
       const snapUsuarios = await getDocs(qUsuarios);
-
       await Promise.all(
         snapUsuarios.docs.map((d) => deleteDoc(doc(db, "usuarios", d.id))),
       );
-
-      // ── Paso 2: mover el empleado a historialEmpleados ──
       if (empleadoAEliminar) {
         await addDoc(collection(db, "historialEmpleados"), {
           codigoEmpleado: empleadoAEliminar.codigoEmpleado,
@@ -173,11 +149,7 @@ export function useEmpleados({ user, nombreEmpleado }) {
           usuariosEliminados: snapUsuarios.docs.length,
         });
       }
-
-      // ── Paso 3: eliminar el empleado ──
       await deleteDoc(doc(db, "empleados", id));
-
-      // ── Paso 4: bitácora ──
       await registrarBitacora({
         usuario: user?.email ?? "desconocido",
         nombre: nombreEmpleado || user?.email || "desconocido",
@@ -191,7 +163,6 @@ export function useEmpleados({ user, nombreEmpleado }) {
           usuariosEliminados: snapUsuarios.docs.length,
         },
       });
-
       fetchEmpleados();
       notify.deleted("Empleado");
       return true;
@@ -201,7 +172,6 @@ export function useEmpleados({ user, nombreEmpleado }) {
       return false;
     }
   };
-
   const getRolEmpleadoId = async () => {
     try {
       const q = query(
@@ -216,7 +186,6 @@ export function useEmpleados({ user, nombreEmpleado }) {
       return "";
     }
   };
-
   const syncUsuarioConEmpleado = async ({
     empleadoIdDoc,
     empleadoNombres,
@@ -230,7 +199,6 @@ export function useEmpleados({ user, nombreEmpleado }) {
       where("empleadoId", "==", empleadoIdDoc),
     );
     const snap = await getDocs(q);
-
     const payloadBase = {
       empleadoId: empleadoIdDoc,
       nombre: `${empleadoNombres} ${empleadoApellidos}`.trim(),
@@ -238,7 +206,6 @@ export function useEmpleados({ user, nombreEmpleado }) {
       correoPersonal: empleadoCorreo,
       estado: empleadoEstado,
     };
-
     if (!snap.empty) {
       await Promise.all(
         snap.docs.map((d) =>
@@ -250,10 +217,8 @@ export function useEmpleados({ user, nombreEmpleado }) {
       );
       return;
     }
-
     const rolEmpleadoId = await getRolEmpleadoId();
     const password = generarPasswordTemporal(empleadoApellidos, empleadoDni);
-
     await addDoc(collection(db, "usuarios"), {
       ...payloadBase,
       rolId: rolEmpleadoId,
@@ -262,7 +227,6 @@ export function useEmpleados({ user, nombreEmpleado }) {
       passwordTemporal: password,
       fechaRegistro: serverTimestamp(),
     });
-
     try {
       await enviarCorreoCredenciales({
         nombre: `${empleadoNombres} ${empleadoApellidos}`.trim(),
@@ -279,7 +243,6 @@ export function useEmpleados({ user, nombreEmpleado }) {
       });
     }
   };
-
   const guardarEmpleado = async ({
     codigoEmpleado,
     nombres,
@@ -305,12 +268,10 @@ export function useEmpleados({ user, nombreEmpleado }) {
         salario,
         fechaInicio,
       });
-
       if (!validacion.ok) {
         notify.error(validacion.message);
         return false;
       }
-
       const datos = validacion.data;
       const docRef = await addDoc(collection(db, "empleados"), {
         codigoEmpleado,
@@ -326,7 +287,6 @@ export function useEmpleados({ user, nombreEmpleado }) {
         estado,
         fechaRegistro: serverTimestamp(),
       });
-
       await syncUsuarioConEmpleado({
         empleadoIdDoc: docRef.id,
         empleadoNombres: datos.nombres,
@@ -335,7 +295,6 @@ export function useEmpleados({ user, nombreEmpleado }) {
         empleadoEstado: estado,
         empleadoDni: datos.dni,
       });
-
       await registrarBitacora({
         usuario: user?.email ?? "desconocido",
         nombre: nombreEmpleado || user?.email || "desconocido",
@@ -349,7 +308,6 @@ export function useEmpleados({ user, nombreEmpleado }) {
           estado,
         },
       });
-
       await fetchEmpleados();
       await fetchHistorialEmpleados();
       notify.created("Empleado");
@@ -361,7 +319,6 @@ export function useEmpleados({ user, nombreEmpleado }) {
       return false;
     }
   };
-
   const actualizarEmpleado = async ({
     editandoId,
     codigoEmpleado,
@@ -378,7 +335,6 @@ export function useEmpleados({ user, nombreEmpleado }) {
     onSuccess,
   }) => {
     if (!editandoId) return false;
-
     try {
       const validacion = validarEmpleadoPayload({
         nombres,
@@ -390,15 +346,12 @@ export function useEmpleados({ user, nombreEmpleado }) {
         salario,
         fechaInicio,
       });
-
       if (!validacion.ok) {
         notify.error(validacion.message);
         return false;
       }
-
       const datos = validacion.data;
       const empleadoAnterior = empleados.find((emp) => emp.id === editandoId);
-
       await updateDoc(doc(db, "empleados", editandoId), {
         codigoEmpleado,
         nombres: datos.nombres,
@@ -413,7 +366,6 @@ export function useEmpleados({ user, nombreEmpleado }) {
         estado,
         ultimaModificacion: serverTimestamp(),
       });
-
       await syncUsuarioConEmpleado({
         empleadoIdDoc: editandoId,
         empleadoNombres: datos.nombres,
@@ -421,7 +373,6 @@ export function useEmpleados({ user, nombreEmpleado }) {
         empleadoCorreo: datos.correo,
         empleadoEstado: estado,
       });
-
       const fechaAnterior = (() => {
         if (!empleadoAnterior?.fechaInicio) return "";
         try {
@@ -433,7 +384,6 @@ export function useEmpleados({ user, nombreEmpleado }) {
           return "";
         }
       })();
-
       await registrarBitacora({
         usuario: user?.email ?? "desconocido",
         nombre: nombreEmpleado || user?.email || "desconocido",
@@ -460,7 +410,6 @@ export function useEmpleados({ user, nombreEmpleado }) {
           }),
         },
       });
-
       await fetchEmpleados();
       notify.updated("Empleado");
       await onSuccess?.();
@@ -471,7 +420,6 @@ export function useEmpleados({ user, nombreEmpleado }) {
       return false;
     }
   };
-
   return {
     empleados,
     historialEmpleados,
@@ -491,4 +439,4 @@ export function useEmpleados({ user, nombreEmpleado }) {
     handleEliminar,
     fetchEmpleados,
   };
-}
+}

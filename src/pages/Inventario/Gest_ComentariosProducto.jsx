@@ -1,5 +1,4 @@
 import { useLocation, useNavigate } from "react-router-dom";
-
 import PageShell from "../../components/common/PageShell";
 import Badge from "../../components/ui/badge/Badge";
 import MetricCard from "../../components/common/MetricCard";
@@ -14,7 +13,6 @@ import {
 } from "../../icons";
 import { safeFormatDateTime } from "../../utils/formatters";
 import { useComentariosProducto } from "./hooks/useComentariosProducto";
-
 const renderEstrellas = (cantidad) => {
   const total = Math.max(0, Math.min(5, Number(cantidad) || 0));
   return Array.from({ length: 5 }, (_, index) => (
@@ -28,20 +26,17 @@ const renderEstrellas = (cantidad) => {
     </span>
   ));
 };
-
 const ComentarioCard = ({ comentario, onToggle, procesando }) => {
   const esVisible = comentario.visible !== false;
   const autor = [comentario.empleadoNombres, comentario.empleadoApellidos]
     .filter(Boolean)
     .join(" ")
     .trim();
-
   const contenido =
     comentario.comentario ||
     comentario.texto ||
     comentario.contenido ||
     "Sin contenido";
-
   return (
     <div
       className={`rounded-2xl border p-5 transition ${
@@ -55,7 +50,6 @@ const ComentarioCard = ({ comentario, onToggle, procesando }) => {
           <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-sm font-bold text-blue-700 dark:bg-blue-500/10 dark:text-blue-300">
             {(comentario.empleadoNombres || "U").charAt(0).toUpperCase()}
           </div>
-
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
               <p className="text-sm font-semibold text-gray-900 dark:text-white/90">
@@ -65,7 +59,6 @@ const ComentarioCard = ({ comentario, onToggle, procesando }) => {
                 {esVisible ? "Visible" : "Oculto"}
               </Badge>
             </div>
-
             <div className="mt-1 flex flex-wrap items-center gap-2">
               <div className="flex items-center gap-0.5 text-sm">
                 {renderEstrellas(comentario.estrellas)}
@@ -78,13 +71,11 @@ const ComentarioCard = ({ comentario, onToggle, procesando }) => {
                 )}
               </span>
             </div>
-
             <p className="mt-3 max-w-3xl text-sm leading-6 text-gray-600 dark:text-gray-300">
               {contenido}
             </p>
           </div>
         </div>
-
         <button
           type="button"
           onClick={() => onToggle(comentario)}
@@ -108,16 +99,13 @@ const ComentarioCard = ({ comentario, onToggle, procesando }) => {
     </div>
   );
 };
-
 export default function Gest_ComentariosProducto() {
   const { state } = useLocation();
   const navigate = useNavigate();
   const { user } = useAuth();
   const nombreEmpleado = useNombreEmpleadoActual();
-
   const productoState = state?.producto ?? null;
   const productoId = productoState?.id ?? state?.productoId ?? "";
-
   const {
     producto,
     comentarios,
@@ -126,9 +114,7 @@ export default function Gest_ComentariosProducto() {
     estadisticas,
     toggleVisibilidad,
   } = useComentariosProducto({ productoId, user, nombreEmpleado });
-
   const productoMostrado = producto ?? productoState;
-
   if (!productoId) {
     return (
       <PageShell
@@ -142,7 +128,6 @@ export default function Gest_ComentariosProducto() {
       </PageShell>
     );
   }
-
   return (
     <PageShell
       breadcrumbCurrent="Comentarios"
@@ -164,7 +149,6 @@ export default function Gest_ComentariosProducto() {
           Regresar al detalle
         </button>
       </div>
-
       <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-white/[0.03] sm:p-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-4">
@@ -179,7 +163,6 @@ export default function Gest_ComentariosProducto() {
                 <ChatIcon className="h-6 w-6 text-gray-300" />
               )}
             </div>
-
             <div>
               <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-blue-600 dark:text-blue-400">
                 Reseñas del producto
@@ -192,7 +175,6 @@ export default function Gest_ComentariosProducto() {
               </p>
             </div>
           </div>
-
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             <MetricCard
               title="Total"
@@ -229,7 +211,6 @@ export default function Gest_ComentariosProducto() {
           </div>
         </div>
       </div>
-
       <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-white/[0.03] sm:p-6">
         <div className="mb-5 flex items-center justify-between gap-3">
           <div>
@@ -244,7 +225,6 @@ export default function Gest_ComentariosProducto() {
             {loading ? "Cargando..." : `${comentarios.length} comentario(s)`}
           </p>
         </div>
-
         {loading ? (
           <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-gray-200 bg-gray-50 px-6 py-16 text-center dark:border-white/10 dark:bg-gray-900/20">
             <span className="inline-flex h-10 w-10 animate-spin rounded-full border-2 border-blue-600 border-r-transparent dark:border-blue-400 dark:border-r-transparent" />
@@ -277,4 +257,4 @@ export default function Gest_ComentariosProducto() {
       </div>
     </PageShell>
   );
-}
+}

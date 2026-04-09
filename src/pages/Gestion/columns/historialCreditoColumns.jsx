@@ -1,9 +1,7 @@
 import { useMemo } from "react";
 import Badge from "../../../components/ui/badge/Badge";
 import { EyeIcon } from "../../../icons";
-
 const lps = (n) => `L. ${Number(n ?? 0).toLocaleString("es-HN")}`;
-
 const COLUMNAS_EXPORT_HISTORIAL_CREDITOS = [
   {
     key: "empleado",
@@ -28,14 +26,12 @@ const COLUMNAS_EXPORT_HISTORIAL_CREDITOS = [
   { key: "fechaAutoriza", header: "Fecha Autorización", type: "date" },
   { key: "estadoCredito", header: "Estado", type: "text" },
 ];
-
 const estadoCreditoColor = {
   Activo: "success",
   Pagado: "info",
   Cancelado: "error",
   Finalizado: "warning",
 };
-
 export function historialCreditoColumns({ onVerCuotas }) {
   return useMemo(
     () => [
@@ -129,5 +125,4 @@ export function historialCreditoColumns({ onVerCuotas }) {
     [onVerCuotas],
   );
 }
-
-export { lps, estadoCreditoColor, COLUMNAS_EXPORT_HISTORIAL_CREDITOS };
+export { lps, estadoCreditoColor, COLUMNAS_EXPORT_HISTORIAL_CREDITOS };

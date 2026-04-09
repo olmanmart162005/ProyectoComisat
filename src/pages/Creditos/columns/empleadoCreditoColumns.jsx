@@ -5,11 +5,9 @@ import {
   formatDniDisplay,
   formatTelefonoDisplay,
 } from "../../../utils/empleadoUtils";
-
 const obtenerIniciales = (texto) => {
   const limpio = String(texto ?? "").trim();
   if (!limpio) return "--";
-
   return limpio
     .split(/\s+/)
     .filter(Boolean)
@@ -17,7 +15,6 @@ const obtenerIniciales = (texto) => {
     .map((parte) => parte.charAt(0).toUpperCase())
     .join("");
 };
-
 const formatFecha = (valor) => {
   if (!valor) return "---";
   if (typeof valor?.toDate === "function") {
@@ -32,9 +29,7 @@ const formatFecha = (valor) => {
   }
   return "---";
 };
-
 export const lps = (n) => `L. ${Number(n ?? 0).toLocaleString("es-HN")}`;
-
 export const estadoCreditoColor = {
   Activo: "success",
   Aprobado: "success",
@@ -44,12 +39,10 @@ export const estadoCreditoColor = {
   Cancelado: "error",
   Finalizado: "warning",
 };
-
 export const estadoEmpleadoColor = {
   Activo: "success",
   Inactivo: "error",
 };
-
 export const COLUMNAS_EXPORT_EMPLEADOS_PERFIL = [
   { key: "nombres", header: "Nombres", type: "text" },
   { key: "apellidos", header: "Apellidos", type: "text" },
@@ -71,14 +64,12 @@ export const COLUMNAS_EXPORT_EMPLEADOS_PERFIL = [
   { key: "estado", header: "Estado", type: "text" },
   { key: "creditoActivo", header: "Crédito", type: "text" },
 ];
-
 export function empleadoCreditoColumns({
   onVerPerfil,
   getEstadoEmpleado: getEstadoEmpleadoProp,
   getEstadoCreditoEmpleado: getEstadoCreditoEmpleadoProp,
 }) {
   const getEstado = getEstadoEmpleadoProp ?? getEstadoEmpleado;
-
   return [
     {
       accessorFn: (row) => `${row.nombres} ${row.apellidos}`,
@@ -86,7 +77,6 @@ export function empleadoCreditoColumns({
       header: "Nombre",
       cell: (info) => {
         const nombreCompleto = info.getValue();
-
         return (
           <div className="flex items-center gap-2.5">
             <div
@@ -163,7 +153,6 @@ export function empleadoCreditoColumns({
       cell: ({ row }) => {
         const estadoCreditoEmpleado =
           getEstadoCreditoEmpleadoProp?.(row.original) ?? "No";
-
         return (
           <Badge
             size="sm"
@@ -190,5 +179,4 @@ export function empleadoCreditoColumns({
     },
   ];
 }
-
-export { getEstadoEmpleado };
+export { getEstadoEmpleado };

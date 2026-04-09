@@ -1,7 +1,6 @@
 import Badge from "../../../components/ui/badge/Badge";
 import { safeFormatDateTime } from "../../../utils/formatters";
 import { capitalize } from "../hooks/useBitacora";
-
 export const COLUMNAS_EXPORT_BITACORA = [
   {
     key: "fecha",
@@ -38,7 +37,6 @@ export const COLUMNAS_EXPORT_BITACORA = [
     getValue: (row) => resumirMetadata(row.accion, row.metadata),
   },
 ];
-
 export function accionColor(accion) {
   if (!accion) return "gray";
   const a = accion.toLowerCase();
@@ -83,7 +81,6 @@ export function accionColor(accion) {
     }
   }
 }
-
 function resumirMetadata(accion, metadata = {}) {
   if (!metadata || Object.keys(metadata).length === 0) return "—";
   if (metadata.detalle) return metadata.detalle;
@@ -125,7 +122,6 @@ function resumirMetadata(accion, metadata = {}) {
       return "—";
   }
 }
-
 export function bitacoraColumns() {
   return [
     {
@@ -188,4 +184,4 @@ export function bitacoraColumns() {
       ),
     },
   ];
-}
+}

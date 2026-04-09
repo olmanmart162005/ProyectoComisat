@@ -8,14 +8,12 @@ import ExportButtons from "../../layout/Exportbuttons";
 import { registrarBitacora } from "../../services/bitacora";
 import { formatDateForFilename } from "../../utils/formatters";
 import { CheckCircleIcon, GroupIcon, CreditPercentIcon } from "../../icons";
-
 import {
   empleadoCreditoColumns,
   COLUMNAS_EXPORT_EMPLEADOS_PERFIL,
   getEstadoEmpleado,
 } from "./columns/empleadoCreditoColumns";
 import { useEmpleadosPerfil } from "./hooks/useEmpleadosPerfil";
-
 export default function EmpleadosPerfil() {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -37,7 +35,6 @@ export default function EmpleadosPerfil() {
     textoFiltrosPdf,
     getEstadoCreditoEmpleado,
   } = useEmpleadosPerfil();
-
   const columns = empleadoCreditoColumns({
     onVerPerfil: (empleado) =>
       navigate("/empleados-perfil/detalle", {
@@ -46,13 +43,11 @@ export default function EmpleadosPerfil() {
     getEstadoEmpleado,
     getEstadoCreditoEmpleado,
   });
-
   return (
     <div className="space-y-6">
       <h2 className="text-2xl font-bold text-gray-800 dark:text-white/90">
         Empleados
       </h2>
-
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 md:gap-6">
         <MetricCard
           title="Total Empleados"
@@ -79,7 +74,6 @@ export default function EmpleadosPerfil() {
           iconWrapperClass="bg-blue-50 dark:bg-blue-500/10"
         />
       </div>
-
       <DataTable columns={columns} data={empleadosFiltrados} loading={loading}>
         <DataTable.Toolbar searchPlaceholder="Buscar por nombre o apellido...">
           <EmpleadosPerfilFiltersDropdown
@@ -91,7 +85,6 @@ export default function EmpleadosPerfil() {
             filtroCreditoActivo={filtroCreditoActivo}
             setFiltroCreditoActivo={setFiltroCreditoActivo}
           />
-
           <ExportButtons
             rows={empleadosFiltrados}
             columns={COLUMNAS_EXPORT_EMPLEADOS_PERFIL}
@@ -126,4 +119,4 @@ export default function EmpleadosPerfil() {
       </DataTable>
     </div>
   );
-}
+}

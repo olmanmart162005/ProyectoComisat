@@ -1,18 +1,14 @@
 import { useState } from "react";
-
 import Badge from "../../../components/ui/badge/Badge";
 import { Dropdown } from "../../../components/ui/dropdown/Dropdown";
 import { DropdownItem } from "../../../components/ui/dropdown/DropdownItem";
 import { MoreDotIcon, PencilIcon, TrashBinIcon } from "../../../icons";
-
 export const COLUMNAS_EXPORT_CATEGORIAS = [
   { key: "nombre", header: "Nombre", type: "text" },
 ];
-
 export function categoryColumns({ onEdit, onEliminar }) {
   function CategoriaAcciones({ categoria }) {
     const [isOpen, setIsOpen] = useState(false);
-
     return (
       <div className="relative flex justify-center">
         <button
@@ -23,7 +19,6 @@ export function categoryColumns({ onEdit, onEliminar }) {
         >
           <MoreDotIcon className="h-5 w-5" />
         </button>
-
         <Dropdown
           isOpen={isOpen}
           onClose={() => setIsOpen(false)}
@@ -55,7 +50,6 @@ export function categoryColumns({ onEdit, onEliminar }) {
       </div>
     );
   }
-
   return [
     {
       id: "imagen",
@@ -90,7 +84,6 @@ export function categoryColumns({ onEdit, onEliminar }) {
       header: "Productos",
       cell: (info) => {
         const cantidad = Number(info.getValue() ?? 0);
-
         return (
           <Badge size="sm" color={cantidad > 0 ? "info" : "light"}>
             {cantidad}
@@ -107,4 +100,4 @@ export function categoryColumns({ onEdit, onEliminar }) {
       },
     },
   ];
-}
+}

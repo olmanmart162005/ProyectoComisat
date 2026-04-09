@@ -1,5 +1,4 @@
 import { useMemo } from "react";
-
 import { useAuth } from "../../auth/AuthProvider";
 import { useNombreEmpleadoActual } from "../../hooks/useNombreEmpleadoActual";
 import DataTable from "../../components/ui/table/DataTable";
@@ -8,11 +7,9 @@ import { useModal } from "../../hooks/useModal";
 import { ListIcon, DollarLineIcon, GroupIcon } from "../../icons";
 import ExportButtons from "../../layout/Exportbuttons";
 import { registrarBitacora } from "../../services/bitacora";
-
 import PagoMensualConfirmModal from "../../components/Creditos/PagoMensualConfirmModal";
 import { pagoMensualColumns, lps } from "./columns/pagoMensualColumns";
 import { usePagosMensuales } from "./hooks/usePagosMensuales";
-
 const COLUMNAS_EXPORT_CUOTAS = [
   { key: "empleado", header: "Empleado", type: "text" },
   { key: "productoNombre", header: "Artículo", type: "text" },
@@ -21,13 +18,11 @@ const COLUMNAS_EXPORT_CUOTAS = [
   { key: "saldoTrasPago", header: "Saldo Restante (L.)", type: "currency" },
   { key: "mesCobro", header: "Mes de Cobro", type: "text" },
 ];
-
 export default function PagosMensuales() {
   const { user } = useAuth();
   const nombreEmpleado = useNombreEmpleadoActual();
   const { isOpen, openModal, closeModal } = useModal();
   const mesActual = new Date().toISOString().slice(0, 7);
-
   const {
     creditosPendientes,
     loading,
@@ -40,9 +35,7 @@ export default function PagosMensuales() {
     empleadosUnicos,
     handleRealizarPagos,
   } = usePagosMensuales({ user, nombreEmpleado, closeModal });
-
   const columns = useMemo(() => pagoMensualColumns(), []);
-
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
@@ -58,7 +51,6 @@ export default function PagosMensuales() {
             })}
           </p>
         </div>
-
         <button
           onClick={openModal}
           disabled={procesando || creditosPendientes.length === 0 || loading}
@@ -80,7 +72,6 @@ export default function PagosMensuales() {
           {procesando ? "Procesando..." : "Realizar Pagos"}
         </button>
       </div>
-
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 md:gap-6">
         <MetricCard
           title="Cuotas a Cobrar"
@@ -107,7 +98,6 @@ export default function PagosMensuales() {
           iconWrapperClass="bg-blue-50 dark:bg-blue-500/10"
         />
       </div>
-
       {!loading && creditosPendientes.length === 0 && (
         <div className="flex items-start gap-3 p-4 rounded-xl border border-green-200 dark:border-green-500/30 bg-green-50 dark:bg-green-500/10">
           <svg
@@ -134,7 +124,6 @@ export default function PagosMensuales() {
           </div>
         </div>
       )}
-
       {cuotasCobradasParaExport.length > 0 && ultimoCobro && (
         <div className="rounded-xl border border-blue-200 dark:border-blue-500/30 bg-blue-50 dark:bg-blue-500/10 p-4">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
@@ -147,7 +136,6 @@ export default function PagosMensuales() {
                 {lps(ultimoCobro.montoTotal)} · {ultimoCobro.fecha}
               </p>
             </div>
-
             <ExportButtons
               rows={cuotasCobradasParaExport}
               columns={COLUMNAS_EXPORT_CUOTAS}
@@ -178,13 +166,11 @@ export default function PagosMensuales() {
           </div>
         </div>
       )}
-
       <DataTable columns={columns} data={creditosPendientes} loading={loading}>
         <DataTable.Toolbar searchPlaceholder="Buscar por empleado o artículo..." />
         <DataTable.Table emptyMessage="No hay cuotas pendientes de cobro este mes." />
         <DataTable.Pagination />
       </DataTable>
-
       <PagoMensualConfirmModal
         isOpen={isOpen}
         onClose={closeModal}
@@ -196,4 +182,4 @@ export default function PagosMensuales() {
       />
     </div>
   );
-}
+}

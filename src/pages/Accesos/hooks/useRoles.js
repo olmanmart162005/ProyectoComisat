@@ -11,11 +11,9 @@ import {
 } from "firebase/firestore";
 import { registrarBitacora } from "../../../services/bitacora";
 import { notify } from "../../../services/notifier";
-
 export function useRoles({ user, nombreEmpleado, cargarRoles = true }) {
   const [roles, setRoles] = useState([]);
   const [loading, setLoading] = useState(cargarRoles);
-
   const fetchRoles = async () => {
     setLoading(true);
     try {
@@ -29,13 +27,11 @@ export function useRoles({ user, nombreEmpleado, cargarRoles = true }) {
       setLoading(false);
     }
   };
-
   useEffect(() => {
     if (cargarRoles) {
       fetchRoles();
     }
   }, []);
-
   const guardarRol = async ({ nombre, descripcion, onSuccess }) => {
     try {
       await addDoc(collection(db, "roles"), {
@@ -62,7 +58,6 @@ export function useRoles({ user, nombreEmpleado, cargarRoles = true }) {
       throw error;
     }
   };
-
   const actualizarRol = async ({
     editandoId,
     nombre,
@@ -100,7 +95,6 @@ export function useRoles({ user, nombreEmpleado, cargarRoles = true }) {
       throw error;
     }
   };
-
   const handleEliminar = async (id) => {
     try {
       const rolAEliminar = roles.find((r) => r.id === id);
@@ -125,7 +119,6 @@ export function useRoles({ user, nombreEmpleado, cargarRoles = true }) {
       return false;
     }
   };
-
   return {
     roles,
     loading,
@@ -134,4 +127,4 @@ export function useRoles({ user, nombreEmpleado, cargarRoles = true }) {
     actualizarRol,
     handleEliminar,
   };
-}
+}

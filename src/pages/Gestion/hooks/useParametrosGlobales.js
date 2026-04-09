@@ -12,13 +12,9 @@ import {
 } from "firebase/firestore";
 import { registrarBitacora } from "../../../services/bitacora";
 import { notify } from "../../../services/notifier";
-
-// ─── Constants ─────────────────────────────────────────────────────────────
 const CONFIG_COL = "configuracion";
 const CONFIG_DOC = "creditoComisariato";
 const CONFIG_WEB_DOC = "configuracionWeb";
-
-// ─── Helpers ───────────────────────────────────────────────────────────────
 const formatFecha = (ts) => {
   if (!ts) return "—";
   const d = ts.toDate ? ts.toDate() : new Date(ts);
@@ -30,8 +26,6 @@ const formatFecha = (ts) => {
     minute: "2-digit",
   });
 };
-
-// ─── Hook ──────────────────────────────────────────────────────────────────
 export const useParametrosGlobales = ({ user, nombreEmpleado, closeModal }) => {
   const [config, setConfig] = useState(null);
   const [tiempoInactividad, setTiempoInactividad] = useState(15);
@@ -45,7 +39,6 @@ export const useParametrosGlobales = ({ user, nombreEmpleado, closeModal }) => {
   const [cuotaEstado, setCuotaEstado] = useState(true);
   const [enviandoCuota, setEnviandoCuota] = useState(false);
   const [ultimaModificacionLabel, setUltimaModificacionLabel] = useState("");
-
   const fetchConfig = async () => {
     setLoadingConfig(true);
     try {
@@ -74,7 +67,6 @@ export const useParametrosGlobales = ({ user, nombreEmpleado, closeModal }) => {
       setLoadingConfig(false);
     }
   };
-
   const fetchConfiguracionWeb = async () => {
     try {
       const snap = await getDoc(doc(db, CONFIG_COL, CONFIG_WEB_DOC));
@@ -86,7 +78,6 @@ export const useParametrosGlobales = ({ user, nombreEmpleado, closeModal }) => {
       notify.loadError("la configuración web");
     }
   };
-
   const fetchCuotas = async () => {
     setLoadingCuotas(true);
     try {
@@ -104,13 +95,11 @@ export const useParametrosGlobales = ({ user, nombreEmpleado, closeModal }) => {
       setLoadingCuotas(false);
     }
   };
-
   useEffect(() => {
     fetchConfig();
     fetchConfiguracionWeb();
     fetchCuotas();
   }, []);
-
   const handleGuardar = async () => {
     const pA = parseFloat(porcentajeAumento);
     const pL = parseFloat(porcentajeLimite);
@@ -128,7 +117,6 @@ export const useParametrosGlobales = ({ user, nombreEmpleado, closeModal }) => {
         },
         { merge: true },
       );
-
       await registrarBitacora({
         usuario: user?.email ?? "desconocido",
         nombre: nombreEmpleado,
@@ -140,7 +128,6 @@ export const useParametrosGlobales = ({ user, nombreEmpleado, closeModal }) => {
           porcentajeLimite: pL / 100,
         },
       });
-
       await setDoc(
         doc(db, CONFIG_COL, CONFIG_WEB_DOC),
         {
@@ -149,7 +136,6 @@ export const useParametrosGlobales = ({ user, nombreEmpleado, closeModal }) => {
         },
         { merge: true },
       );
-
       await registrarBitacora({
         usuario: user?.email ?? "desconocido",
         nombre: nombreEmpleado,
@@ -160,17 +146,13 @@ export const useParametrosGlobales = ({ user, nombreEmpleado, closeModal }) => {
           tiempoInactividad,
         },
       });
-
-      // Actualizar precios de crédito en todos los productos
       try {
         const productosSnap = await getDocs(collection(db, "productos"));
         const nuevosPorcentaje = pA / 100;
-
         for (const productoDoc of productosSnap.docs) {
           const producto = productoDoc.data();
           const precioContado = parseFloat(producto.precioContado) || 0;
           const nuevoPrecioCredito = precioContado * (1 + nuevosPorcentaje);
-
           await updateDoc(doc(db, "productos", productoDoc.id), {
             precioCredito: parseFloat(nuevoPrecioCredito.toFixed(2)),
             ultimaModificacion: serverTimestamp(),
@@ -179,7 +161,6 @@ export const useParametrosGlobales = ({ user, nombreEmpleado, closeModal }) => {
       } catch (e) {
         console.error("Error al actualizar precios de productos:", e);
       }
-
       await fetchConfig();
       await fetchConfiguracionWeb();
       notify.success(
@@ -192,7 +173,6 @@ export const useParametrosGlobales = ({ user, nombreEmpleado, closeModal }) => {
       setGuardando(false);
     }
   };
-
   const handleToggleCuota = async (cuota) => {
     try {
       const nuevoEstado = !cuota.estado;
@@ -200,7 +180,6 @@ export const useParametrosGlobales = ({ user, nombreEmpleado, closeModal }) => {
         estado: nuevoEstado,
         ultimaModificacion: serverTimestamp(),
       });
-
       await registrarBitacora({
         usuario: user?.email ?? "desconocido",
         nombre: nombreEmpleado,
@@ -212,14 +191,12 @@ export const useParametrosGlobales = ({ user, nombreEmpleado, closeModal }) => {
           estadoNuevo: nuevoEstado,
         },
       });
-
       fetchCuotas();
     } catch (e) {
       console.error(e);
       notify.updateError("el estado de la cuota");
     }
   };
-
   const handleSubmitCuota = async (e) => {
     e.preventDefault();
     const meses = Number(cuotaNumero);
@@ -236,7 +213,6 @@ export const useParametrosGlobales = ({ user, nombreEmpleado, closeModal }) => {
         },
         { merge: true },
       );
-
       await registrarBitacora({
         usuario: user?.email ?? "desconocido",
         nombre: nombreEmpleado,
@@ -248,7 +224,6 @@ export const useParametrosGlobales = ({ user, nombreEmpleado, closeModal }) => {
           estado: cuotaEstado,
         },
       });
-
       await fetchCuotas();
       closeModal();
       notify.created("Cuota");
@@ -259,11 +234,9 @@ export const useParametrosGlobales = ({ user, nombreEmpleado, closeModal }) => {
       setEnviandoCuota(false);
     }
   };
-
   const handleEliminar = async (id) => {
     try {
       await deleteDoc(doc(db, CONFIG_COL, CONFIG_DOC, "cuotas", id));
-
       await registrarBitacora({
         usuario: user?.email ?? "desconocido",
         nombre: nombreEmpleado,
@@ -274,7 +247,6 @@ export const useParametrosGlobales = ({ user, nombreEmpleado, closeModal }) => {
           cuota: id,
         },
       });
-
       fetchCuotas();
       notify.deleted("Cuota");
     } catch (e) {
@@ -282,7 +254,6 @@ export const useParametrosGlobales = ({ user, nombreEmpleado, closeModal }) => {
       notify.deleteError("la cuota");
     }
   };
-
   return {
     config,
     tiempoInactividad,
@@ -306,4 +277,4 @@ export const useParametrosGlobales = ({ user, nombreEmpleado, closeModal }) => {
     handleSubmitCuota,
     handleEliminar,
   };
-};
+};

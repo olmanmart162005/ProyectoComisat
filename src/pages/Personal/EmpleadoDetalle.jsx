@@ -1,5 +1,4 @@
 import { useLocation, useNavigate } from "react-router-dom";
-
 import Badge from "../../components/ui/badge/Badge";
 import PageShell from "../../components/common/PageShell";
 import { ChevronLeftIcon } from "../../icons";
@@ -10,12 +9,10 @@ import {
   formatTelefonoDisplay,
   getEstadoEmpleadoColor,
 } from "../../utils/empleadoUtils";
-
 export default function EmpleadoDetalle() {
   const { state } = useLocation();
   const navigate = useNavigate();
   const empleado = state?.empleado ?? null;
-
   if (!empleado) {
     return (
       <PageShell
@@ -29,10 +26,8 @@ export default function EmpleadoDetalle() {
       </PageShell>
     );
   }
-
   const nombreCompleto =
     `${empleado.nombres ?? ""} ${empleado.apellidos ?? ""}`.trim();
-
   return (
     <PageShell
       breadcrumbItems={["Detalle", nombreCompleto || "Empleado"]}
@@ -49,7 +44,6 @@ export default function EmpleadoDetalle() {
             <ChevronLeftIcon className="h-4 w-4" />
             Regresar a empleados
           </button>
-
           <div className="flex items-center gap-3">
             <button
               type="button"
@@ -64,17 +58,14 @@ export default function EmpleadoDetalle() {
             </button>
           </div>
         </div>
-
         <div className="grid grid-cols-1 items-start gap-8 lg:grid-cols-12 lg:gap-12">
           <div className="w-full lg:col-span-5">
             <div className="group relative aspect-square overflow-hidden rounded-2xl border border-gray-200 bg-gray-50 shadow-sm dark:border-white/10 dark:bg-gray-900/40">
               <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-white to-gray-50 dark:from-blue-500/10 dark:via-gray-900 dark:to-gray-950" />
-
               <div className="relative flex h-full flex-col items-center justify-center px-6 text-center">
                 <div className="flex h-24 w-24 items-center justify-center rounded-full bg-blue-600 text-3xl font-extrabold text-white shadow-lg shadow-blue-600/25">
                   {(empleado.nombres || "E").charAt(0).toUpperCase()}
                 </div>
-
                 <p className="mt-5 text-sm font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">
                   Código de empleado
                 </p>
@@ -82,7 +73,6 @@ export default function EmpleadoDetalle() {
                   {empleado.codigoEmpleado || "—"}
                 </p>
               </div>
-
               <div className="pointer-events-none absolute left-4 top-4 flex flex-col gap-2">
                 <span className="rounded-md border border-blue-200 bg-white/90 px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-widest text-blue-600 backdrop-blur dark:border-blue-500/20 dark:bg-gray-900/80 dark:text-blue-300">
                   {empleado.departamentoNombre || "Sin departamento"}
@@ -96,14 +86,12 @@ export default function EmpleadoDetalle() {
               </div>
             </div>
           </div>
-
           <div className="flex flex-col lg:col-span-7">
             <div className="space-y-6">
               <h2 className="text-4xl font-extrabold leading-tight tracking-tight text-gray-900 dark:text-white/90 sm:text-5xl xl:text-6xl">
                 {nombreCompleto || "Empleado"}
               </h2>
             </div>
-
             <div className="mt-10 grid grid-cols-1 gap-8 border-t border-gray-200 pt-8 dark:border-white/10 md:grid-cols-2 md:gap-12">
               <div className="space-y-6">
                 <div className="flex items-center gap-2.5">
@@ -124,7 +112,6 @@ export default function EmpleadoDetalle() {
                     Datos personales
                   </h3>
                 </div>
-
                 <div className="space-y-6">
                   <div className="flex flex-col">
                     <span className="mb-1 text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">
@@ -134,7 +121,6 @@ export default function EmpleadoDetalle() {
                       {formatDniDisplay(empleado.dni)}
                     </span>
                   </div>
-
                   <div className="flex flex-col">
                     <span className="mb-1 text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">
                       Teléfono
@@ -143,7 +129,6 @@ export default function EmpleadoDetalle() {
                       {formatTelefonoDisplay(empleado.telefono)}
                     </span>
                   </div>
-
                   <div className="flex flex-col">
                     <span className="mb-1 text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">
                       Correo
@@ -154,7 +139,6 @@ export default function EmpleadoDetalle() {
                   </div>
                 </div>
               </div>
-
               <div className="space-y-6 border-l border-gray-200 pl-8 dark:border-white/10">
                 <div className="flex items-center gap-2.5">
                   <svg
@@ -174,7 +158,6 @@ export default function EmpleadoDetalle() {
                     Datos laborales
                   </h3>
                 </div>
-
                 <div className="space-y-6">
                   <div className="flex flex-col">
                     <span className="mb-1 text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">
@@ -184,7 +167,6 @@ export default function EmpleadoDetalle() {
                       {formatSalary(empleado.salario)}
                     </span>
                   </div>
-
                   <div className="flex flex-col">
                     <span className="mb-1 text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">
                       Fecha de inicio
@@ -193,7 +175,6 @@ export default function EmpleadoDetalle() {
                       {formatDateDisplay(empleado.fechaInicio)}
                     </span>
                   </div>
-
                   <div className="flex flex-col">
                     <span className="mb-1 text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">
                       Fecha de registro
@@ -210,4 +191,4 @@ export default function EmpleadoDetalle() {
       </main>
     </PageShell>
   );
-}
+}

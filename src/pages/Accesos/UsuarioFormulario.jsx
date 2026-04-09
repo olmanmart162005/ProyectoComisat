@@ -17,6 +17,11 @@ export default function UsuarioFormulario() {
   const {
     empleados,
     roles,
+    empleadosDisponibles,
+    rolesAsignables,
+    DOMINIO_CORREO_INSTITUCIONAL,
+    extraerLocalPartCorreo,
+    normalizarLocalPartCorreo,
     editandoId,
     setEditandoId,
     enviando,
@@ -44,35 +49,29 @@ export default function UsuarioFormulario() {
   } = useUsuarios({ user, nombreEmpleado });
 
   useEffect(() => {
-    if (!roles.length || !empleados.length) return;
+    if (!modoEdicion || !usuario || !roles.length || !empleados.length) return;
 
-    if (modoEdicion && usuario) {
-      const empleadoRelacionado =
-        empleados.find((emp) => emp.id === usuario.empleadoId) ?? null;
+    const empleadoRelacionado =
+      empleados.find((emp) => emp.id === usuario.empleadoId) ?? null;
 
-      setEditandoId(usuario.id || null);
-      setEmpleadoId(usuario.empleadoId || empleadoRelacionado?.id || "");
-      setBusquedaEmpleado(
-        usuario.nombre ||
-          `${empleadoRelacionado?.nombres ?? ""} ${empleadoRelacionado?.apellidos ?? ""}`.trim(),
-      );
-      setNombre(
-        usuario.nombre ||
-          `${empleadoRelacionado?.nombres ?? ""} ${empleadoRelacionado?.apellidos ?? ""}`.trim(),
-      );
-      setCorreoPersonal(
-        usuario.correoPersonal || empleadoRelacionado?.correo || "",
-      );
-      setCorreo(usuario.correo || "");
-      setEstado(usuario.estado || "Activo");
-      const rolRelacionado = roles.find((r) => r.id === usuario.rolId) ?? null;
-      setRolId(usuario.rolId || "");
-      setRolNombre(usuario.rolNombre || rolRelacionado?.nombre || "");
-      return;
-    }
-
-    resetFormulario();
-    setBusquedaEmpleado("");
+    setEditandoId(usuario.id || null);
+    setEmpleadoId(usuario.empleadoId || empleadoRelacionado?.id || "");
+    setBusquedaEmpleado(
+      usuario.nombre ||
+        `${empleadoRelacionado?.nombres ?? ""} ${empleadoRelacionado?.apellidos ?? ""}`.trim(),
+    );
+    setNombre(
+      usuario.nombre ||
+        `${empleadoRelacionado?.nombres ?? ""} ${empleadoRelacionado?.apellidos ?? ""}`.trim(),
+    );
+    setCorreoPersonal(
+      usuario.correoPersonal || empleadoRelacionado?.correo || "",
+    );
+    setCorreo(extraerLocalPartCorreo(usuario.correo || ""));
+    setEstado(usuario.estado || "Activo");
+    const rolRelacionado = roles.find((r) => r.id === usuario.rolId) ?? null;
+    setRolId(usuario.rolId || "");
+    setRolNombre(usuario.rolNombre || rolRelacionado?.nombre || "");
   }, [
     modoEdicion,
     usuario,
@@ -87,8 +86,14 @@ export default function UsuarioFormulario() {
     setEstado,
     setRolId,
     setRolNombre,
-    resetFormulario,
+    extraerLocalPartCorreo,
   ]);
+
+  useEffect(() => {
+    if (modoEdicion) return;
+    resetFormulario();
+    setBusquedaEmpleado("");
+  }, [modoEdicion, resetFormulario, setBusquedaEmpleado]);
 
   const handleEmpleadoSeleccionado = (emp) => {
     const nombreCompleto = `${emp.nombres ?? ""} ${emp.apellidos ?? ""}`.trim();
@@ -112,6 +117,11 @@ export default function UsuarioFormulario() {
     });
   };
 
+  const rolesSelect =
+    modoEdicion && rolId && !rolesAsignables.some((r) => r.id === rolId)
+      ? [...rolesAsignables, ...roles.filter((r) => r.id === rolId)]
+      : rolesAsignables;
+
   if (location.pathname.endsWith("/editar") && !usuario) {
     return (
       <PageShell
@@ -131,10 +141,11 @@ export default function UsuarioFormulario() {
       breadcrumbCurrent={modoEdicion ? "Editar" : "Nuevo"}
       homeLabel="Usuarios"
       homePath="/usuarios"
+      contentClassName="rounded-2xl border border-gray-200 bg-white px-5 py-7 dark:border-gray-800 dark:bg-white/[0.03] xl:px-10 xl:py-12"
     >
       <form onSubmit={handleGuardar} className="space-y-6">
-        <section className="grid grid-cols-1 gap-6 lg:grid-cols-12 items-start">
-          <div className="lg:col-span-5 space-y-3">
+        <section className="grid grid-cols-1 gap-6 xl:grid-cols-2 items-start">
+          <div className="space-y-3">
             <div className="rounded-xl border border-gray-200 bg-gray-50 p-5 dark:border-white/10 dark:bg-gray-900/40">
               <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500">
                 Usuario
@@ -180,7 +191,7 @@ export default function UsuarioFormulario() {
             </div>
           </div>
 
-          <div className="lg:col-span-7 flex flex-col gap-5 self-stretch">
+          <div className="flex flex-col gap-5 self-stretch">
             <div className="relative">
               <label className="mb-1.5 ml-1 block text-[10px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500">
                 Empleado
@@ -207,7 +218,7 @@ export default function UsuarioFormulario() {
 
               {mostrarSugerencias && busquedaEmpleado.length > 0 && (
                 <ul className="absolute z-50 mt-1 max-h-52 w-full overflow-y-auto rounded-md border border-gray-200 bg-white shadow-lg dark:border-gray-700 dark:bg-gray-800">
-                  {empleados
+                  {empleadosDisponibles
                     .filter((emp) =>
                       `${emp.nombres ?? ""} ${emp.apellidos ?? ""}`
                         .toLowerCase()
@@ -232,7 +243,7 @@ export default function UsuarioFormulario() {
                       );
                     })}
 
-                  {empleados.filter((emp) =>
+                  {empleadosDisponibles.filter((emp) =>
                     `${emp.nombres ?? ""} ${emp.apellidos ?? ""}`
                       .toLowerCase()
                       .includes(busquedaEmpleado.toLowerCase()),
@@ -254,9 +265,8 @@ export default function UsuarioFormulario() {
                   type="email"
                   required
                   value={correoPersonal}
-                  onChange={(e) => setCorreoPersonal(e.target.value)}
-                  placeholder="correo personal"
-                  className="w-full rounded-lg border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-gray-900 outline-none transition-all focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 dark:border-white/10 dark:bg-white/[0.02] dark:text-white"
+                  readOnly
+                  className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3.5 py-2.5 text-sm text-gray-900 outline-none transition-all dark:border-white/10 dark:bg-white/[0.02] dark:text-white"
                 />
               </div>
 
@@ -264,14 +274,21 @@ export default function UsuarioFormulario() {
                 <label className="mb-1.5 ml-1 block text-[10px] font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500">
                   Correo Institucional
                 </label>
-                <input
-                  type="email"
-                  required
-                  value={correo}
-                  onChange={(e) => setCorreo(e.target.value)}
-                  placeholder="correo@empresa.com"
-                  className="w-full rounded-lg border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-gray-900 outline-none transition-all focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 dark:border-white/10 dark:bg-white/[0.02] dark:text-white"
-                />
+                <div className="flex w-full overflow-hidden rounded-lg border border-gray-200 bg-white focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500/20 dark:border-white/10 dark:bg-white/[0.02]">
+                  <input
+                    type="text"
+                    required
+                    value={correo}
+                    onChange={(e) =>
+                      setCorreo(normalizarLocalPartCorreo(e.target.value))
+                    }
+                    placeholder="usuario"
+                    className="w-full border-0 bg-transparent px-3.5 py-2.5 text-sm text-gray-900 outline-none dark:text-white"
+                  />
+                  <span className="inline-flex items-center border-l border-gray-200 px-3 text-sm font-medium text-gray-500 dark:border-white/10 dark:text-gray-400">
+                    {DOMINIO_CORREO_INSTITUCIONAL}
+                  </span>
+                </div>
               </div>
             </div>
 
@@ -285,10 +302,10 @@ export default function UsuarioFormulario() {
                   onChange={(e) => handleRolChange(e)}
                   className="w-full rounded-lg border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-gray-900 outline-none transition-all focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 dark:border-white/10 dark:bg-white/[0.02] dark:text-white"
                 >
-                  {roles.length === 0 ? (
+                  {rolesSelect.length === 0 ? (
                     <option disabled>Cargando roles...</option>
                   ) : (
-                    roles.map((r) => (
+                    rolesSelect.map((r) => (
                       <option key={r.id} value={r.id}>
                         {r.nombre}
                       </option>

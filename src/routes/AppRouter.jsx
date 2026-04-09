@@ -385,9 +385,7 @@ export default function AppRouter() {
               </RoleRoute>
             }
           />
-        </Route>
-        // Agregar como ruta hija dentro del bloque de rutas protegidas
-        <Route
+          <Route
           path="activaciones"
           element={
             <RoleRoute roles={["DB Manager"]}>
@@ -395,6 +393,7 @@ export default function AppRouter() {
             </RoleRoute>
           }
         />
+        </Route>  
 
         {/* 404 */}
         <Route path="*" element={<Navigate to="/noencontrado" replace />} />

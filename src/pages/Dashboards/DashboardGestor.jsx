@@ -63,9 +63,9 @@ export default function DashboardGestor() {
         const productosSnap = await getDocs(collection(db, "productos"));
         const productos = productosSnap.docs.map((doc) => doc.data());
 
-        // Filtramos solo los activos por si acaso tienes "inactivos" en la misma colección
+        // Filtramos solo los activos o agotados por si acaso tienes "inactivos" en la misma colección
         const productosActivos = productos.filter(
-          (p) => p.estado === "Activo" || !p.estado,
+          (p) => p.estado !== "Inactivo"
         );
         setTotalProductos(productosActivos.length);
 
@@ -83,7 +83,7 @@ export default function DashboardGestor() {
           const categoria = prod.categoriaNombre || "Sin Categoría";
 
           // Métrica: Productos en umbral mínimo
-          if (stock === stockMinimo) {
+          if (stock <= stockMinimo) {
             agotadosCount += 1;
             criticos.push({
               ...prod,

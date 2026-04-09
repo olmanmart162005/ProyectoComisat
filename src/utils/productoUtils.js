@@ -42,7 +42,7 @@ export const getEstadoProducto = (
 
   if (Number.isNaN(stock) || Number.isNaN(stockMinimo)) return estadoBase;
 
-  return stock === stockMinimo ? "Agotado" : "Activo";
+  return stock <= stockMinimo ? "Agotado" : "Activo";
 };
 
 export const getEstadoProductoColor = (estado) => {

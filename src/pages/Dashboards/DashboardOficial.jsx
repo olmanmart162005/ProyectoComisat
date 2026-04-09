@@ -121,7 +121,7 @@ export default function DashboardOficial() {
   const [loading, setLoading] = useState(true);
   const [creditos, setCreditos] = useState([]);
   const [cuotas, setCuotas] = useState([]);
-  const [periodoResumen, setPeriodoResumen] = useState("6");
+  const [periodoResumen, setPeriodoResumen] = useState("mes");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -257,7 +257,8 @@ export default function DashboardOficial() {
   );
 
   const tendenciaMensual = useMemo(() => {
-    const meses = Number(periodoResumen);
+    const meses =
+      periodoResumen === "mes" ? 1 : periodoResumen === "3meses" ? 3 : 12;
     const base = [];
     for (let i = meses - 1; i >= 0; i -= 1) {
       const fecha = new Date(hoy.getFullYear(), hoy.getMonth() - i, 1);
@@ -289,7 +290,11 @@ export default function DashboardOficial() {
   }, [creditos, cuotas, periodoResumen, hoy]);
 
   const periodLabel =
-    periodoResumen === "6" ? "Últimos 6 meses" : "Últimos 12 meses";
+    periodoResumen === "mes"
+      ? "Mes actual"
+      : periodoResumen === "3meses"
+        ? "Últimos 3 meses"
+        : "Último año";
 
   return (
     <div className="space-y-6">
@@ -305,14 +310,16 @@ export default function DashboardOficial() {
         <MetricCard
           title="Créditos aprobados"
           value={creditosAprobadosMes.length}
+          subtitle="Este mes"
           icon={
             <CheckCircleIcon className="text-emerald-600 size-6 dark:text-emerald-400" />
           }
           iconWrapperClass="bg-emerald-50 dark:bg-emerald-500/10"
         />
         <MetricCard
-          title="Monto cobrado"
-          value={lps(montoCobradoMes)}
+          title="Cartera activa"
+          value={lps(saldoPendienteTotal)}
+          subtitle="Saldo pendiente total de créditos activos"
           icon={
             <DollarLineIcon className="text-blue-600 size-6 dark:text-blue-400" />
           }
@@ -423,10 +430,10 @@ export default function DashboardOficial() {
             <div className="mb-4 flex items-start justify-between gap-4">
               <div>
                 <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100">
-                  Perfil financiero — top deudores
+                  Top 5 deudores por saldo activo
                 </h2>
                 <p className="text-sm text-gray-500 dark:text-gray-400">
-                  Saldo pendiente por empleado
+                  Empleados con mayor saldo pendiente en créditos activos
                 </p>
               </div>
             </div>
@@ -489,7 +496,8 @@ export default function DashboardOficial() {
                 Créditos y monto cobrado
               </h2>
               <p className="text-sm text-gray-500 dark:text-gray-400">
-                Tendencia mensual
+                Compara créditos aprobados vs cobros por planilla (monto de
+                cuotas) por mes
               </p>
             </div>
 
@@ -498,8 +506,9 @@ export default function DashboardOficial() {
               onChange={(e) => setPeriodoResumen(e.target.value)}
               className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 outline-none transition focus:border-blue-500 dark:border-white/10 dark:bg-gray-800 dark:text-gray-200"
             >
-              <option value="6">Últimos 6 meses</option>
-              <option value="12">Últimos 12 meses</option>
+              <option value="mes">Mes actual</option>
+              <option value="3meses">Últimos 3 meses</option>
+              <option value="1anio">Último año</option>
             </select>
           </div>
 

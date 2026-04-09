@@ -43,13 +43,13 @@ const navItems = [
     name: "Empleados",
     icon: <UserSquare />,
     path: "/empleados",
-    allowedRoles: ["Administrador", "Recursos Humanos"],
+    allowedRoles: ["Recursos Humanos"],
   },
   {
     name: "Departamentos",
     icon: <Building2 />,
     path: "/departamentos",
-    allowedRoles: ["Administrador", "Recursos Humanos"],
+    allowedRoles: ["Recursos Humanos"],
   },
   {
     name: "Roles",
@@ -61,19 +61,19 @@ const navItems = [
     name: "Categorías",
     icon: <Tags />,
     path: "/categorias",
-    allowedRoles: ["Administrador", "Gestor de Inventario"],
+    allowedRoles: ["Gestor de Inventario"],
   },
   {
     name: "Productos",
     icon: <Archive />,
     path: "/productos",
-    allowedRoles: ["Administrador", "Gestor de Inventario"],
+    allowedRoles: ["Gestor de Inventario"],
   },
   {
     name: "Solicitudes Reservas",
     icon: <Receipt />,
     path: "/solicitudes-reservas",
-    allowedRoles: ["Administrador", "Oficial de Credito"],
+    allowedRoles: ["Oficial de Credito"],
   },
   {
     name: "Pagos Mensuales",

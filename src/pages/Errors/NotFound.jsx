@@ -6,8 +6,8 @@ export default function NotFound() {
   return (
     <>
       <PageMeta
-        title="404 Not Found - Comisariato"
-        description="Pagina no encontrada en el sistema de comisariato."
+        title="Página no encontrada | Comisariato San José"
+        description="Página no encontrada en el sistema de comisariato."
       />
       <div className="relative flex flex-col items-center justify-center min-h-screen p-6 overflow-hidden z-1">
  

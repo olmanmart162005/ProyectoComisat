@@ -33,7 +33,7 @@ export const estadoCreditoColor = {
   Finalizado: "warning",
 };
 
-export function useHistorialCreditos({ openModal }) {
+export function useHistorialCreditos() {
   const now = new Date();
 
   const [cuotas, setCuotas] = useState([]);
@@ -43,10 +43,6 @@ export function useHistorialCreditos({ openModal }) {
   const [mesFiltro, setMesFiltro] = useState(
     String(now.getMonth() + 1).padStart(2, "0"),
   );
-
-  const [creditoSeleccionado, setCreditoSeleccionado] = useState(null);
-  const [cuotasDelCredito, setCuotasDelCredito] = useState([]);
-  const [loadingCuotas, setLoadingCuotas] = useState(false);
 
   const anios = useMemo(() => generarAnios(), []);
   const mesKey = `${anioFiltro}-${mesFiltro}`;
@@ -72,30 +68,6 @@ export function useHistorialCreditos({ openModal }) {
   useEffect(() => {
     fetchDatos(mesKey);
   }, [mesKey]);
-
-  const handleVerCuotas = async (credito) => {
-    setCreditoSeleccionado(credito);
-    setCuotasDelCredito([]);
-    setLoadingCuotas(true);
-    openModal();
-    try {
-      const q = query(
-        collection(db, "cuotas"),
-        where("creditoId", "==", credito.id),
-      );
-      const snap = await getDocs(q);
-      const docs = snap.docs
-        .map((d) => ({ id: d.id, ...d.data() }))
-        .sort(
-          (a, b) => Number(a.numeroCuota ?? 0) - Number(b.numeroCuota ?? 0),
-        );
-      setCuotasDelCredito(docs);
-    } catch (err) {
-      console.error("Error al cargar cuotas del crédito:", err);
-    } finally {
-      setLoadingCuotas(false);
-    }
-  };
 
   const { totalCuotas, montoTotal, empleadosUnicos, creditosPagados } =
     useMemo(() => {
@@ -125,13 +97,9 @@ export function useHistorialCreditos({ openModal }) {
     setMesFiltro,
     anios,
     mesKey,
-    creditoSeleccionado,
-    cuotasDelCredito,
-    loadingCuotas,
     totalCuotas,
     montoTotal,
     empleadosUnicos,
     creditosPagados,
-    handleVerCuotas,
   };
 }

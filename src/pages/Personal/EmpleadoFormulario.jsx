@@ -7,7 +7,13 @@ import PageShell from "../../components/common/PageShell";
 import { useAuth } from "../../auth/AuthProvider";
 import { useNombreEmpleadoActual } from "../../hooks/useNombreEmpleadoActual";
 import { generarNuevoCodigo, useEmpleados } from "./hooks/useEmpleados";
-import { formatDateForInput, parseDateValue } from "../../utils/empleadoUtils";
+import {
+  DNI_LENGTH,
+  TELEFONO_LENGTH,
+  formatDateForInput,
+  parseDateValue,
+  sanitizeDigitsInput,
+} from "../../utils/empleadoUtils";
 
 export default function EmpleadoFormulario() {
   const location = useLocation();
@@ -232,7 +238,7 @@ export default function EmpleadoFormulario() {
                   type="email"
                   required
                   value={correo}
-                  onChange={(e) => setCorreo(e.target.value)}
+                  onChange={(e) => setCorreo(e.target.value.trimStart())}
                   placeholder="nombre@empresa.com"
                   className="w-full rounded-lg border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-gray-900 outline-none transition-all focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 dark:border-white/10 dark:bg-white/[0.02] dark:text-white"
                 />
@@ -245,9 +251,13 @@ export default function EmpleadoFormulario() {
                 <input
                   type="text"
                   required
+                  inputMode="numeric"
+                  maxLength={DNI_LENGTH}
                   value={dni}
-                  onChange={(e) => setDni(e.target.value)}
-                  placeholder="0801..."
+                  onChange={(e) =>
+                    setDni(sanitizeDigitsInput(e.target.value, DNI_LENGTH))
+                  }
+                  placeholder="0801200103456"
                   className="w-full rounded-lg border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-gray-900 outline-none transition-all focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 dark:border-white/10 dark:bg-white/[0.02] dark:text-white"
                 />
               </div>
@@ -261,9 +271,13 @@ export default function EmpleadoFormulario() {
                 <input
                   type="tel"
                   required
+                  inputMode="numeric"
+                  maxLength={TELEFONO_LENGTH}
                   value={telefono}
                   onChange={(e) =>
-                    setTelefono(e.target.value.replace(/\D/g, ""))
+                    setTelefono(
+                      sanitizeDigitsInput(e.target.value, TELEFONO_LENGTH),
+                    )
                   }
                   placeholder="99991234"
                   className="w-full rounded-lg border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-gray-900 outline-none transition-all focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 dark:border-white/10 dark:bg-white/[0.02] dark:text-white"
@@ -278,7 +292,7 @@ export default function EmpleadoFormulario() {
                   required
                   value={departamentoId}
                   onChange={handleDepartamentoChange}
-                  className="w-full rounded-lg border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-gray-900 outline-none transition-all focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 dark:border-white/10 dark:bg-white/[0.02] dark:text-white"
+                  className="w-full rounded-lg border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-gray-900 outline-none transition-all focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 dark:border-white/10 dark:bg-gray-900 dark:text-white"
                 >
                   {departamentos.map((dep) => (
                     <option key={dep.id} value={dep.id}>
@@ -319,10 +333,10 @@ export default function EmpleadoFormulario() {
               <input
                 type="number"
                 required
-                min="0"
+                min="1"
                 value={salario}
                 onChange={(e) => {
-                  if (e.target.value === "" || Number(e.target.value) >= 0) {
+                  if (e.target.value === "" || Number(e.target.value) > 0) {
                     setSalario(e.target.value);
                   }
                 }}

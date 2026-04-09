@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthProvider";
 import { notify } from "../services/notifier";
 import emailjs from "@emailjs/browser";
+import PageMeta from "../components/common/PageMeta";
 
 import { encryptPassword, decryptPassword } from "../services/crypto";
 import { registrarBitacora } from "../services/bitacora";
@@ -259,8 +260,12 @@ export default function MetodosAcceso() {
 
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col items-center justify-center px-4">
-      <div className="w-full max-w-sm mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Método de acceso</h1>
+      <PageMeta
+        title="Método de Acceso | Comisariato San José"
+        description="Selección y verificación del método de acceso para el portal administrativo."
+      />
+      <div className="w-full max-w-sm mb-6 text-center">
+        <h1 className="text-2xl font-bold text-gray-900">Iniciar sesión</h1>
         <p className="text-sm text-gray-500 mt-1">{email}</p>
       </div>
 

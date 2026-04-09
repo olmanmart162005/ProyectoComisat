@@ -1,12 +1,13 @@
 import DataTable from "../../components/ui/table/DataTable";
 import ExportButtons from "../../layout/Exportbuttons";
 import MetricCard from "../../components/common/MetricCard";
-import { GroupIcon, CloseIcon, CheckCircleIcon } from "../../icons";
+import { PageIcon, CloseIcon, TrashBinIcon } from "../../icons";
 import { useAuth } from "../../auth/AuthProvider";
 import { useNombreEmpleadoActual } from "../../hooks/useNombreEmpleadoActual";
 import { registrarBitacora } from "../../services/bitacora";
 import { useHistorialEmpleados } from "./hooks/useHistorialEmpleados";
 import { formatDateForFilename } from "../../utils/formatters";
+import HistorialEmpleadosFiltersDropdown from "../../components/Gestion/HistorialEmpleadosFiltersDropdown";
 import {
   COLUMNAS_EXPORT_HISTORIAL,
   historialEmpleadoColumns,
@@ -42,7 +43,7 @@ export default function HistorialEmpleados() {
           title="Total en Historial"
           value={historial.length}
           icon={
-            <GroupIcon className="text-gray-800 size-6 dark:text-white/90" />
+            <PageIcon className="text-gray-800 size-6 dark:text-white/90" />
           }
           iconWrapperClass="bg-gray-100 dark:bg-gray-800"
         />
@@ -56,7 +57,7 @@ export default function HistorialEmpleados() {
           title="Usuarios Eliminados"
           value={totalUsuariosEliminados}
           icon={
-            <CheckCircleIcon className="text-blue-600 size-6 dark:text-blue-400" />
+            <TrashBinIcon className="text-blue-600 size-6 dark:text-blue-400" />
           }
           iconWrapperClass="bg-blue-50 dark:bg-blue-500/10"
         />
@@ -64,25 +65,23 @@ export default function HistorialEmpleados() {
 
       <DataTable columns={columns} data={historialFiltrado} loading={loading}>
         <DataTable.Toolbar searchPlaceholder="Buscar empleado...">
-          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto sm:ml-auto">
-            <select
-              value={filtroDepartamento}
-              onChange={(e) => setFiltroDepartamento(e.target.value)}
-              className={`w-full sm:w-52 ${selectClass}`}
-            >
-              <option value="" className="bg-white text-gray-900">
-                Departamento
-              </option>
-              {departamentos.map((dep) => (
-                <option
-                  key={dep}
-                  value={dep}
-                  className="bg-white text-gray-900"
-                >
-                  {dep}
-                </option>
-              ))}
-            </select>
+          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto sm:ml-auto items-stretch sm:items-center">
+            <HistorialEmpleadosFiltersDropdown
+              departamentos={departamentos}
+              filtroDepartamento={filtroDepartamento}
+              setFiltroDepartamento={(valor) => {
+                setFiltroDepartamento(valor);
+                registrarBitacora({
+                  usuario: user.email,
+                  nombre: nombreEmpleado,
+                  coleccion: "historialEmpleados",
+                  accion: "filtrar",
+                  metadata: {
+                    filtroDepartamento: valor || "Todos",
+                  },
+                });
+              }}
+            />
 
             <ExportButtons
               rows={historialFiltrado}

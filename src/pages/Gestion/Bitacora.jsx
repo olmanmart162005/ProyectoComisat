@@ -5,7 +5,7 @@ import { collection, getDocs, orderBy, query, where } from "firebase/firestore";
 import DataTable from "../../components/ui/table/DataTable";
 import Badge from "../../components/ui/badge/Badge";
 import MetricCard from "../../components/common/MetricCard";
-import { ListIcon, CheckCircleIcon, CloseIcon } from "../../icons";
+import { ListIcon, TrashBinIcon, DownloadIcon } from "../../icons";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { safeFormatDateTime } from "../../utils/formatters";
@@ -368,14 +368,16 @@ export default function Bitacora() {
         <MetricCard
           title="Eliminaciones"
           value={totalEliminaciones}
-          icon={<CloseIcon className="text-red-600 size-6 dark:text-red-400" />}
+          icon={
+            <TrashBinIcon className="text-red-600 size-6 dark:text-red-400" />
+          }
           iconWrapperClass="bg-red-50 dark:bg-red-500/10"
         />
         <MetricCard
           title="Exportaciones"
           value={totalExportaciones}
           icon={
-            <CheckCircleIcon className="text-blue-600 size-6 dark:text-blue-400" />
+            <DownloadIcon className="text-blue-600 size-6 dark:text-blue-400" />
           }
           iconWrapperClass="bg-blue-50 dark:bg-blue-500/10"
         />

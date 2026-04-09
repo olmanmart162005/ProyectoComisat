@@ -193,6 +193,9 @@ layer(base);
   body {
     @apply relative font-normal font-outfit z-1 bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100;
   }
+  .dark {
+    color-scheme: dark;
+  }
 }
 
 @utility menu-item {
@@ -814,4 +817,45 @@ input::-ms-clear {
 input[type="password"]::-webkit-credentials-auto-fill-button,
 input[type="password"]::-webkit-textfield-decoration-container {
   display: none !important;
+}
+
+/* ── Dark Mode Overrides for Native Elements ────────────────── */
+.dark select option {
+  @apply bg-gray-900 text-white/90;
+}
+
+/* ── react-datepicker Dark Theme ──────────────────────────── */
+.dark .react-datepicker {
+  @apply !bg-gray-900 !border-white/10 !font-outfit !rounded-xl !shadow-theme-xl !text-gray-300;
+}
+
+.dark .react-datepicker__header {
+  @apply !bg-gray-800 !border-white/10 !rounded-t-xl;
+}
+
+.dark .react-datepicker__current-month,
+.dark .react-datepicker__day-name,
+.dark .react-datepicker-time__header {
+  @apply !text-white/90;
+}
+
+.dark .react-datepicker__day {
+  @apply !text-gray-400 hover:!bg-white/10 hover:!text-white;
+}
+
+.dark .react-datepicker__day--selected,
+.dark .react-datepicker__day--keyboard-selected {
+  @apply !bg-brand-500 !text-white !rounded-lg;
+}
+
+.dark .react-datepicker__day--outside-month {
+  @apply !text-gray-600;
+}
+
+.dark .react-datepicker__navigation-icon::before {
+  @apply !border-white/60;
+}
+
+.dark .react-datepicker__day--disabled {
+  @apply !text-gray-700;
 }

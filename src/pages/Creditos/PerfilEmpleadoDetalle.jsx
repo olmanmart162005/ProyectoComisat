@@ -10,6 +10,10 @@ import {
 } from "./columns/perfilDetalleColumns";
 import { getEstadoEmpleado } from "./hooks/useEmpleadosPerfil";
 import { usePerfilEmpleadoDetalle } from "./hooks/usePerfilEmpleadoDetalle";
+import {
+  formatDniDisplay,
+  formatTelefonoDisplay,
+} from "../../utils/empleadoUtils";
 
 const formatFecha = (valor) => {
   if (!valor) return "---";
@@ -92,8 +96,11 @@ export default function PerfilEmpleadoDetalle() {
                     value: empleado.departamentoNombre ?? "---",
                   },
                   { label: "Salario", value: lps(empleado.salario) },
-                  { label: "DNI", value: empleado.dni ?? "---" },
-                  { label: "Teléfono", value: empleado.telefono ?? "---" },
+                  { label: "DNI", value: formatDniDisplay(empleado.dni) },
+                  {
+                    label: "Teléfono",
+                    value: formatTelefonoDisplay(empleado.telefono),
+                  },
                   { label: "Correo", value: empleado.correo ?? "---" },
                   {
                     label: "Fecha Inicio",

@@ -1,9 +1,13 @@
 import DataTable from "../../components/ui/table/DataTable";
 import MetricCard from "../../components/common/MetricCard";
 import ExportButtons from "../../layout/Exportbuttons";
-import { useModal } from "../../hooks/useModal";
-import CuotasModal from "../../components/Gestion/CuotasModal";
-import { BoxIconLine, CheckCircleIcon, GroupIcon } from "../../icons";
+import { useNavigate } from "react-router-dom";
+import {
+  ListIcon,
+  DollarLineIcon,
+  CheckCircleIcon,
+  GroupIcon,
+} from "../../icons";
 import { useAuth } from "../../auth/AuthProvider";
 import { useNombreEmpleadoActual } from "../../hooks/useNombreEmpleadoActual";
 import { registrarBitacora } from "../../services/bitacora";
@@ -16,9 +20,9 @@ import {
 import { MESES, useHistorialCreditos } from "./hooks/useHistorialCreditos";
 
 export default function HistorialCreditos() {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const nombreEmpleado = useNombreEmpleadoActual();
-  const { isOpen, openModal, closeModal } = useModal();
   const {
     creditos,
     loading,
@@ -27,18 +31,17 @@ export default function HistorialCreditos() {
     mesFiltro,
     setMesFiltro,
     anios,
-    creditoSeleccionado,
-    cuotasDelCredito,
-    loadingCuotas,
     totalCuotas,
     montoTotal,
     empleadosUnicos,
     creditosPagados,
-    handleVerCuotas,
-  } = useHistorialCreditos({ openModal });
+  } = useHistorialCreditos();
 
   const columnasCreditos = historialCreditoColumns({
-    onVerCuotas: handleVerCuotas,
+    onVerCuotas: (credito) =>
+      navigate("/historial-creditos/detalle", {
+        state: { credito, mesFiltro, anioFiltro },
+      }),
   });
 
   return (
@@ -52,7 +55,7 @@ export default function HistorialCreditos() {
           title="Cuotas Cobradas"
           value={totalCuotas}
           icon={
-            <BoxIconLine className="text-gray-800 size-6 dark:text-white/90" />
+            <ListIcon className="text-gray-800 size-6 dark:text-white/90" />
           }
           iconWrapperClass="bg-gray-100 dark:bg-gray-800"
         />
@@ -60,7 +63,7 @@ export default function HistorialCreditos() {
           title="Monto Cobrado"
           value={lps(montoTotal)}
           icon={
-            <CheckCircleIcon className="text-green-600 size-6 dark:text-green-400" />
+            <DollarLineIcon className="text-green-600 size-6 dark:text-green-400" />
           }
           iconWrapperClass="bg-green-50 dark:bg-green-500/10"
         />
@@ -158,14 +161,6 @@ export default function HistorialCreditos() {
           <DataTable.Pagination />
         </DataTable>
       </div>
-
-      <CuotasModal
-        isOpen={isOpen}
-        onClose={closeModal}
-        credito={creditoSeleccionado}
-        cuotas={cuotasDelCredito}
-        loading={loadingCuotas}
-      />
     </div>
   );
 }

@@ -2,6 +2,43 @@ import Badge from "../../../components/ui/badge/Badge";
 import { safeFormatDateTime } from "../../../utils/formatters";
 import { capitalize } from "../hooks/useBitacora";
 
+export const COLUMNAS_EXPORT_BITACORA = [
+  {
+    key: "fecha",
+    header: "Fecha y Hora",
+    type: "text",
+    getValue: (row) => safeFormatDateTime(row.fecha),
+  },
+  {
+    key: "usuario",
+    header: "Usuario",
+    type: "text",
+  },
+  {
+    key: "nombre",
+    header: "Nombre",
+    type: "text",
+  },
+  {
+    key: "coleccion",
+    header: "Colección",
+    type: "text",
+    getValue: (row) => capitalize(row.coleccion) || "—",
+  },
+  {
+    key: "accion",
+    header: "Acción",
+    type: "text",
+    getValue: (row) => capitalize(row.accion) || "—",
+  },
+  {
+    key: "detalle",
+    header: "Detalle",
+    type: "text",
+    getValue: (row) => resumirMetadata(row.accion, row.metadata),
+  },
+];
+
 export function accionColor(accion) {
   if (!accion) return "gray";
   const a = accion.toLowerCase();

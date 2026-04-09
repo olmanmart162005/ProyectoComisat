@@ -5,7 +5,12 @@ import { useAuth } from "../../auth/AuthProvider";
 import { useNombreEmpleadoActual } from "../../hooks/useNombreEmpleadoActual";
 import { registrarBitacora } from "../../services/bitacora";
 import MetricCard from "../../components/common/MetricCard";
-import { CheckCircleIcon, CloseIcon, BoxIconLine } from "../../icons";
+import {
+  AlertIcon,
+  CheckCircleIcon,
+  CloseIcon,
+  DollarLineIcon,
+} from "../../icons";
 import { formatDateForFilename } from "../../utils/formatters";
 import SolicitudesFiltersDropdown from "../../components/creditos/SolicitudesFiltersDropdown";
 
@@ -52,7 +57,7 @@ export default function Gest_SolicitudesCredito() {
           title="Pendientes Revisión"
           value={totalPendientes}
           icon={
-            <BoxIconLine className="text-gray-800 size-6 dark:text-white/90" />
+            <AlertIcon className="text-gray-800 size-6 dark:text-white/90" />
           }
           iconWrapperClass="bg-gray-100 dark:bg-gray-800"
         />
@@ -60,7 +65,7 @@ export default function Gest_SolicitudesCredito() {
           title="Monto por Aprobar"
           value={lps(montoEnRiesgo)}
           icon={
-            <CheckCircleIcon className="text-green-600 size-6 dark:text-green-400" />
+            <DollarLineIcon className="text-green-600 size-6 dark:text-green-400" />
           }
           iconWrapperClass="bg-green-50 dark:bg-green-500/10"
         />
@@ -68,7 +73,7 @@ export default function Gest_SolicitudesCredito() {
           title="Aprobados"
           value={totalAprobados}
           icon={
-            <CloseIcon className="text-blue-600 size-6 dark:text-blue-400" />
+            <CheckCircleIcon className="text-blue-600 size-6 dark:text-blue-400" />
           }
           iconWrapperClass="bg-blue-50 dark:bg-blue-500/10"
         />

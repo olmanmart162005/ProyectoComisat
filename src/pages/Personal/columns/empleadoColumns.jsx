@@ -4,6 +4,10 @@ import Badge from "../../../components/ui/badge/Badge";
 import { Dropdown } from "../../../components/ui/dropdown/Dropdown";
 import { DropdownItem } from "../../../components/ui/dropdown/DropdownItem";
 import { EyeIcon, MoreDotIcon, PencilIcon, TrashBinIcon } from "../../../icons";
+import {
+  formatDniDisplay,
+  formatTelefonoDisplay,
+} from "../../../utils/empleadoUtils";
 
 const obtenerIniciales = (texto) => {
   const limpio = String(texto ?? "").trim();
@@ -18,11 +22,21 @@ const obtenerIniciales = (texto) => {
 
 export const COLUMNAS_EXPORT_EMPLEADOS = [
   { key: "codigoEmpleado", header: "Código", type: "text" },
-  { key: "dni", header: "DNI", type: "text" },
+  {
+    key: "dni",
+    header: "DNI",
+    type: "text",
+    getValue: (row) => formatDniDisplay(row.dni),
+  },
   { key: "nombres", header: "Nombres", type: "text" },
   { key: "apellidos", header: "Apellidos", type: "text" },
   { key: "correo", header: "Correo", type: "text" },
-  { key: "telefono", header: "Teléfono", type: "text" },
+  {
+    key: "telefono",
+    header: "Teléfono",
+    type: "text",
+    getValue: (row) => formatTelefonoDisplay(row.telefono),
+  },
   { key: "salario", header: "Salario", type: "currency" },
   { key: "fechaInicio", header: "Fecha Inicio", type: "date" },
   { key: "estado", header: "Estado", type: "text" },
@@ -128,7 +142,7 @@ export function empleadoColumns({ onView, onEdit, onEliminar, departamentos }) {
             {row.original.correo}
           </span>
           <span className="text-xs text-gray-500 dark:text-gray-400">
-            {row.original.telefono || "—"}
+            {formatTelefonoDisplay(row.original.telefono)}
           </span>
         </div>
       ),

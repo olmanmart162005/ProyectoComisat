@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { db } from "../firebase/firebase";
 import { collection, query, where, getDocs } from "firebase/firestore";
 import { notify } from "../services/notifier";
+import PageMeta from "../components/common/PageMeta";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -54,7 +55,11 @@ export default function Login() {
 
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col items-center justify-center px-4">
-      <div className="w-full max-w-sm mb-6">
+      <PageMeta
+        title="Inicio de Sesión | Comisariato San José"
+        description="Página de inicio de sesión del portal administrativo del comisariato."
+      />
+      <div className="w-full max-w-sm mb-6 text-center">
         <h1 className="text-2xl font-bold text-gray-900">
           Portal Administrativo del Comisariato
         </h1>
@@ -71,7 +76,7 @@ export default function Login() {
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="empleado@azucarera.com"
+              placeholder="empleado@comisat.com"
               className="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
             />
           </div>

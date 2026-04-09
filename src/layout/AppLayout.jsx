@@ -1,5 +1,6 @@
 import { SidebarProvider, useSidebar } from "../context/SidebarContext";
-import { Outlet } from "react-router";
+import { Outlet, useLocation } from "react-router-dom";
+import { useEffect } from "react";
 import AppHeader from "./AppHeader";
 import Backdrop from "./Backdrop";
 import AppSidebar from "./AppSidebar";
@@ -13,6 +14,56 @@ const LayoutContent = () => {
   // ── Idle timer ──────────────────────────────────────────────
   const { tiempoInactividad } = useConfiguracionWeb();
   const { mostrarAviso, continuar } = useIdleLogout(tiempoInactividad);
+
+  // ── Gestión de títulos dinámicos ────────────────────────────
+  const location = useLocation();
+
+  useEffect(() => {
+    const routeTitles = {
+      "/": "Dashboard",
+      "/usuarios": "Usuarios",
+      "/usuarios/nuevo": "Nuevo Usuario",
+      "/usuarios/editar": "Editar Usuario",
+      "/usuarios/detalle": "Detalle de Usuario",
+      "/empleados": "Empleados",
+      "/empleados/nuevo": "Nuevo Empleado",
+      "/empleados/editar": "Editar Empleado",
+      "/empleados/detalle": "Detalle de Empleado",
+      "/departamentos": "Departamentos",
+      "/departamentos/nuevo": "Nuevo Departamento",
+      "/departamentos/editar": "Editar Departamento",
+      "/roles": "Roles",
+      "/roles/nuevo": "Nuevo Rol",
+      "/roles/editar": "Editar Rol",
+      "/categorias": "Categorías",
+      "/categorias/nueva": "Nueva Categoría",
+      "/categorias/editar": "Editar Categoría",
+      "/productos": "Productos",
+      "/productos/nuevo": "Nuevo Producto",
+      "/productos/editar": "Editar Producto",
+      "/productos/detalle": "Detalle de Producto",
+      "/productos/comentarios": "Comentarios de Producto",
+      "/solicitudes-reservas": "Solicitudes de Crédito",
+      "/solicitudes-reservas/detalle": "Detalle de Solicitud",
+      "/pagos-mensuales": "Pagos Mensuales",
+      "/historial-creditos": "Historial de Créditos",
+      "/historial-creditos/detalle": "Detalle de Historial",
+      "/empleados-perfil": "Perfiles de Crédito",
+      "/empleados-perfil/detalle": "Detalle de Perfil",
+      "/configuracion": "Configuración Global",
+      "/bitacora": "Bitácora de Auditoría",
+      "/historial-productos": "Historial de Productos",
+      "/historial-empleados": "Historial de Empleados",
+      "/activaciones": "Activaciones de Usuarios",
+      "/dashboard": "Panel Administrador",
+      "/dashboard-gestor": "Panel de Inventario",
+      "/dashboard-oficial": "Panel de Créditos",
+      "/dashboard-rrhh": "Panel de RRHH",
+    };
+
+    const currentTitle = routeTitles[location.pathname] || "Portal Administrativo";
+    document.title = `${currentTitle} | Comisariato San José`;
+  }, [location]);
 
   // ────────────────────────────────────────────────────────────
 

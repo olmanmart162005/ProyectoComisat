@@ -1,7 +1,7 @@
 import DataTable from "../../components/ui/table/DataTable";
 import MetricCard from "../../components/common/MetricCard";
 import ExportButtons from "../../layout/Exportbuttons";
-import { BoxIconLine, CloseIcon } from "../../icons";
+import { BoxIconLine, TrashBinIcon } from "../../icons";
 import { useAuth } from "../../auth/AuthProvider";
 import { useNombreEmpleadoActual } from "../../hooks/useNombreEmpleadoActual";
 import { registrarBitacora } from "../../services/bitacora";
@@ -48,7 +48,9 @@ export default function HistorialProductos() {
         <MetricCard
           title="Bajas Este Mes"
           value={bajasEsteMes}
-          icon={<CloseIcon className="text-red-600 size-6 dark:text-red-400" />}
+          icon={
+            <TrashBinIcon className="text-red-600 size-6 dark:text-red-400" />
+          }
           iconWrapperClass="bg-red-50 dark:bg-red-500/10"
         />
       </div>

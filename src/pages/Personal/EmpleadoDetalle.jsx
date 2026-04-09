@@ -6,6 +6,8 @@ import { ChevronLeftIcon } from "../../icons";
 import {
   formatDateDisplay,
   formatSalary,
+  formatDniDisplay,
+  formatTelefonoDisplay,
   getEstadoEmpleadoColor,
 } from "../../utils/empleadoUtils";
 
@@ -129,7 +131,7 @@ export default function EmpleadoDetalle() {
                       DNI
                     </span>
                     <span className="text-2xl font-bold text-gray-900 dark:text-white/90">
-                      {empleado.dni || "—"}
+                      {formatDniDisplay(empleado.dni)}
                     </span>
                   </div>
 
@@ -138,7 +140,7 @@ export default function EmpleadoDetalle() {
                       Teléfono
                     </span>
                     <span className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-                      {empleado.telefono || "—"}
+                      {formatTelefonoDisplay(empleado.telefono)}
                     </span>
                   </div>
 

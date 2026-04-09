@@ -283,7 +283,7 @@ export default function ProductoFormulario() {
                   )
                 }
                 placeholder="Ej. Cafetera"
-                className="w-full rounded-lg border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-gray-900 outline-none transition-all focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 dark:border-white/10 dark:bg-white/[0.02] dark:text-white"
+                className="w-full rounded-lg border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-gray-900 outline-none transition-all focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 dark:border-white/10 dark:bg-gray-900 dark:text-white"
               />
             </div>
 
@@ -319,7 +319,7 @@ export default function ProductoFormulario() {
                       )
                     }
                     placeholder="Buscar categoría..."
-                    className="w-full rounded-lg border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-gray-900 outline-none transition-all focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 dark:border-white/10 dark:bg-white/[0.02] dark:text-white"
+                    className="w-full rounded-lg border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-gray-900 outline-none transition-all focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 dark:border-white/10 dark:bg-gray-900 dark:text-white"
                   />
 
                   {mostrarSugerenciasCategoria &&
@@ -407,7 +407,7 @@ export default function ProductoFormulario() {
                 maxLength={MAX_DESCRIPCION}
                 placeholder="Escribe los detalles destacados del producto..."
                 rows={6}
-                className="min-h-[180px] w-full resize-none rounded-lg border border-gray-200 bg-white px-3.5 py-3 text-sm text-gray-900 outline-none transition-all focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 dark:border-white/10 dark:bg-white/[0.02] dark:text-white"
+                className="min-h-[180px] w-full resize-none rounded-lg border border-gray-200 bg-white px-3.5 py-3 text-sm text-gray-900 outline-none transition-all focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 dark:border-white/10 dark:bg-gray-900 dark:text-white"
               />
             </div>
           </div>
@@ -452,7 +452,7 @@ export default function ProductoFormulario() {
                     }
                   }}
                   placeholder="3500"
-                  className="w-full rounded-lg border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-gray-900 outline-none transition-all focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 dark:border-white/10 dark:bg-white/[0.02] dark:text-white"
+                  className="w-full rounded-lg border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-gray-900 outline-none transition-all focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 dark:border-white/10 dark:bg-gray-900 dark:text-white"
                 />
               </div>
               <div>
@@ -511,7 +511,7 @@ export default function ProductoFormulario() {
                     }
                   }}
                   placeholder="10"
-                  className="w-full rounded-lg border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-gray-900 outline-none transition-all focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 dark:border-white/10 dark:bg-white/[0.02] dark:text-white"
+                  className="w-full rounded-lg border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-gray-900 outline-none transition-all focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 dark:border-white/10 dark:bg-gray-900 dark:text-white"
                 />
               </div>
 
@@ -531,7 +531,7 @@ export default function ProductoFormulario() {
                     }
                   }}
                   placeholder="5"
-                  className="w-full rounded-lg border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-gray-900 outline-none transition-all focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 dark:border-white/10 dark:bg-white/[0.02] dark:text-white"
+                  className="w-full rounded-lg border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-gray-900 outline-none transition-all focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 dark:border-white/10 dark:bg-gray-900 dark:text-white"
                 />
               </div>
             </div>

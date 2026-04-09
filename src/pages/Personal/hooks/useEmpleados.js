@@ -17,7 +17,10 @@ import {
   generarPasswordTemporal,
   enviarCorreoCredenciales,
 } from "../../../services/credencialesEmail";
-import { parseDateValue } from "../../../utils/empleadoUtils";
+import {
+  validarEmpleadoPayload,
+  parseDateValue,
+} from "../../../utils/empleadoUtils";
 
 export const generarNuevoCodigo = (listaEmpleados, listaHistorial = []) => {
   const anioActual = new Date().getFullYear().toString();
@@ -292,28 +295,45 @@ export function useEmpleados({ user, nombreEmpleado }) {
     onSuccess,
   }) => {
     try {
-      const docRef = await addDoc(collection(db, "empleados"), {
-        codigoEmpleado,
+      const validacion = validarEmpleadoPayload({
         nombres,
         apellidos,
         correo,
         dni,
         telefono,
         departamentoId,
+        salario,
+        fechaInicio,
+      });
+
+      if (!validacion.ok) {
+        notify.error(validacion.message);
+        return false;
+      }
+
+      const datos = validacion.data;
+      const docRef = await addDoc(collection(db, "empleados"), {
+        codigoEmpleado,
+        nombres: datos.nombres,
+        apellidos: datos.apellidos,
+        correo: datos.correo,
+        dni: datos.dni,
+        telefono: datos.telefono,
+        departamentoId: datos.departamentoId,
         departamentoNombre,
-        salario: parseFloat(salario),
-        fechaInicio: parseDateValue(fechaInicio) || new Date(),
+        salario: datos.salario,
+        fechaInicio: parseDateValue(datos.fechaInicio) || new Date(),
         estado,
         fechaRegistro: serverTimestamp(),
       });
 
       await syncUsuarioConEmpleado({
         empleadoIdDoc: docRef.id,
-        empleadoNombres: nombres,
-        empleadoApellidos: apellidos,
-        empleadoCorreo: correo,
+        empleadoNombres: datos.nombres,
+        empleadoApellidos: datos.apellidos,
+        empleadoCorreo: datos.correo,
         empleadoEstado: estado,
-        empleadoDni: dni,
+        empleadoDni: datos.dni,
       });
 
       await registrarBitacora({
@@ -323,7 +343,7 @@ export function useEmpleados({ user, nombreEmpleado }) {
         accion: "creacion",
         docId: docRef.id,
         metadata: {
-          nombreCompleto: `${nombres} ${apellidos}`,
+          nombreCompleto: `${datos.nombres} ${datos.apellidos}`,
           codigoEmpleado,
           departamentoNombre,
           estado,
@@ -360,28 +380,45 @@ export function useEmpleados({ user, nombreEmpleado }) {
     if (!editandoId) return false;
 
     try {
-      const empleadoAnterior = empleados.find((emp) => emp.id === editandoId);
-
-      await updateDoc(doc(db, "empleados", editandoId), {
-        codigoEmpleado,
+      const validacion = validarEmpleadoPayload({
         nombres,
         apellidos,
         correo,
         dni,
         telefono,
         departamentoId,
+        salario,
+        fechaInicio,
+      });
+
+      if (!validacion.ok) {
+        notify.error(validacion.message);
+        return false;
+      }
+
+      const datos = validacion.data;
+      const empleadoAnterior = empleados.find((emp) => emp.id === editandoId);
+
+      await updateDoc(doc(db, "empleados", editandoId), {
+        codigoEmpleado,
+        nombres: datos.nombres,
+        apellidos: datos.apellidos,
+        correo: datos.correo,
+        dni: datos.dni,
+        telefono: datos.telefono,
+        departamentoId: datos.departamentoId,
         departamentoNombre,
-        salario: parseFloat(salario),
-        fechaInicio: parseDateValue(fechaInicio) || new Date(),
+        salario: datos.salario,
+        fechaInicio: parseDateValue(datos.fechaInicio) || new Date(),
         estado,
         ultimaModificacion: serverTimestamp(),
       });
 
       await syncUsuarioConEmpleado({
         empleadoIdDoc: editandoId,
-        empleadoNombres: nombres,
-        empleadoApellidos: apellidos,
-        empleadoCorreo: correo,
+        empleadoNombres: datos.nombres,
+        empleadoApellidos: datos.apellidos,
+        empleadoCorreo: datos.correo,
         empleadoEstado: estado,
       });
 
@@ -404,14 +441,14 @@ export function useEmpleados({ user, nombreEmpleado }) {
         accion: "actualizacion",
         docId: editandoId,
         metadata: {
-          nombreCompleto: `${nombres} ${apellidos}`,
+          nombreCompleto: `${datos.nombres} ${datos.apellidos}`,
           ...(empleadoAnterior?.estado !== estado && {
             estadoAnterior: empleadoAnterior?.estado,
             estadoNuevo: estado,
           }),
-          ...(empleadoAnterior?.salario !== parseFloat(salario) && {
+          ...(empleadoAnterior?.salario !== datos.salario && {
             salarioAnterior: empleadoAnterior?.salario,
-            salarioNuevo: parseFloat(salario),
+            salarioNuevo: datos.salario,
           }),
           ...(empleadoAnterior?.departamentoNombre !== departamentoNombre && {
             departamentoAnterior: empleadoAnterior?.departamentoNombre,

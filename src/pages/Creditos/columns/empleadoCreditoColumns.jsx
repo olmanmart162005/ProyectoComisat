@@ -1,6 +1,10 @@
 import Badge from "../../../components/ui/badge/Badge";
 import { EyeIcon } from "../../../icons";
 import { getEstadoEmpleado } from "../hooks/useEmpleadosPerfil";
+import {
+  formatDniDisplay,
+  formatTelefonoDisplay,
+} from "../../../utils/empleadoUtils";
 
 const obtenerIniciales = (texto) => {
   const limpio = String(texto ?? "").trim();
@@ -49,6 +53,18 @@ export const estadoEmpleadoColor = {
 export const COLUMNAS_EXPORT_EMPLEADOS_PERFIL = [
   { key: "nombres", header: "Nombres", type: "text" },
   { key: "apellidos", header: "Apellidos", type: "text" },
+  {
+    key: "dni",
+    header: "DNI",
+    type: "text",
+    getValue: (row) => formatDniDisplay(row.dni),
+  },
+  {
+    key: "telefono",
+    header: "Teléfono",
+    type: "text",
+    getValue: (row) => formatTelefonoDisplay(row.telefono),
+  },
   { key: "departamentoNombre", header: "Departamento", type: "text" },
   { key: "salario", header: "Salario", type: "currency" },
   { key: "fechaInicio", header: "Fecha Inicio", type: "date" },
@@ -105,6 +121,15 @@ export function empleadoCreditoColumns({
       cell: (info) => (
         <span className="block font-medium text-gray-800 text-theme-sm dark:text-white/90">
           {lps(info.getValue())}
+        </span>
+      ),
+    },
+    {
+      accessorKey: "telefono",
+      header: "Teléfono",
+      cell: (info) => (
+        <span className="block text-gray-700 text-theme-sm dark:text-gray-300">
+          {formatTelefonoDisplay(info.getValue())}
         </span>
       ),
     },

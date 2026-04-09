@@ -7,7 +7,7 @@ import { EmpleadosPerfilFiltersDropdown } from "../../components/creditos/Emplea
 import ExportButtons from "../../layout/Exportbuttons";
 import { registrarBitacora } from "../../services/bitacora";
 import { formatDateForFilename } from "../../utils/formatters";
-import { BoxIconLine, CheckCircleIcon, GroupIcon } from "../../icons";
+import { CheckCircleIcon, GroupIcon, CreditPercentIcon } from "../../icons";
 
 import {
   empleadoCreditoColumns,
@@ -74,7 +74,7 @@ export default function EmpleadosPerfil() {
           title="Con Crédito Activo"
           value={totalConCreditoActivo}
           icon={
-            <CheckCircleIcon className="text-blue-600 size-6 dark:text-blue-400" />
+            <CreditPercentIcon className="text-blue-600 size-6 dark:text-blue-400" />
           }
           iconWrapperClass="bg-blue-50 dark:bg-blue-500/10"
         />

@@ -34,6 +34,7 @@ import Gest_SolicitudesCredito from "../pages/Creditos/Gest_SolicitudesCredito";
 import SolicitudDetalle from "../pages/Creditos/SolicitudDetalle";
 import PagosMensuales from "../pages/Creditos/PagosMensuales";
 import HistorialCreditos from "../pages/Gestion/HistorialCreditos";
+import HistorialCreditosDetalle from "../pages/Gestion/HistorialCreditosDetalle";
 import EmpleadosPerfil from "../pages/Creditos/EmpleadosPerfil";
 import PerfilEmpleadoDetalle from "../pages/Creditos/PerfilEmpleadoDetalle";
 import EmpleadoDetalle from "../pages/Personal/EmpleadoDetalle";
@@ -114,7 +115,7 @@ export default function AppRouter() {
           <Route
             path="dashboard-oficial"
             element={
-              <RoleRoute roles={["Oficial de Crédito", "Oficial de Credito"]}>
+              <RoleRoute roles={["Oficial de Credito"]}>
                 <DashboardOficial />
               </RoleRoute>
             }
@@ -140,7 +141,7 @@ export default function AppRouter() {
           <Route
             path="empleados"
             element={
-              <RoleRoute roles={["Administrador", "Recursos Humanos"]}>
+              <RoleRoute roles={["Recursos Humanos"]}>
                 <Gest_Empleados />
               </RoleRoute>
             }
@@ -148,7 +149,7 @@ export default function AppRouter() {
           <Route
             path="empleados/nuevo"
             element={
-              <RoleRoute roles={["Administrador", "Recursos Humanos"]}>
+              <RoleRoute roles={["Recursos Humanos"]}>
                 <EmpleadoFormulario />
               </RoleRoute>
             }
@@ -156,7 +157,7 @@ export default function AppRouter() {
           <Route
             path="empleados/editar"
             element={
-              <RoleRoute roles={["Administrador", "Recursos Humanos"]}>
+              <RoleRoute roles={["Recursos Humanos"]}>
                 <EmpleadoFormulario />
               </RoleRoute>
             }
@@ -164,7 +165,7 @@ export default function AppRouter() {
           <Route
             path="empleados/detalle"
             element={
-              <RoleRoute roles={["Administrador", "Recursos Humanos"]}>
+              <RoleRoute roles={["Recursos Humanos"]}>
                 <EmpleadoDetalle />
               </RoleRoute>
             }
@@ -172,7 +173,7 @@ export default function AppRouter() {
           <Route
             path="departamentos"
             element={
-              <RoleRoute roles={["Administrador", "Recursos Humanos"]}>
+              <RoleRoute roles={["Recursos Humanos"]}>
                 <Departamentos />
               </RoleRoute>
             }
@@ -180,7 +181,7 @@ export default function AppRouter() {
           <Route
             path="departamentos/nuevo"
             element={
-              <RoleRoute roles={["Administrador", "Recursos Humanos"]}>
+              <RoleRoute roles={["Recursos Humanos"]}>
                 <DepartamentoFormulario />
               </RoleRoute>
             }
@@ -188,7 +189,7 @@ export default function AppRouter() {
           <Route
             path="departamentos/editar"
             element={
-              <RoleRoute roles={["Administrador", "Recursos Humanos"]}>
+              <RoleRoute roles={["Recursos Humanos"]}>
                 <DepartamentoFormulario />
               </RoleRoute>
             }
@@ -220,7 +221,7 @@ export default function AppRouter() {
           <Route
             path="categorias"
             element={
-              <RoleRoute roles={["Administrador", "Gestor de Inventario"]}>
+              <RoleRoute roles={["Gestor de Inventario"]}>
                 <Gest_Categorias />
               </RoleRoute>
             }
@@ -228,7 +229,7 @@ export default function AppRouter() {
           <Route
             path="categorias/nueva"
             element={
-              <RoleRoute roles={["Administrador", "Gestor de Inventario"]}>
+              <RoleRoute roles={["Gestor de Inventario"]}>
                 <CategoriaFormulario />
               </RoleRoute>
             }
@@ -236,7 +237,7 @@ export default function AppRouter() {
           <Route
             path="categorias/editar"
             element={
-              <RoleRoute roles={["Administrador", "Gestor de Inventario"]}>
+              <RoleRoute roles={["Gestor de Inventario"]}>
                 <CategoriaFormulario />
               </RoleRoute>
             }
@@ -276,7 +277,7 @@ export default function AppRouter() {
           <Route
             path="productos"
             element={
-              <RoleRoute roles={["Administrador", "Gestor de Inventario"]}>
+              <RoleRoute roles={["Gestor de Inventario"]}>
                 <Gest_Productos />
               </RoleRoute>
             }
@@ -284,7 +285,7 @@ export default function AppRouter() {
           <Route
             path="productos/nuevo"
             element={
-              <RoleRoute roles={["Administrador", "Gestor de Inventario"]}>
+              <RoleRoute roles={["Gestor de Inventario"]}>
                 <ProductoFormulario />
               </RoleRoute>
             }
@@ -292,7 +293,7 @@ export default function AppRouter() {
           <Route
             path="productos/editar"
             element={
-              <RoleRoute roles={["Administrador", "Gestor de Inventario"]}>
+              <RoleRoute roles={["Gestor de Inventario"]}>
                 <ProductoFormulario />
               </RoleRoute>
             }
@@ -300,7 +301,7 @@ export default function AppRouter() {
           <Route
             path="productos/detalle"
             element={
-              <RoleRoute roles={["Administrador", "Gestor de Inventario"]}>
+              <RoleRoute roles={["Gestor de Inventario"]}>
                 <ProductoDetalle />
               </RoleRoute>
             }
@@ -308,7 +309,7 @@ export default function AppRouter() {
           <Route
             path="productos/comentarios"
             element={
-              <RoleRoute roles={["Administrador", "Gestor de Inventario"]}>
+              <RoleRoute roles={["Gestor de Inventario"]}>
                 <Gest_ComentariosProducto />
               </RoleRoute>
             }
@@ -316,7 +317,7 @@ export default function AppRouter() {
           <Route
             path="solicitudes-reservas"
             element={
-              <RoleRoute roles={["Administrador", "Oficial de Credito"]}>
+              <RoleRoute roles={["Oficial de Credito"]}>
                 <Gest_SolicitudesCredito />
               </RoleRoute>
             }
@@ -324,7 +325,7 @@ export default function AppRouter() {
           <Route
             path="solicitudes-reservas/detalle"
             element={
-              <RoleRoute roles={["Administrador", "Oficial de Credito"]}>
+              <RoleRoute roles={["Oficial de Credito"]}>
                 <SolicitudDetalle />
               </RoleRoute>
             }
@@ -332,7 +333,7 @@ export default function AppRouter() {
           <Route
             path="pagos-mensuales"
             element={
-              <RoleRoute roles={["Administrador", "Oficial de Credito"]}>
+              <RoleRoute roles={["Oficial de Credito"]}>
                 <PagosMensuales />
               </RoleRoute>
             }
@@ -342,6 +343,14 @@ export default function AppRouter() {
             element={
               <RoleRoute roles={["Administrador", "Oficial de Credito"]}>
                 <HistorialCreditos />
+              </RoleRoute>
+            }
+          />
+          <Route
+            path="historial-creditos/detalle"
+            element={
+              <RoleRoute roles={["Administrador", "Oficial de Credito"]}>
+                <HistorialCreditosDetalle />
               </RoleRoute>
             }
           />
@@ -386,14 +395,14 @@ export default function AppRouter() {
             }
           />
           <Route
-          path="activaciones"
-          element={
-            <RoleRoute roles={["DB Manager"]}>
-              <Gest_Activaciones />
-            </RoleRoute>
-          }
-        />
-        </Route>  
+            path="activaciones"
+            element={
+              <RoleRoute roles={["DB Manager"]}>
+                <Gest_Activaciones />
+              </RoleRoute>
+            }
+          />
+        </Route>
 
         {/* 404 */}
         <Route path="*" element={<Navigate to="/noencontrado" replace />} />

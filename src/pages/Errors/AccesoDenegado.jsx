@@ -6,7 +6,7 @@ export default function AccesoDenegado() {
   return (
     <>
       <PageMeta
-        title="Acceso denegado - Comisariato"
+        title="Acceso Denegado | Comisariato San José"
         description="No tienes permisos para acceder a esta página."
       />
       <div className="relative flex flex-col items-center justify-center min-h-screen p-6 overflow-hidden z-1">

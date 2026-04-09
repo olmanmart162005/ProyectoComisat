@@ -5,7 +5,7 @@ import { useNombreEmpleadoActual } from "../../hooks/useNombreEmpleadoActual";
 import DataTable from "../../components/ui/table/DataTable";
 import MetricCard from "../../components/common/MetricCard";
 import { useModal } from "../../hooks/useModal";
-import { CheckCircleIcon, BoxIconLine, GroupIcon } from "../../icons";
+import { ListIcon, DollarLineIcon, GroupIcon } from "../../icons";
 import ExportButtons from "../../layout/Exportbuttons";
 import { registrarBitacora } from "../../services/bitacora";
 
@@ -86,7 +86,7 @@ export default function PagosMensuales() {
           title="Cuotas a Cobrar"
           value={totalCuotas}
           icon={
-            <BoxIconLine className="text-gray-800 size-6 dark:text-white/90" />
+            <ListIcon className="text-gray-800 size-6 dark:text-white/90" />
           }
           iconWrapperClass="bg-gray-100 dark:bg-gray-800"
         />
@@ -94,7 +94,7 @@ export default function PagosMensuales() {
           title="Monto Total del Mes"
           value={lps(montoTotal)}
           icon={
-            <CheckCircleIcon className="text-green-600 size-6 dark:text-green-400" />
+            <DollarLineIcon className="text-green-600 size-6 dark:text-green-400" />
           }
           iconWrapperClass="bg-green-50 dark:bg-green-500/10"
         />

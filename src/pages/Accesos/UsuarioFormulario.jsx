@@ -213,7 +213,7 @@ export default function UsuarioFormulario() {
                   setTimeout(() => setMostrarSugerencias(false), 150)
                 }
                 placeholder="Buscar empleado..."
-                className="w-full rounded-lg border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-gray-900 outline-none transition-all focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 dark:border-white/10 dark:bg-white/[0.02] dark:text-white"
+                className="w-full rounded-lg border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-gray-900 outline-none transition-all focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 dark:border-white/10 dark:bg-gray-900 dark:text-white/90"
               />
 
               {mostrarSugerencias && busquedaEmpleado.length > 0 && (
@@ -266,7 +266,7 @@ export default function UsuarioFormulario() {
                   required
                   value={correoPersonal}
                   readOnly
-                  className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3.5 py-2.5 text-sm text-gray-900 outline-none transition-all dark:border-white/10 dark:bg-white/[0.02] dark:text-white"
+                  className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3.5 py-2.5 text-sm text-gray-900 outline-none transition-all dark:border-white/10 dark:bg-gray-900 dark:text-white/90"
                 />
               </div>
 
@@ -300,7 +300,7 @@ export default function UsuarioFormulario() {
                 <select
                   value={rolId}
                   onChange={(e) => handleRolChange(e)}
-                  className="w-full rounded-lg border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-gray-900 outline-none transition-all focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 dark:border-white/10 dark:bg-white/[0.02] dark:text-white"
+                  className="w-full rounded-lg border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-gray-900 outline-none transition-all focus:border-blue-500 focus:ring-1 focus:ring-blue-500/20 dark:border-white/10 dark:bg-gray-900 dark:text-white/90"
                 >
                   {rolesSelect.length === 0 ? (
                     <option disabled>Cargando roles...</option>

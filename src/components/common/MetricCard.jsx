@@ -1,6 +1,7 @@
 export default function MetricCard({
   title,
   value,
+  subtitle,
   icon,
   iconWrapperClass = "bg-gray-100 dark:bg-gray-800",
 }) {
@@ -18,6 +19,11 @@ export default function MetricCard({
         <h4 className="mt-0.5 text-xl font-bold text-gray-800 dark:text-white/90">
           {value}
         </h4>
+        {subtitle ? (
+          <p className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
+            {subtitle}
+          </p>
+        ) : null}
       </div>
     </div>
   );

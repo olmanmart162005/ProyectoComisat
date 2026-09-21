@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-import { Link } from "react-router";
+import { Link } from "react-router-dom";
 import { useSidebar } from "../context/SidebarContext";
 import { ThemeToggleButton } from "../components/common/ThemeToggleButton";
 import UserDropdown from "../components/header/UserDropdown.jsx";

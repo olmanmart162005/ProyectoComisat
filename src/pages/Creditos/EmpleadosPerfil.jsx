@@ -3,7 +3,7 @@ import DataTable from "../../components/ui/table/DataTable";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../auth/AuthProvider";
 import { useNombreEmpleadoActual } from "../../hooks/useNombreEmpleadoActual";
-import { EmpleadosPerfilFiltersDropdown } from "../../components/creditos/EmpleadosPerfilFiltersDropdown";
+import { EmpleadosPerfilFiltersDropdown } from "../../components/Creditos/EmpleadosPerfilFiltersDropdown";
 import ExportButtons from "../../layout/Exportbuttons";
 import { registrarBitacora } from "../../services/bitacora";
 import { formatDateForFilename } from "../../utils/formatters";

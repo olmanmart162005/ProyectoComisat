@@ -12,7 +12,7 @@ import {
   DollarLineIcon,
 } from "../../icons";
 import { formatDateForFilename } from "../../utils/formatters";
-import SolicitudesFiltersDropdown from "../../components/creditos/SolicitudesFiltersDropdown";
+import SolicitudesFiltersDropdown from "../../components/Creditos/SolicitudesFiltersDropdown";
 import {
   solicitudColumns,
   COLUMNAS_EXPORT_SOLICITUDES,

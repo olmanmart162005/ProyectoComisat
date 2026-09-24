@@ -1,0 +1,20 @@
+name: Deploy a produccion
+on:
+  push:
+    branches: [main]
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.DO_HOST }}
+          username: ${{ secrets.DO_USER }}
+          key: ${{ secrets.DO_SSH_KEY }}
+          script: |
+            set -e
+            cd ~/ProyectoComisat
+            git pull
+            docker build -t comisariato-app .
+            docker rm -f comisariato-web
+            docker run -d --name comisariato-web --restart unless-stopped -p 8080:80 comisariato-app

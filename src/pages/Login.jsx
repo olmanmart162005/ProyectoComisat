@@ -84,7 +84,7 @@ export default function Login() {
           <button
             type="submit"
             disabled={buscando}
-            className="w-full bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-white font-semibold py-3 rounded-lg transition text-sm tracking-wide"
+            className="w-full bg-emerald-700 hover:bg-emerald-800 disabled:bg-emerald-400 text-white font-semibold py-3 rounded-lg transition text-sm tracking-wide"
           >
             {buscando ? "Verificando..." : "Continuar"}
           </button>

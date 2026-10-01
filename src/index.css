@@ -41,18 +41,23 @@ layer(base);
   --color-white: #ffffff;
   --color-black: #101828;
 
-  --color-brand-25: #f2f7ff;
-  --color-brand-50: #ecf3ff;
-  --color-brand-100: #dde9ff;
-  --color-brand-200: #c2d6ff;
-  --color-brand-300: #9cb9ff;
-  --color-brand-400: #7592ff;
-  --color-brand-500: #465fff;
-  --color-brand-600: #3641f5;
-  --color-brand-700: #2a31d8;
-  --color-brand-800: #252dae;
-  --color-brand-900: #262e89;
-  --color-brand-950: #161950;
+  --color-brand-25: #f4f7fb;
+  --color-brand-50: #eaf0f8;
+  --color-brand-100: #d5e2f1;
+  --color-brand-200: #b0c9e4;
+  --color-brand-300: #80aad2;
+  --color-brand-400: #3b7ebb;
+  --color-brand-500: #0a4b8f;
+  --color-brand-600: #05274f;
+  --color-brand-700: #042042;
+  --color-brand-800: #031730;
+  --color-brand-900: #021021;
+  --color-brand-950: #010914;
+
+  --color-kofe-navy: #05274f;
+  --color-kofe-blue: #0a4b8f;
+  --color-kofe-accent: #f75c01;
+  --color-kofe-amber: #ea580c;
 
   --color-blue-light-25: #f5fbff;
   --color-blue-light-50: #f0f9ff;
@@ -135,7 +140,7 @@ layer(base);
 
   --color-theme-pink-500: #ee46bc;
 
-  --color-theme-purple-500: #7a5af8;
+  --color-theme-purple-500: #0a4b8f;
 
   --shadow-theme-md:
     0px 4px 8px -2px rgba(16, 24, 40, 0.1),

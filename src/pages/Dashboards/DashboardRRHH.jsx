@@ -266,13 +266,13 @@ export default function DashboardRRHH() {
         <div className="grid grid-cols-1 gap-6 xl:grid-cols-2 xl:items-stretch">
           <div className="space-y-6">
             {/* Donut: Distribución por departamento */}
-            <div className="bg-white dark:bg-gray-900 p-6 rounded-lg shadow border border-gray-200 dark:border-gray-700">
-              <div className="mb-4">
-                <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100">
-                  Distribución por departamento
+            <div className="bg-white dark:bg-slate-900/90 p-6 rounded-2xl border border-slate-200/90 dark:border-slate-800/80 shadow-xs hover:shadow-md transition-shadow">
+              <div className="mb-4 pb-3 border-b border-slate-100 dark:border-slate-800">
+                <h2 className="text-base font-bold text-slate-800 dark:text-white uppercase tracking-wider">
+                  Distribución por Departamento
                 </h2>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  Empleados por departamento
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  Total de empleados asignados por área
                 </p>
               </div>
 
@@ -317,14 +317,14 @@ export default function DashboardRRHH() {
             </div>
 
             {/* Bajas recientes */}
-            <div className="bg-white dark:bg-gray-900 p-6 rounded-lg shadow border border-gray-200 dark:border-gray-700">
-              <div className="mb-4 flex items-start justify-between gap-4">
+            <div className="bg-white dark:bg-slate-900/90 p-6 rounded-2xl border border-slate-200/90 dark:border-slate-800/80 shadow-xs hover:shadow-md transition-shadow">
+              <div className="mb-4 pb-3 border-b border-slate-100 dark:border-slate-800 flex items-start justify-between gap-4">
                 <div>
-                  <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100">
-                    Bajas recientes
+                  <h2 className="text-base font-bold text-slate-800 dark:text-white uppercase tracking-wider">
+                    Bajas Recientes
                   </h2>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    Últimos 2 registros
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    Últimos registros de desafiliación
                   </p>
                 </div>
 
@@ -405,14 +405,13 @@ export default function DashboardRRHH() {
           </div>
 
           {/* Movimiento: ocupa toda la columna derecha */}
-          <div className="bg-white dark:bg-gray-900 p-6 rounded-lg shadow border border-gray-200 dark:border-gray-700 h-full">
-            <div className="mb-4">
-              <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100">
-                Movimiento de personal por mes
+          <div className="bg-white dark:bg-slate-900/90 p-6 rounded-2xl border border-slate-200/90 dark:border-slate-800/80 shadow-xs hover:shadow-md transition-shadow h-full">
+            <div className="mb-4 pb-3 border-b border-slate-100 dark:border-slate-800">
+              <h2 className="text-base font-bold text-slate-800 dark:text-white uppercase tracking-wider">
+                Movimiento de Personal por Mes
               </h2>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                Tendencia de rotación: empleados nuevos vs bajas a lo largo del
-                año
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                Tendencia de rotación: ingresos vs egresos anuales
               </p>
             </div>
 

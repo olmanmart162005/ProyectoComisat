@@ -287,9 +287,9 @@ export default function DashboardGestor() {
           title="Total Categorías"
           value={totalCategorias}
           icon={
-            <GroupIcon className="text-gray-800 size-6 dark:text-white/90" />
+            <GroupIcon className="text-amber-600 size-6 dark:text-amber-400" />
           }
-          iconWrapperClass="bg-purple-50 dark:bg-purple-500/10"
+          iconWrapperClass="bg-amber-50 dark:bg-amber-500/10"
         />
         <MetricCard
           title="Productos Agotados"
@@ -311,13 +311,13 @@ export default function DashboardGestor() {
       {!loading && (
         <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
           {/* Productos Agotados - 35% ancho */}
-          <div className="bg-white dark:bg-gray-900 p-6 rounded-lg shadow border border-gray-200 dark:border-gray-700 xl:col-span-1">
-            <div className="mb-4">
-              <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100">
+          <div className="bg-white dark:bg-slate-900/90 p-6 rounded-2xl border border-slate-200/90 dark:border-slate-800/80 shadow-xs hover:shadow-md transition-shadow xl:col-span-1">
+            <div className="mb-4 pb-3 border-b border-slate-100 dark:border-slate-800">
+              <h2 className="text-base font-bold text-slate-800 dark:text-white uppercase tracking-wider">
                 Productos Agotados
               </h2>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                Stock en umbral mínimo.
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                Inventario en umbral crítico o agotado
               </p>
             </div>
 
@@ -400,14 +400,14 @@ export default function DashboardGestor() {
           </div>
 
           {/* Top Vendidos - 65% ancho */}
-          <div className="xl:col-span-2">
-            <div className="mb-4 flex items-start justify-between gap-4">
+          <div className="bg-white dark:bg-slate-900/90 p-6 rounded-2xl border border-slate-200/90 dark:border-slate-800/80 shadow-xs hover:shadow-md transition-shadow xl:col-span-2">
+            <div className="mb-4 pb-3 border-b border-slate-100 dark:border-slate-800 flex items-start justify-between gap-4">
               <div>
-                <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100">
-                  Top 5 productos más vendidos
+                <h2 className="text-base font-bold text-slate-800 dark:text-white uppercase tracking-wider">
+                  Top 5 Productos Más Vendidos
                 </h2>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  Por cantidad de unidades
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  Por cantidad total de unidades vendidas
                 </p>
               </div>
 
@@ -478,11 +478,16 @@ export default function DashboardGestor() {
       {!loading && (
         <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
           {/* Gráfico 1: Dona - Distribución por Categoría */}
-          <div>
-            <h2 className="text-lg font-semibold mb-6 text-gray-800 dark:text-gray-100">
-              Distribución por Categoría
-            </h2>
-            <div className="text-gray-600 dark:text-gray-300 h-72">
+          <div className="bg-white dark:bg-slate-900/90 p-6 rounded-2xl border border-slate-200/90 dark:border-slate-800/80 shadow-xs hover:shadow-md transition-shadow">
+            <div className="mb-4 pb-3 border-b border-slate-100 dark:border-slate-800">
+              <h2 className="text-base font-bold text-slate-800 dark:text-white uppercase tracking-wider">
+                Distribución por Categoría
+              </h2>
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                Proporción de productos por categoría
+              </p>
+            </div>
+            <div className="text-slate-600 dark:text-slate-300 h-72">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
@@ -492,6 +497,7 @@ export default function DashboardGestor() {
                     innerRadius={60}
                     outerRadius={90}
                     paddingAngle={5}
+                    cornerRadius={4}
                     dataKey="cantidad"
                     label={({ name, percent }) =>
                       `${name} (${(percent * 100).toFixed(0)}%)`
@@ -512,10 +518,15 @@ export default function DashboardGestor() {
           </div>
 
           {/* Gráfico 2: Barras - Valor Económico por Categoría */}
-          <div>
-            <h2 className="text-lg font-semibold mb-6 text-gray-800 dark:text-gray-100">
-              Valor del Inventario por Categoría
-            </h2>
+          <div className="bg-white dark:bg-slate-900/90 p-6 rounded-2xl border border-slate-200/90 dark:border-slate-800/80 shadow-xs hover:shadow-md transition-shadow">
+            <div className="mb-4 pb-3 border-b border-slate-100 dark:border-slate-800">
+              <h2 className="text-base font-bold text-slate-800 dark:text-white uppercase tracking-wider">
+                Valor del Inventario por Categoría
+              </h2>
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                Valor total monetario estimado
+              </p>
+            </div>
             <div className="text-gray-600 dark:text-gray-300 h-72">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart

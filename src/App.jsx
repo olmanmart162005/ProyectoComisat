@@ -1,7 +1,13 @@
 import AppRouter from "./routes/AppRouter";
+import SplashScreen from "./components/common/SplashScreen";
 
 function App() {
-  return <AppRouter />;
+  return (
+    <>
+      <SplashScreen />
+      <AppRouter />
+    </>
+  );
 }
 
 export default App;

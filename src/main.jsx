@@ -5,7 +5,7 @@ import { BrowserRouter } from "react-router-dom";
 import "./index.css";
 import "./sileo-custom.css";
 
-import AppRouter from "./routes/AppRouter";
+import App from "./App";
 import { ThemeProvider } from "./context/ThemeContext";
 
 import { AuthProvider } from "./auth/AuthProvider";
@@ -15,7 +15,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(
     <BrowserRouter>
       <AuthProvider> 
         <ThemeProvider>
-          <AppRouter />
+          <App />
         </ThemeProvider>
       </AuthProvider>
     </BrowserRouter>

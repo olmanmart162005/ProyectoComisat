@@ -329,21 +329,21 @@ export default function DashboardOficial() {
           title="Empleados con crédito"
           value={empleadosConCredito}
           icon={
-            <GroupIcon className="text-violet-600 size-6 dark:text-violet-400" />
+            <GroupIcon className="text-brand-600 size-6 dark:text-brand-400" />
           }
-          iconWrapperClass="bg-violet-50 dark:bg-violet-500/10"
+          iconWrapperClass="bg-brand-50 dark:bg-brand-500/10"
         />
       </div>
 
       {!loading && (
         <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
-          <div className="bg-white dark:bg-gray-900 p-6 rounded-lg shadow border border-gray-200 dark:border-gray-700 xl:col-span-1">
-            <div className="mb-4 flex items-start justify-between gap-4">
+          <div className="bg-white dark:bg-slate-900/90 p-6 rounded-2xl border border-slate-200/90 dark:border-slate-800/80 shadow-xs hover:shadow-md transition-shadow xl:col-span-1">
+            <div className="mb-4 pb-3 border-b border-slate-100 dark:border-slate-800 flex items-start justify-between gap-4">
               <div>
-                <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100">
-                  Solicitudes recientes
+                <h2 className="text-base font-bold text-slate-800 dark:text-white uppercase tracking-wider">
+                  Solicitudes Recientes
                 </h2>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
+                <p className="text-xs text-slate-500 dark:text-slate-400">
                   Resumen de las solicitudes más recientes
                 </p>
               </div>
@@ -426,13 +426,13 @@ export default function DashboardOficial() {
             </div>
           </div>
 
-          <div className="xl:col-span-2 bg-white dark:bg-gray-900 p-6 rounded-lg shadow border border-gray-200 dark:border-gray-700">
-            <div className="mb-4 flex items-start justify-between gap-4">
+          <div className="xl:col-span-2 bg-white dark:bg-slate-900/90 p-6 rounded-2xl border border-slate-200/90 dark:border-slate-800/80 shadow-xs hover:shadow-md transition-shadow">
+            <div className="mb-4 pb-3 border-b border-slate-100 dark:border-slate-800 flex items-start justify-between gap-4">
               <div>
-                <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100">
-                  Top 5 deudores por saldo activo
+                <h2 className="text-base font-bold text-slate-800 dark:text-white uppercase tracking-wider">
+                  Top 5 Deudores por Saldo Activo
                 </h2>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
+                <p className="text-xs text-slate-500 dark:text-slate-400">
                   Empleados con mayor saldo pendiente en créditos activos
                 </p>
               </div>
@@ -489,15 +489,14 @@ export default function DashboardOficial() {
       )}
 
       {!loading && (
-        <div className="mt-6 bg-white dark:bg-gray-900 p-6 rounded-lg shadow border border-gray-200 dark:border-gray-700">
-          <div className="mb-4 flex items-start justify-between gap-4">
+        <div className="mt-6 bg-white dark:bg-slate-900/90 p-6 rounded-2xl border border-slate-200/90 dark:border-slate-800/80 shadow-xs hover:shadow-md transition-shadow">
+          <div className="mb-4 pb-3 border-b border-slate-100 dark:border-slate-800 flex items-start justify-between gap-4">
             <div>
-              <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100">
-                Créditos y monto cobrado
+              <h2 className="text-base font-bold text-slate-800 dark:text-white uppercase tracking-wider">
+                Créditos y Monto Cobrado
               </h2>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                Compara créditos aprobados vs cobros por planilla (monto de
-                cuotas) por mes
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                Comparativo de créditos aprobados vs cobros por planilla mensual
               </p>
             </div>
 

@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 import { useSidebar } from "../context/SidebarContext";
 import { useAuth } from "../auth/AuthProvider";
-import supermarketLogo from "../icons/supermarket.svg";
+import logoKofe from "../assets/LOGO_KOFE.png";
 
 // ── Estructura de navegación ───────────────────────────────────────
 const navItems = [
@@ -305,26 +305,40 @@ const AppSidebar = () => {
       onMouseEnter={() => !isExpanded && setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      {/* Logo */}
+      {/* Logo KOFE Oficial */}
       <div
-        className={`py-8 flex ${!showLabel ? "lg:justify-center" : "justify-start"}`}
+        className={`py-6 flex ${!showLabel ? "lg:justify-center" : "justify-start"}`}
       >
-        <Link to="/">
+        <Link to="/" className="flex items-center">
           {showLabel ? (
             <div className="flex items-center gap-3">
-              <img
-                className="shrink-0"
-                src={supermarketLogo}
-                alt="Logo"
-                width={36}
-                height={36}
-              />
-              <span className="text-lg font-semibold text-gray-900 dark:text-white">
-                Comisariato
-              </span>
+              <div className="w-10 h-10 rounded-full bg-white dark:bg-gray-800 p-1 shadow-sm border border-slate-200/80 dark:border-slate-700/60 flex items-center justify-center shrink-0 overflow-hidden">
+                <img
+                  className="w-full h-full object-contain rounded-full"
+                  src={logoKofe}
+                  alt="KOFE Logo"
+                />
+              </div>
+              <div className="flex flex-col">
+                <div className="flex items-center gap-1">
+                  <span className="text-lg font-black tracking-tight text-[#05274f] dark:text-white leading-none">
+                    KOFE
+                  </span>
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#f75c01]" />
+                </div>
+                <span className="text-[10px] font-bold tracking-[0.2em] uppercase text-slate-400 dark:text-slate-400 mt-0.5">
+                  Comisariato
+                </span>
+              </div>
             </div>
           ) : (
-            <img src={supermarketLogo} alt="Logo" width={32} height={32} />
+            <div className="w-9 h-9 rounded-full bg-white dark:bg-gray-800 p-1 shadow-sm border border-slate-200/80 dark:border-slate-700/60 flex items-center justify-center shrink-0 overflow-hidden">
+              <img
+                src={logoKofe}
+                alt="KOFE Logo"
+                className="w-full h-full object-contain rounded-full"
+              />
+            </div>
           )}
         </Link>
       </div>

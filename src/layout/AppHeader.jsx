@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import { useSidebar } from "../context/SidebarContext";
 import { ThemeToggleButton } from "../components/common/ThemeToggleButton";
 import UserDropdown from "../components/header/UserDropdown.jsx";
-import supermarketLogo from "../icons/supermarket.svg";
+import logoKofe from "../assets/LOGO_KOFE.png";
 
 const AppHeader = () => {
   const [isApplicationMenuOpen, setApplicationMenuOpen] = useState(false);
@@ -66,14 +66,17 @@ const AppHeader = () => {
             {/* Cross Icon */}
           </button>
 
-          <Link to="/" className="lg:hidden">
-            <img
-              src={supermarketLogo}
-              alt="Logo"
-              width={36}
-              height={36}
-              className="h-9 w-auto"
-            />
+          <Link to="/" className="lg:hidden flex items-center gap-2">
+            <div className="w-8 h-8 rounded-xl bg-white dark:bg-gray-800 p-0.5 shadow-sm border border-slate-200/80 dark:border-slate-700/60 flex items-center justify-center shrink-0 overflow-hidden">
+              <img
+                src={logoKofe}
+                alt="KOFE Logo"
+                className="w-full h-full object-contain rounded-lg"
+              />
+            </div>
+            <span className="text-base font-black tracking-tight text-[#05274f] dark:text-white">
+              KOFE
+            </span>
           </Link>
 
           <button

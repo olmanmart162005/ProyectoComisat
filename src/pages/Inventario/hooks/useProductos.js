@@ -19,24 +19,49 @@ import {
   sanitizeDescripcionProducto,
   sanitizeNombreProducto,
 } from "../../../utils/productoUtils";
+// ============================================================================
+// VALOR MANUAL EN CÓDIGO - PORCENTAJE DE CRÉDITO (LABORATORIO)
+// Modifica este valor directamente en el código cuando desees cambiar el porcentaje:
+// 0.15 = 15% | 0.20 = 20% | 0.10 = 10% | 0.05 = 5% | etc.
+// ============================================================================
+export const PORCENTAJE_CREDITO_MANUAL = 0.20; // <- CAMBIA ESTE VALOR A TU GUSTO
+
 export function useProductos({ user, nombreEmpleado, cargarProductos = true }) {
   const [productos, setProductos] = useState([]);
   const [categorias, setCategorias] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [porcentajeAumento, setPorcentajeAumento] = useState(0);
+
+  // [MODO MANUAL ACTIVO]: Inicializado con el porcentaje manual en código
+  const [porcentajeAumento, setPorcentajeAumento] = useState(PORCENTAJE_CREDITO_MANUAL);
+  // [MODO ANTERIOR / ORIGINAL]:
+  // const [porcentajeAumento, setPorcentajeAumento] = useState(0);
+
   const [filtroCategoria, setFiltroCategoria] = useState("");
   const [filtroEstadoProducto, setFiltroEstadoProducto] = useState("");
   const [filtroStockRange, setFiltroStockRange] = useState([
     undefined,
     undefined,
   ]);
+
   const fetchConfig = useCallback(async () => {
     try {
+      // =========================================================================
+      // [OPCIÓN ACTUAL ACTIVA]: PORCENTAJE DEFINIDO MANUALMENTE EN CÓDIGO
+      // =========================================================================
+      setPorcentajeAumento(PORCENTAJE_CREDITO_MANUAL);
+
+      // =========================================================================
+      // [OPCIÓN ANTERIOR COMENTADA]: OBTENER PORCENTAJE DESDE BASE DE DATOS (FIRESTORE)
+      // Para volver al comportamiento anterior, comenta la línea de arriba y
+      // descomenta las siguientes líneas:
+      // =========================================================================
+      /*
       const snap = await getDoc(doc(db, "configuracion", "creditoComisariato"));
       if (snap.exists()) {
         const data = snap.data();
         setPorcentajeAumento(Number(data.porcentajeAumento) || 0);
       }
+      */
     } catch (error) {
       console.error("Error al cargar configuración:", error);
     }
@@ -429,4 +454,4 @@ export function useProductos({ user, nombreEmpleado, cargarProductos = true }) {
     actualizarProducto,
     getEstadoProducto,
   };
-}
+}

@@ -62,7 +62,7 @@ const LayoutContent = () => {
     };
 
     const currentTitle = routeTitles[location.pathname] || "Portal Administrativo";
-    document.title = `${currentTitle} | Comisariato San José`;
+    document.title = `${currentTitle} | KOFE – Comisariato`;
   }, [location]);
 
   // ────────────────────────────────────────────────────────────

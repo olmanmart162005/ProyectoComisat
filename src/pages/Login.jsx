@@ -140,7 +140,7 @@ export default function Login() {
           {/* Pie de seguridad en la tarjeta */}
           <div className="mt-8 pt-6 border-t border-slate-100 dark:border-slate-800 flex items-center justify-center gap-2 text-xs text-slate-500 dark:text-slate-400">
             <ShieldCheck size={16} className="text-[#05274f] dark:text-blue-400 shrink-0" />
-            <span>Acceso seguro institucional</span>
+            <span>Acceso seguro institucional (DEV)</span>
           </div>
         </div>
 

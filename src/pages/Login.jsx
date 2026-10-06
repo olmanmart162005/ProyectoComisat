@@ -60,7 +60,7 @@ export default function Login() {
     <div className="min-h-screen bg-slate-50 dark:bg-[#0b172a] flex flex-col items-center justify-center p-4 sm:p-6 transition-colors duration-200 relative">
       <PageMeta
         title="Inicio de Sesión | KOFE – Comisariato"
-        description="Portal administrativo y de gestión de KOFE Comisariato."
+        description="Portal administrativo y de gestión de KOFE Comisariato.(FABIO JOSE)"
       />
 
       {/* Selector de Modo Claro / Modo Oscuro */}

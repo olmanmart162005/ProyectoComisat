@@ -3,13 +3,13 @@ import { db } from "../../../firebase/firebase";
 import {
   addDoc,
   collection,
-  deleteDoc,
   doc,
   getDocs,
   query,
   serverTimestamp,
   updateDoc,
   where,
+  writeBatch,
 } from "firebase/firestore";
 import { registrarBitacora } from "../../../services/bitacora";
 import { notify } from "../../../services/notifier";
@@ -126,11 +126,12 @@ export function useEmpleados({ user, nombreEmpleado }) {
         where("empleadoId", "==", id),
       );
       const snapUsuarios = await getDocs(qUsuarios);
-      await Promise.all(
-        snapUsuarios.docs.map((d) => deleteDoc(doc(db, "usuarios", d.id))),
-      );
+      const batch = writeBatch(db);
+      snapUsuarios.docs.forEach((usuario) => {
+        batch.delete(doc(db, "usuarios", usuario.id));
+      });
       if (empleadoAEliminar) {
-        await addDoc(collection(db, "historialEmpleados"), {
+        const datosHistorial = {
           codigoEmpleado: empleadoAEliminar.codigoEmpleado,
           nombres: empleadoAEliminar.nombres,
           apellidos: empleadoAEliminar.apellidos,
@@ -147,9 +148,19 @@ export function useEmpleados({ user, nombreEmpleado }) {
           bajadoPor: user?.email ?? "desconocido",
           nombreBajadoPor: nombreEmpleado || user?.email || "desconocido",
           usuariosEliminados: snapUsuarios.docs.length,
-        });
+        };
+        const datosHistorialSinCamposAusentes = Object.fromEntries(
+          Object.entries(datosHistorial).filter(
+            ([, value]) => value !== undefined,
+          ),
+        );
+        batch.set(
+          doc(collection(db, "historialEmpleados")),
+          datosHistorialSinCamposAusentes,
+        );
       }
-      await deleteDoc(doc(db, "empleados", id));
+      batch.delete(doc(db, "empleados", id));
+      await batch.commit();
       await registrarBitacora({
         usuario: user?.email ?? "desconocido",
         nombre: nombreEmpleado || user?.email || "desconocido",

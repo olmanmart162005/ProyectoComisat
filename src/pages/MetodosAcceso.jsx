@@ -5,7 +5,7 @@ import { notify } from "../services/notifier";
 import emailjs from "@emailjs/browser";
 import PageMeta from "../components/common/PageMeta";
 import logoKofe from "../assets/LOGO_KOFE.png";
-import { KeyRound, Eye, EyeOff, Mail, ArrowLeft, ShieldCheck, Loader2 } from "lucide-react";
+import { KeyRound, Eye, EyeOff, Mail, ArrowLeft, ShieldCheck, Loader2, ChevronRight } from "lucide-react";
 import { ThemeToggleButton } from "../components/common/ThemeToggleButton";
 
 import { encryptPassword, decryptPassword } from "../services/crypto";
@@ -31,6 +31,7 @@ export default function MetodosAcceso() {
   const [showPassword, setShowPassword] = useState(false);
   const [enviando, setEnviando] = useState(false);
 
+  const [metodoSeleccionado, setMetodoSeleccionado] = useState(null); // null | "password" | "otp"
   const [otpEnviado, setOtpEnviado] = useState(false);
   const [codigoIngresado, setCodigoIngresado] = useState("");
   const [otpGenerado, setOtpGenerado] = useState("");
@@ -94,9 +95,10 @@ export default function MetodosAcceso() {
         docId: userData.id,
         metadata: {
           primerLogin: esPrimerLogin,
+          metodo: "Contraseña",
           detalle: esPrimerLogin
             ? "Ingresó por primera vez al portal"
-            : "Inició sesión en el portal",
+            : "Inició sesión en el portal con contraseña",
         },
       });
 
@@ -131,6 +133,15 @@ export default function MetodosAcceso() {
     Math.floor(100000 + Math.random() * 900000).toString();
 
   const handleEnviarCodigo = async () => {
+    if (!userData.correoPersonal) {
+      notify.error({
+        title: "Correo no configurado",
+        description:
+          "No tienes un correo personal registrado para recibir el código. Por favor ingresa con tu contraseña.",
+      });
+      return;
+    }
+
     setEnviandoOtp(true);
     const codigo = generarOtp();
     const expira = Date.now() + 5 * 60 * 1000; // 5 minutos
@@ -188,16 +199,14 @@ export default function MetodosAcceso() {
 
     if (!encryptedPass) {
       // El usuario limpió caché o entró desde otro navegador
-      notify.error({
-        title: "Sesión no encontrada",
+      notify.warning({
+        title: "Credenciales requeridas",
         description:
-          "Por seguridad necesitas ingresar tu contraseña una vez más.",
+          "Por seguridad en este dispositivo, ingresa con tu contraseña una vez para completar la vinculación.",
       });
-      // Resetea primerLoginHecho en Firestore para forzar flujo de contraseña
-      await updateDoc(doc(db, "usuarios", userData.id), {
-        primerLoginHecho: false,
-      });
-      navigate("/login");
+      setOtpEnviado(false);
+      setCodigoIngresado("");
+      setMetodoSeleccionado("password");
       return;
     }
 
@@ -246,7 +255,8 @@ export default function MetodosAcceso() {
         docId: userData.id,
         metadata: {
           primerLogin: false,
-          detalle: "Inició sesión en el portal",
+          metodo: "OTP",
+          detalle: "Inició sesión en el portal con código OTP",
         },
       });
 
@@ -294,13 +304,110 @@ export default function MetodosAcceso() {
             </div>
           </div>
 
-          {esPrimerLogin ? (
-            // ── Primer login: formulario de contraseña ──
-            <form onSubmit={handleLoginConPassword} className="space-y-5">
-              <div className="bg-blue-50/70 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800/50 rounded-xl p-3.5 text-xs text-blue-900 dark:text-blue-200 flex items-start gap-2.5">
-                <KeyRound size={18} className="text-[#05274f] dark:text-blue-400 shrink-0 mt-0.5" />
-                <span>Es tu primer ingreso. Ingresa tu contraseña asignada para continuar.</span>
+          {/* Caso 1: Logins posteriores sin método seleccionado -> Selector de opciones */}
+          {!esPrimerLogin && metodoSeleccionado === null && (
+            <div className="space-y-5">
+              <div className="text-center space-y-1">
+                <h2 className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
+                  Selecciona tu método de acceso
+                </h2>
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  Elige cómo deseas validar tu identidad
+                </p>
               </div>
+
+              <div className="space-y-3">
+                {/* Opción 1: Contraseña */}
+                <button
+                  type="button"
+                  onClick={() => setMetodoSeleccionado("password")}
+                  className="w-full flex items-center justify-between p-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white hover:bg-slate-50 dark:bg-gray-800/80 dark:hover:bg-gray-800 transition-all shadow-sm hover:shadow group text-left cursor-pointer"
+                >
+                  <div className="flex items-center gap-3.5">
+                    <div className="w-11 h-11 rounded-xl bg-blue-50 dark:bg-blue-900/30 text-[#05274f] dark:text-blue-400 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                      <KeyRound size={20} />
+                    </div>
+                    <div>
+                      <span className="text-sm font-bold text-slate-800 dark:text-white block">
+                        Ingresar con contraseña
+                      </span>
+                      <span className="text-xs text-slate-500 dark:text-slate-400 block mt-0.5">
+                        Accede usando tu contraseña asignada
+                      </span>
+                    </div>
+                  </div>
+                  <ChevronRight
+                    size={18}
+                    className="text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-200 transition-transform group-hover:translate-x-0.5 shrink-0"
+                  />
+                </button>
+
+                {/* Opción 2: OTP */}
+                <button
+                  type="button"
+                  onClick={() => setMetodoSeleccionado("otp")}
+                  className="w-full flex items-center justify-between p-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white hover:bg-slate-50 dark:bg-gray-800/80 dark:hover:bg-gray-800 transition-all shadow-sm hover:shadow group text-left cursor-pointer"
+                >
+                  <div className="flex items-center gap-3.5">
+                    <div className="w-11 h-11 rounded-xl bg-orange-50 dark:bg-orange-900/30 text-[#f75c01] dark:text-orange-400 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                      <ShieldCheck size={20} />
+                    </div>
+                    <div>
+                      <span className="text-sm font-bold text-slate-800 dark:text-white block">
+                        Ingresar con OTP
+                      </span>
+                      <span className="text-xs text-slate-500 dark:text-slate-400 block mt-0.5">
+                        Código de verificación a tu correo
+                      </span>
+                    </div>
+                  </div>
+                  <ChevronRight
+                    size={18}
+                    className="text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-200 transition-transform group-hover:translate-x-0.5 shrink-0"
+                  />
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Caso 2: Primer login O método contraseña seleccionado */}
+          {(esPrimerLogin || metodoSeleccionado === "password") && (
+            <form onSubmit={handleLoginConPassword} className="space-y-5">
+              {!esPrimerLogin && (
+                <div className="flex items-center justify-between pb-1">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setPassword("");
+                      setMetodoSeleccionado(null);
+                    }}
+                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white transition cursor-pointer"
+                  >
+                    <ArrowLeft size={14} />
+                    <span>Cambiar método</span>
+                  </button>
+                  <span className="text-xs font-medium text-slate-400">
+                    Contraseña
+                  </span>
+                </div>
+              )}
+
+              {esPrimerLogin ? (
+                <div className="bg-blue-50/70 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800/50 rounded-xl p-3.5 text-xs text-blue-900 dark:text-blue-200 flex items-start gap-2.5">
+                  <KeyRound
+                    size={18}
+                    className="text-[#05274f] dark:text-blue-400 shrink-0 mt-0.5"
+                  />
+                  <span>
+                    Es tu primer ingreso. Ingresa tu contraseña asignada para
+                    continuar.
+                  </span>
+                </div>
+              ) : (
+                <p className="text-xs text-slate-600 dark:text-slate-300">
+                  Ingresa tu contraseña corporativa para iniciar sesión:
+                </p>
+              )}
 
               <div>
                 <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">
@@ -318,7 +425,7 @@ export default function MetodosAcceso() {
                   <button
                     type="button"
                     onClick={() => setShowPassword((v) => !v)}
-                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition"
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition cursor-pointer"
                   >
                     {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
@@ -340,14 +447,36 @@ export default function MetodosAcceso() {
                 )}
               </button>
             </form>
-          ) : (
-            // ── Logins posteriores: solo OTP ──
+          )}
+
+          {/* Caso 3: Método OTP seleccionado */}
+          {!esPrimerLogin && metodoSeleccionado === "otp" && (
             <div className="space-y-4">
+              <div className="flex items-center justify-between pb-1">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setOtpEnviado(false);
+                    setCodigoIngresado("");
+                    setMetodoSeleccionado(null);
+                  }}
+                  className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white transition cursor-pointer"
+                >
+                  <ArrowLeft size={14} />
+                  <span>Cambiar método</span>
+                </button>
+                <span className="text-xs font-medium text-slate-400">
+                  Código OTP
+                </span>
+              </div>
+
               {!otpEnviado ? (
                 <div className="space-y-4">
                   <p className="text-sm text-slate-600 dark:text-slate-300 text-center">
                     Te enviaremos un código de seguridad a:
-                    <span className="block mt-1 font-semibold text-[#05274f] dark:text-blue-300">{userData.correoPersonal}</span>
+                    <span className="block mt-1 font-semibold text-[#05274f] dark:text-blue-300">
+                      {userData.correoPersonal || "tu correo registrado"}
+                    </span>
                   </p>
                   <button
                     onClick={handleEnviarCodigo}
@@ -368,7 +497,9 @@ export default function MetodosAcceso() {
                 <div className="space-y-4">
                   <p className="text-sm text-slate-600 dark:text-slate-300 text-center">
                     Ingresa el código que enviamos a:
-                    <span className="block mt-1 font-semibold text-[#05274f] dark:text-blue-300">{userData.correoPersonal}</span>
+                    <span className="block mt-1 font-semibold text-[#05274f] dark:text-blue-300">
+                      {userData.correoPersonal}
+                    </span>
                   </p>
                   <div>
                     <input

@@ -15,6 +15,7 @@ import {
   updateDoc,
 } from "firebase/firestore";
 import { notify } from "../services/notifier";
+import { medirSolicitudApi } from "../services/solicitudesApi";
 
 const AuthContext = createContext();
 
@@ -31,7 +32,10 @@ export const AuthProvider = ({ children }) => {
   const getUserData = async (email) => {
     try {
       const q = query(collection(db, "usuarios"), where("correo", "==", email));
-      const querySnapshot = await getDocs(q);
+      const querySnapshot = await medirSolicitudApi(
+        { servicio: "Firestore", operacion: "buscar_usuario_por_correo" },
+        () => getDocs(q),
+      );
 
       if (!querySnapshot.empty) {
         const userData = querySnapshot.docs[0].data();
@@ -42,7 +46,10 @@ export const AuthProvider = ({ children }) => {
           rolNombre = userData.rolNombre;
         } else if (userData.rolId) {
           const roleRef = doc(db, "roles", userData.rolId);
-          const roleSnap = await getDoc(roleRef);
+          const roleSnap = await medirSolicitudApi(
+            { servicio: "Firestore", operacion: "consultar_rol" },
+            () => getDoc(roleRef),
+          );
           if (roleSnap.exists()) {
             rolNombre = roleSnap.data().nombre || "Usuario";
           }
@@ -132,10 +139,13 @@ export const AuthProvider = ({ children }) => {
   };
 
   const login = async (email, password) => {
-    const userCredential = await signInWithEmailAndPassword(
-      auth,
-      email,
-      password,
+    const userCredential = await medirSolicitudApi(
+      { servicio: "Firebase Authentication", operacion: "iniciar_sesion" },
+      () => signInWithEmailAndPassword(
+        auth,
+        email,
+        password,
+      ),
     );
 
     // Verificamos estado ANTES de dejar pasar al usuario en la UI

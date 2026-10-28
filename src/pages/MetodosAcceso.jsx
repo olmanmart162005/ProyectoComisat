@@ -16,6 +16,7 @@ import {
   doc,
   getDocs,
   query,
+  serverTimestamp,
   updateDoc,
   where,
 } from "firebase/firestore";
@@ -104,6 +105,14 @@ export default function MetodosAcceso() {
 
       if (esPrimerLogin) {
         await marcarPrimerLogin(userData.id);
+      }
+
+      try {
+        await updateDoc(doc(db, "usuarios", userData.id), {
+          ultimoIngreso: serverTimestamp(),
+        });
+      } catch (errUltimoIngreso) {
+        console.warn("No se pudo actualizar ultimoIngreso en usuarios:", errUltimoIngreso);
       }
 
       navigate("/");
@@ -215,6 +224,14 @@ export default function MetodosAcceso() {
     try {
       const password = await decryptPassword(encryptedPass, email);
       await login(email, password);
+
+      try {
+        await updateDoc(doc(db, "usuarios", userData.id), {
+          ultimoIngreso: serverTimestamp(),
+        });
+      } catch (errUltimoIngreso) {
+        console.warn("No se pudo actualizar ultimoIngreso:", errUltimoIngreso);
+      }
 
       // Bitácora: Ingreso (no es primer login, porque OTP solo aplica después)
       // Obtener nombre del empleado desde Firestore

@@ -1,4 +1,5 @@
 import emailjs from "@emailjs/browser";
+import { medirSolicitudApi } from "./solicitudesApi";
 
 /**
  * Genera una contraseña temporal basada en datos del empleado.
@@ -26,15 +27,18 @@ export async function enviarCorreoCredenciales({
   passwordGenerada,
   correoDestino,
 }) {
-  await emailjs.send(
-    import.meta.env.VITE_EMAILJS_SERVICE_ID,
-    import.meta.env.VITE_EMAILJS_TEMPLATE_CREDENCIALES_ID,
-    {
-      nombre,
-      correo_institucional: correoInstitucional,
-      password_generada: passwordGenerada,
-      correo_destino: correoDestino,
-    },
-    import.meta.env.VITE_EMAILJS_PUBLIC_KEY,
+  return medirSolicitudApi(
+    { servicio: "EmailJS", operacion: "enviar_credenciales" },
+    () => emailjs.send(
+      import.meta.env.VITE_EMAILJS_SERVICE_ID,
+      import.meta.env.VITE_EMAILJS_TEMPLATE_CREDENCIALES_ID,
+      {
+        nombre,
+        correo_institucional: correoInstitucional,
+        password_generada: passwordGenerada,
+        correo_destino: correoDestino,
+      },
+      import.meta.env.VITE_EMAILJS_PUBLIC_KEY,
+    ),
   );
 }

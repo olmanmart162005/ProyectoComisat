@@ -93,7 +93,7 @@ export default function Login() {
               Comisariato
             </p>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-              Portal Administrativo y de Gestión
+              Eduar Yared Posadas Handal
             </p>
           </div>
 

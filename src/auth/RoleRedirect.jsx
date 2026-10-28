@@ -3,11 +3,13 @@ import { useAuth } from "./AuthProvider";
 
 const ROLE_HOME = {
   Administrador: "/dashboard",
+  Gerente: "/dashboard-gerente",
   "Gestor de Inventario": "/dashboard-gestor",
   "Oficial de Credito": "/dashboard-oficial",
   "Recursos Humanos": "/dashboard-rrhh",
   Empleado: "/descarga-app",
-  "DB Manager": "/activaciones"
+  "DB Manager": "/dashboard-tecnico",
+  Técnico: "/dashboard-tecnico",
 };
 
 export const RoleRedirect = () => {

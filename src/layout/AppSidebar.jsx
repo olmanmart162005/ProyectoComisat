@@ -27,10 +27,13 @@ const navItems = [
     path: "/",
     allowedRoles: [
       "Administrador",
+      "Gerente",
       "Gestor de Inventario",
       "Oficial de Credito",
       "Recursos Humanos",
       "Empleado",
+      "DB Manager",
+      "Técnico",
     ],
   },
   {

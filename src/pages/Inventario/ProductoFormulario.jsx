@@ -405,9 +405,7 @@ export default function ProductoFormulario() {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="mb-1.5 ml-1 block text-[10px] font-bold uppercase text-gray-400 dark:text-gray-500">
-                  Costo
-                </label>
+                <label className="mb-1.5 ml-1 block text-[10px] font-bold uppercase text-gray-400 dark:text-gray-500">Precio Contado (L.)</label>
                 <input
                   type="text"
                   inputMode="decimal"
@@ -425,9 +423,7 @@ export default function ProductoFormulario() {
                 />
               </div>
               <div>
-                <label className="mb-1.5 ml-1 block text-[10px] font-bold uppercase text-gray-400 dark:text-gray-500">
-                  Venta
-                </label>
+                <label className="mb-1.5 ml-1 block text-[10px] font-bold uppercase text-gray-400 dark:text-gray-500">Precio Crédito (L.)</label>
                 <input
                   type="text"
                   inputMode="decimal"
@@ -534,4 +530,4 @@ export default function ProductoFormulario() {
       </form>
     </PageShell>
   );
-}
+}

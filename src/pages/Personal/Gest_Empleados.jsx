@@ -5,6 +5,7 @@ import ConfirmDeleteModal from "../../components/common/ConfirmDeleteModal";
 import MetricCard from "../../components/common/MetricCard";
 import { GroupIcon, CheckCircleIcon, CloseIcon } from "../../icons";
 import ExportButtons from "../../layout/Exportbuttons";
+import ImportButton from "../../layout/ImportButton";
 import { useAuth } from "../../auth/AuthProvider";
 import { useNombreEmpleadoActual } from "../../hooks/useNombreEmpleadoActual";
 import { registrarBitacora } from "../../services/bitacora";
@@ -33,6 +34,7 @@ export default function Gest_Empleados() {
     filtroEstado,
     setFiltroEstado,
     handleEliminar,
+    fetchEmpleados,
   } = useEmpleados({ user, nombreEmpleado });
   const [empleadoAEliminar, setEmpleadoAEliminar] = useState(null);
   const [eliminando, setEliminando] = useState(false);
@@ -126,6 +128,7 @@ export default function Gest_Empleados() {
               filtroEstado={filtroEstado}
               setFiltroEstado={setFiltroEstado}
             />
+            <ImportButton schemaKey="empleados" onImportSuccess={fetchEmpleados} refData={{ departamentos, empleados }} user={user} nombreEmpleado={nombreEmpleado} />
             <ExportButtons
               rows={empleadosFiltrados}
               columns={COLUMNAS_EXPORT_EMPLEADOS}

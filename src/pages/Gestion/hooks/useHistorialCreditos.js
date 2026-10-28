@@ -14,6 +14,7 @@ export const ESTADOS_CREDITO = ["Activo", "Pagado", "Cancelado", "Finalizado"];
 export function useHistorialCreditos() {
   const [todasCuotas, setTodasCuotas] = useState([]);
   const [todosCreditos, setTodosCreditos] = useState([]);
+  const [empleados, setEmpleados] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const [rangoFecha, setRangoFecha] = useState("mes");
@@ -23,12 +24,14 @@ export function useHistorialCreditos() {
   const fetchDatos = async () => {
     setLoading(true);
     try {
-      const [snapCuotas, snapCreditos] = await Promise.all([
+      const [snapCuotas, snapCreditos, snapEmpleados] = await Promise.all([
         getDocs(collection(db, "cuotas")),
         getDocs(collection(db, "creditos")),
+        getDocs(collection(db, "empleados")),
       ]);
       setTodasCuotas(snapCuotas.docs.map((d) => ({ id: d.id, ...d.data() })));
       setTodosCreditos(snapCreditos.docs.map((d) => ({ id: d.id, ...d.data() })));
+      setEmpleados(snapEmpleados.docs.map((d) => ({ id: d.id, ...d.data() })));
     } catch (err) {
       console.error("Error al cargar historial:", err);
     } finally {
@@ -146,14 +149,14 @@ export function useHistorialCreditos() {
         (acc, c) => acc + Number(c.montoCuota ?? 0),
         0,
       );
-      const empleados = new Set(cuotas.map((c) => c.empleadoId).filter(Boolean));
+      const empleadosSet = new Set(cuotas.map((c) => c.empleadoId).filter(Boolean));
       const pagados = creditos.filter(
         (c) => String(c.estadoCredito ?? "").toLowerCase() === "pagado",
       ).length;
       return {
         totalCuotas: cuotas.length,
         montoTotal: monto,
-        empleadosUnicos: empleados.size,
+        empleadosUnicos: empleadosSet.size,
         creditosPagados: pagados,
       };
     }, [cuotas, creditos]);
@@ -172,5 +175,7 @@ export function useHistorialCreditos() {
     montoTotal,
     empleadosUnicos,
     creditosPagados,
+    fetchDatos,
+    empleados,
   };
 }

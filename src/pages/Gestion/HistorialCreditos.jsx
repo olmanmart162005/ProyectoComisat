@@ -1,6 +1,7 @@
 import DataTable from "../../components/ui/table/DataTable";
 import MetricCard from "../../components/common/MetricCard";
 import ExportButtons from "../../layout/Exportbuttons";
+import ImportButton from "../../layout/ImportButton";
 import { useNavigate } from "react-router-dom";
 import {
   ListIcon,
@@ -39,6 +40,8 @@ export default function HistorialCreditos() {
     montoTotal,
     empleadosUnicos,
     creditosPagados,
+    fetchDatos,
+    empleados,
   } = useHistorialCreditos();
   const [fechaInicioDP, fechaFinDP] = rangoPersonalizado;
   const columnasCreditos = historialCreditoColumns({
@@ -121,6 +124,7 @@ export default function HistorialCreditos() {
                   />
                 }
               />
+              <ImportButton schemaKey="historialCreditos" onImportSuccess={fetchDatos} refData={{ empleados, creditos }} user={user} nombreEmpleado={nombreEmpleado} />
               <ExportButtons
                 rows={creditos}
                 columns={COLUMNAS_EXPORT_HISTORIAL_CREDITOS}

@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { PackageCheck } from "lucide-react";
 import DataTable from "../../components/ui/table/DataTable";
 import ExportButtons from "../../layout/Exportbuttons";
+import ImportButton from "../../layout/ImportButton";
 import MetricCard from "../../components/common/MetricCard";
 import ConfirmDeleteModal from "../../components/common/ConfirmDeleteModal";
 import { useAuth } from "../../auth/AuthProvider";
@@ -46,6 +47,7 @@ export default function Gest_Productos() {
     filtroStockRange,
     setFiltroStockRange,
     handleEliminar,
+    fetchProductos,
   } = useProductos({ user, nombreEmpleado });
   const abrirConfirmacionEliminar = (productoId) => {
     const producto = productos.find((item) => item.id === productoId) || null;
@@ -136,7 +138,8 @@ export default function Gest_Productos() {
               setFiltroStockRange={setFiltroStockRange}
             />
           </div>
-          <ExportButtons
+          <ImportButton schemaKey="productos" onImportSuccess={fetchProductos} refData={{ categorias, productos, porcentajeAumento }} user={user} nombreEmpleado={nombreEmpleado} />
+            <ExportButtons
             rows={productosFiltrados}
             columns={COLUMNAS_EXPORT_PRODUCTOS}
             filename={"Productos Seleccionados " + formatDateForFilename()}

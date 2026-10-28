@@ -18,6 +18,8 @@ import Dashboard from "../pages/Dashboards/Dashboard";
 import DashboardGestor from "../pages/Dashboards/DashboardGestor";
 import DashboardOficial from "../pages/Dashboards/DashboardOficial";
 import DashboardRRHH from "../pages/Dashboards/DashboardRRHH";
+import DashboardGerencial from "../pages/Dashboards/DashboardGerencial";
+import DashboardTecnico from "../pages/Dashboards/DashboardTecnico";
 import DescargaApp from "../pages/DescargaApp";
 
 // Pantallas generales
@@ -89,8 +91,26 @@ export default function AppRouter() {
           <Route
             path="dashboard"
             element={
-              <RoleRoute roles={["Administrador"]}>
+              <RoleRoute roles={["Administrador"]} redirectToRoleHome>
                 <Dashboard />
+              </RoleRoute>
+            }
+          />
+
+          <Route
+            path="dashboard-gerente"
+            element={
+              <RoleRoute roles={["Gerente"]} redirectToRoleHome>
+                <DashboardGerencial />
+              </RoleRoute>
+            }
+          />
+
+          <Route
+            path="dashboard-tecnico"
+            element={
+              <RoleRoute roles={["DB Manager", "Técnico"]} redirectToRoleHome>
+                <DashboardTecnico />
               </RoleRoute>
             }
           />
@@ -107,7 +127,7 @@ export default function AppRouter() {
           <Route
             path="dashboard-gestor"
             element={
-              <RoleRoute roles={["Gestor de Inventario"]}>
+              <RoleRoute roles={["Gestor de Inventario"]} redirectToRoleHome>
                 <DashboardGestor />
               </RoleRoute>
             }
@@ -115,7 +135,7 @@ export default function AppRouter() {
           <Route
             path="dashboard-oficial"
             element={
-              <RoleRoute roles={["Oficial de Credito"]}>
+              <RoleRoute roles={["Oficial de Credito"]} redirectToRoleHome>
                 <DashboardOficial />
               </RoleRoute>
             }
@@ -123,7 +143,7 @@ export default function AppRouter() {
           <Route
             path="dashboard-rrhh"
             element={
-              <RoleRoute roles={["Recursos Humanos"]}>
+              <RoleRoute roles={["Recursos Humanos"]} redirectToRoleHome>
                 <DashboardRRHH />
               </RoleRoute>
             }

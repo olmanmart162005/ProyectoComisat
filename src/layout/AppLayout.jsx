@@ -56,9 +56,11 @@ const LayoutContent = () => {
       "/historial-empleados": "Historial de Empleados",
       "/activaciones": "Activaciones de Usuarios",
       "/dashboard": "Panel Administrador",
+      "/dashboard-gerente": "Dashboard Gerencial",
       "/dashboard-gestor": "Panel de Inventario",
       "/dashboard-oficial": "Panel de Créditos",
       "/dashboard-rrhh": "Panel de RRHH",
+      "/dashboard-tecnico": "Dashboard Técnico",
     };
 
     const currentTitle = routeTitles[location.pathname] || "Portal Administrativo";
